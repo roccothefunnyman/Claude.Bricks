@@ -298,8 +298,8 @@ L "0 // Side walls"
 for ($row = 1; $row -le 12; $row++) {
     $y = 140 - $row * 24
     $off = (($row % 2) * 20)
-    FillZ $Tan  0 640 $y $LX $off
-    FillZ $Blue 0 640 $y $RX $off
+    FillZ $Tan  20 620 $y $LX $off
+    FillZ $Blue 20 620 $y $RX $off
 }
 
 # --- BACK WALL (ground floor) ---
@@ -345,8 +345,8 @@ foreach ($yp in @($fsy1, $fsy2)) {
     FillXPlate $Blue $DivX 640 $yp $BZ
 
     # Side walls
-    FillZPlate $Tan  0 640 $yp $LX
-    FillZPlate $Blue 0 640 $yp $RX
+    FillZPlate $Tan  20 620 $yp $LX
+    FillZPlate $Blue 20 620 $yp $RX
 
     # --- INTERIOR FLOOR PLATES (not touching any exterior wall) ---
     for ($z = ($FZ + 20); $z -le ($BZ - 20); $z += 20) {
@@ -438,8 +438,8 @@ L "0 // Side walls"
 for ($row = 1; $row -le 12; $row++) {
     $y = -164 - $row * 24
     $off = (($row % 2) * 20)
-    FillZ $Tan  0 640 $y $LX $off
-    FillZ $Blue 0 640 $y $RX $off
+    FillZ $Tan  20 620 $y $LX $off
+    FillZ $Blue 20 620 $y $RX $off
 }
 
 # --- BACK WALL (first floor) ---
@@ -489,7 +489,7 @@ L "0 // Left section parapet"
 FillX $Tan 0 $DivX $leftParY $FZ
 FillXTile $Tan 0 $DivX ($leftParY - 8) $FZ
 # Left side
-FillZ $Tan 0 640 $leftParY $LX
+FillZ $Tan 20 620 $leftParY $LX
 # Back
 FillX $Tan 0 $DivX $leftParY $BZ
 
@@ -504,7 +504,7 @@ FillX $Blue $DivX 640 $parapetY2 $FZ
 FillXTile $LtGray $DivX 640 ($parapetY2 - 8) $FZ
 
 # Right side parapet (1 brick)
-FillZ $Blue 0 640 $parapetY1 $RX
+FillZ $Blue 20 620 $parapetY1 $RX
 
 # Right back parapet (1 brick)
 FillX $Blue $DivX 640 $parapetY1 $BZ
