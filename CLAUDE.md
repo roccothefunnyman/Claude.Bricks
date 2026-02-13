@@ -69,15 +69,19 @@ Back-facing slope:  -1 0 0 0 1 0 0 0 -1   (inverted = 180°)
 Code  Color                  Code  Color
 ----  -----                  ----  -----
 0     Black                  14    Yellow
-15    White                  19    Tan
+6     Brown                  15    White
+9     Light Blue             19    Tan
 28    Dark Tan               47    Trans Clear
 70    Reddish Brown          71    Light Bluish Gray
 72    Dark Bluish Gray       84    Medium Dark Flesh
-378   Sand Green             484   Dark Orange
-150   Medium Nougat*         462   Medium Orange
+212   Bright Light Blue      378   Sand Green
+462   Medium Orange          484   Dark Orange
+150   Medium Nougat*
 
 * Medium Nougat (150) may not render in all stud.io versions.
   Use Dark Tan (28) as safe fallback. Configurable via $MN in scripts.
+* Bright Light Blue (212) valid in modern LDraw/stud.io.
+  Use Light Blue (9) as universal fallback for older viewers.
 ```
 
 ### Common Parts
@@ -108,16 +112,28 @@ WINDOWS & DOORS:
   3853.dat   = Window 1x4x3
   3856.dat   = Window Glass 1x4x3
 
+ARCHES:
+  3659.dat   = Arch 1x4 (2 bricks tall)
+  6183.dat   = Arch 1x4x3 (3 bricks tall)
+  3307.dat   = Arch 1x6x2 (wide, 2 bricks tall)
+  3308.dat   = Arch 1x8x2 (very wide, 2 bricks tall)
+
 SLOPES:
   3040b.dat  = Slope 45 2x1         3037.dat  = Slope 45 2x4
   3039.dat   = Slope 45 2x2         3038.dat  = Slope 45 2x3
   85984.dat  = Slope 30 1x2x2/3     92946.dat = Slope 30 2x2x2/3
+  3665.dat   = Slope Inv 45 2x1 (corbels, under-cornice)
+
+BASEPLATES:
+  3811.dat   = Baseplate 32x32 (center at 320,140,320)
+  3867.dat   = Baseplate 16x32
 
 SPECIALTY:
   87087.dat  = Brick 1x1 w/ stud on side (SNOT)
   98283.dat  = Brick 1x2 masonry profile
   15254.dat  = Round Tile 1x1 (quarter circle)
   4070.dat   = Brick 1x1 w/ headlight
+  4073.dat   = Round Plate 1x1 (flowers, finials)
   2877.dat   = Brick 1x2 w/ grille
   30136.dat  = Palisade Brick 1x2
 ```

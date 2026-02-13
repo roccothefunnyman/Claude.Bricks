@@ -173,15 +173,47 @@ Slopes face "down" in their default orientation. To make them face different dir
 | 30055.dat | Fence 1x4x2 | Spindled railing |
 | 3185.dat | Fence 1x4x2 | Lattice style |
 
+## Baseplates
+
+| Part | Name | Size (studs) | LDU | Notes |
+|------|------|:---:|---|---|
+| 3811.dat | Baseplate 32x32 | 32x32 | 640x640 | Standard modular base |
+| 3867.dat | Baseplate 16x32 | 16x32 | 320x640 | Half-width module |
+| 3865.dat | Baseplate 8x16 | 8x16 | 160x320 | Small vignette |
+
+### Baseplate Placement
+Baseplates are positioned by **center-top**, same as all parts. For a 32x32 baseplate:
+```
+Center X = 320, Center Z = 320
+Place at: (320, 140, 320) for standard ground level
+```
+Baseplates are very thin (~3 LDU) and serve as the foundation layer.
+
 ## Arch Parts
 
-| Part | Name | Size | Notes |
-|------|------|---|---|
-| 3659.dat | Arch 1x4 | 1x4x2 | Simple arch |
-| 6183.dat | Arch 1x4x3 | 1x4x3 | Tall arch |
-| 3307.dat | Arch 1x6x2 | 1x6x2 | Wide arch |
-| 3308.dat | Arch 1x8x2 | 1x8x2 | Very wide arch |
-| 2339.dat | Arch 1x5x4 | 1x5x4 | Doorway arch |
+| Part | Name | Size | Height | Notes |
+|------|------|---|---|---|
+| 3659.dat | Arch 1x4 | 1x4 | 2 bricks (48 LDU) | Simple arch |
+| 6183.dat | Arch 1x4x3 | 1x4 | 3 bricks (72 LDU) | Tall arch |
+| 3307.dat | Arch 1x6x2 | 1x6 | 2 bricks (48 LDU) | Wide arch |
+| 3308.dat | Arch 1x8x2 | 1x8 | 2 bricks (48 LDU) | Very wide arch |
+| 2339.dat | Arch 1x5x4 | 1x5 | 4 bricks (96 LDU) | Doorway arch |
+
+### Arch Placement with Windows
+When combining an arch piece above a window frame, calculate Y positions carefully:
+```
+Window frame (60594.dat, 6 bricks = 144 LDU):
+  Place at Y where frame bottom = ground level
+  Y_window = ground_Y - 144   (e.g., 140 - 144 = -4)
+
+Arch (3307.dat, 2 bricks = 48 LDU):
+  Place so arch bottom touches window top
+  Y_arch = Y_window - 48      (e.g., -4 - 48 = -52)
+
+Wall gap: must span from ground to arch top
+  Gap rows = rows covering Y_ground to Y_arch
+```
+The arch is typically wider than the window (e.g., 6-stud arch over 4-stud window), creating a recessed look.
 
 ## Bracket Parts
 

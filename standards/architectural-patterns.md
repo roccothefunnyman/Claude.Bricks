@@ -214,6 +214,37 @@ Creates a pyramid-profile overhang. Classic on brownstones.
 4. Or: arch only (no glass) for decorative openings
 ```
 
+### 14b. Wide Arched Window with Frame (Townhouse pattern)
+Combines a wide arch (6-8 studs) with a standard 4-stud window frame inside.
+
+```
+Y coordinate calculation (ground floor, ground=140):
+  Window (60594.dat, 6 bricks):  Y_win = 140 - 144 = -4
+  Arch (3307.dat, 2 bricks):    Y_arch = -4 - 48 = -52
+
+Wall gap: X=60 to X=180 (6 studs), rows 1-8 (Y=116 to Y=-52)
+  - Rows 1-6: clear opening (window fills this)
+  - Rows 7-8: arch piece fills this
+  - Rows 9+: solid wall above
+
+Script pattern:
+  # Wall rows with arch gap
+  for ($row = 1; $row -le 12; $row++) {
+      $y = 140 - $row * 24
+      if ($row -le 8) {
+          WallRowX $color $x1 $x2 $y $z $archGap ($row % 2 * 20)
+      } else {
+          FillX $color $x1 $x2 $y $z ($row % 2 * 20)
+      }
+  }
+  # Arch above window
+  B $color $archCenterX -52 $z "3307.dat" $R0
+  # Window inside arch
+  PlaceWindow $White $archCenterX -4 $z
+```
+
+**Note:** The window (4 studs) is narrower than the arch (6 studs), creating a recessed alcove effect. The 1-stud gap on each side looks like reveal/depth in the arch opening.
+
 ### 15. Symmetric Window Arrangement
 For a 32-stud-wide facade with 3 windows on upper floor:
 
@@ -345,12 +376,36 @@ Position: above storefront window or door
 
 ## Detail Patterns
 
-### 24. Flower Box
+### 24. Flower Box / Window Box
 ```
 1. Bracket (44728.dat) mounted below window
 2. Small plate on bracket
 3. Flower/plant elements on plate
 4. Color: Green (2) or Bright Green (326) for plants
+```
+
+**Simplified window box (no bracket, Townhouse pattern):**
+```
+For upper-floor windows: place a 1x4 plate (3710.dat) in Brown (6) at
+the floor separation plate level (Y = floor_sep_Y), offset 1 stud
+in front of wall (Z = wall_Z - 20). Add 1x1 round plates (4073.dat)
+on top in Yellow (14) and Green (10) as flowers.
+
+Script pattern:
+  function WindowBox($x, $y, $z) {
+      B $Brown $x $y $z "3710.dat" $R0        # shelf
+      B $Yellow ($x-20) ($y-8) $z "4073.dat"  # flower
+      B $Green  $x      ($y-8) $z "4073.dat"  # flower
+      B $Yellow ($x+20) ($y-8) $z "4073.dat"  # flower
+  }
+
+Ground-floor caveat: if windows start at ground level (Y=140),
+there is no room below them for a wall-mounted box. Options:
+  A. Place the box AT ground level in front of the wall as a planter
+     (Y=140, Z = wall_Z - 20)
+  B. Use half-height windows (3853.dat) raised 2-3 rows above ground
+     to leave room for a box below
+  C. Skip ground-floor boxes (common in real architecture)
 ```
 
 ### 25. Lamp / Lantern

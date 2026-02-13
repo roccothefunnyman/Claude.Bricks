@@ -202,6 +202,28 @@ function WallRowZ([int]$c,[double]$zMin,[double]$zMax,[double]$y,[double]$x,[arr
 }
 
 # ============================================================
+# FLOOR / AREA FILL HELPERS
+# ============================================================
+
+# Fill a rectangular floor area with 1-wide plates
+# Loops Z in 20 LDU steps, filling X spans at each row
+function FloorFill([int]$c,[double]$xMin,[double]$xMax,[double]$y,[double]$zMin,[double]$zMax) {
+    for ($z = $zMin; $z -lt $zMax - 0.1; $z += 20) {
+        FillXPlate $c $xMin $xMax $y ($z + 10)
+    }
+}
+
+# Window box: brown shelf plate + 3 flower round plates on top
+# Place at ($x, $y, $z) where $z is typically 1 stud in front of wall
+function WindowBox([int]$shelfColor,[double]$x,[double]$y,[double]$z,[int]$flower1=14,[int]$flower2=10) {
+    B $shelfColor $x $y $z "3710.dat" $R0
+    $fy = $y - 8
+    B $flower1 ($x - 20) $fy $z "4073.dat" $R0
+    B $flower2  $x       $fy $z "4073.dat" $R0
+    B $flower1 ($x + 20) $fy $z "4073.dat" $R0
+}
+
+# ============================================================
 # REFERENCE-CONFIRMED PATTERN HELPERS
 # ============================================================
 
@@ -295,64 +317,127 @@ $MN        = 28   # Medium Nougat (use 28 as safe fallback for 150)
 # ============================================================
 # BUILDING DIMENSIONS (customize per building)
 # ============================================================
+# --- 32x16 depth (common modular) ---
 $Width = 640      # 32 studs along X
 $Depth = 320      # 16 studs along Z
 $FZ = 10          # front wall Z (center of 1-stud wall)
 $BZ = 310         # back wall Z
 $LX = 10          # left wall X
 $RX = 630         # right wall X
-$yGround = 0      # ground level Y
+$yGround = 140    # ground level Y (top of baseplate)
+
+# --- For 32x32 depth, change these: ---
+# $Depth = 640    # 32 studs along Z
+# $BZ = 630       # back wall Z
 
 # ============================================================
-# FILE HEADER
+# FILE HEADER — SINGLE-FILE MODEL
 # ============================================================
+# Use this for simple buildings without submodels:
+#
+# L "0 FILE $ModelName.ldr"
+# L "0 $ModelName"
+# L "0 Name: $ModelName.ldr"
+# L "0 Author: Claude.Bricks"
+# L "0 !LDRAW_ORG Model"
+
+# ============================================================
+# FILE HEADER — MULTI-PART WITH SUBMODELS (recommended)
+# ============================================================
+# Master model references submodels; all in one .ldr file.
+# Submodels use absolute coordinates, referenced at origin.
+
 L "0 FILE $ModelName.ldr"
 L "0 $ModelName"
-L "0 Name: $ModelName"
-L "0 Author: Claude"
+L "0 Name: $ModelName.ldr"
+L "0 Author: Claude.Bricks"
+L "0 !LDRAW_ORG Model"
+L ""
+L "1 16 0 0 0 $R0 base.ldr"
+L "1 16 0 0 0 $R0 ground_floor.ldr"
+L "1 16 0 0 0 $R0 first_floor.ldr"
+L "1 16 0 0 0 $R0 roof.ldr"
+L "0 NOFILE"
+L ""
 
-# ============================================================
-# BUILDING GENERATION
-# (Replace everything below with actual building logic)
-# ============================================================
-
-# --- Foundation ---
+# --- Submodel: base ---
+L "0 FILE base.ldr"
+L "0 base"
+L "0 Name: base.ldr"
+L "0 Author: Claude.Bricks"
+# Baseplate: B $BaseColor 320 140 320 "3811.dat" (32x32)
+#            B $BaseColor 320 140 160 "3867.dat" (16x32)
+# Sidewalk plates/tiles here
 L "0 STEP"
-# FillXPlate, FillZPlate for base plates
+L "0 NOFILE"
+L ""
+
+# --- Submodel: ground_floor ---
+L "0 FILE ground_floor.ldr"
+L "0 ground_floor"
+L "0 Name: ground_floor.ldr"
+L "0 Author: Claude.Bricks"
+
+# BUILDING GENERATION
+# Wall row loop pattern (alternating offset for staggered joints):
+#   for ($row = 1; $row -le 12; $row++) {
+#       $y = 140 - $row * 24
+#       $off = ($row % 2) * 20
+#       WallRowX $color $LX $RX $y $FZ $gaps $off
+#   }
 
 # --- Ground floor walls (row by row, Y decreasing) ---
-L "0 STEP"
 # WallRowX / MasonryRowX for each row
 # Skip gaps for windows/doors
 
 # --- Ground floor windows & doors ---
-L "0 STEP"
 # PlaceWindow / PlaceDoor
 
-# --- Floor separation ---
 L "0 STEP"
-# FillXPlate layers
+L "0 NOFILE"
+L ""
+
+# --- Submodel: first_floor ---
+L "0 FILE first_floor.ldr"
+L "0 first_floor"
+L "0 Name: first_floor.ldr"
+L "0 Author: Claude.Bricks"
+
+# --- Floor separation plates ---
+# FloorFill $LtGray $LX $RX -156 0 $Depth
+# FloorFill $LtGray $LX $RX -164 0 $Depth
 
 # --- Upper floor walls ---
-L "0 STEP"
-# Same pattern as ground floor
+# Same pattern as ground floor, Y = -164 - row*24
 
 # --- Upper floor windows ---
-L "0 STEP"
 
 # --- Cornice / dentil band ---
-L "0 STEP"
 # DentilBandX / DentilBandZ
 
-# --- Roof ---
 L "0 STEP"
-# FillXPlate for platform
+L "0 NOFILE"
+L ""
+
+# --- Submodel: roof ---
+L "0 FILE roof.ldr"
+L "0 roof"
+L "0 Name: roof.ldr"
+L "0 Author: Claude.Bricks"
+
+# --- Roof plates ---
+# FloorFill for platform
+
+# --- Parapet ---
+# FillX for parapet walls, FillXTile for cap
+
+# --- Roof details ---
 # SlopeRidge for peaked roof
 # FinialRowX for decorative edge
+# WindowBox for flower details
 
-# --- Details ---
 L "0 STEP"
-# Awnings, signs, flower boxes, lamps
+L "0 NOFILE"
 
 # ============================================================
 # OUTPUT

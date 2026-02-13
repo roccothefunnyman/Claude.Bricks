@@ -38,6 +38,7 @@
 | 308 | Dark Brown | #352100 | Heavy wood, Tudor |
 | 320 | Dark Red | #720000 | Victorian facades, rich accent |
 | 321 | Dark Azure | #469BC3 | Cool accent |
+| 322 | Medium Azure | #36AEBF | Bright accent, water features |
 | 326 | Bright Green | #84B68D | Light plant accent |
 | 330 | Olive Green | #77774E | Military, earthy |
 | 335 | Sand Blue | #596E79 | Muted accent, slate |
@@ -48,6 +49,17 @@
 | 379 | Sand Blue | #597184 | Alternate sand blue |
 | 462 | Medium Orange | #F58624 | Warm detail |
 | 484 | Dark Orange | #91501C | Rich warm accent |
+
+### Light / Bright Blue Variants
+| Code | Color Name | Hex | Common Use |
+|:---:|---|---|---|
+| 9 | Light Blue | #B4D4F7 | Safe light blue fallback (original LDraw palette) |
+| 73 | Medium Blue | #7DBFDD | Decorative, water features |
+| 212 | Bright Light Blue | #9FC3E9 | Pastel blue facades (stud.io compatible) |
+| 321 | Dark Azure | #469BC3 | Cool accent |
+| 322 | Medium Azure | #36AEBF | Bright accent |
+
+**Note:** Color 212 (Bright Light Blue) is valid in modern LDraw ldconfig.ldr and stud.io, but may not render in older viewers. Use color 9 (Light Blue) as a universal fallback.
 
 ### Transparent Colors
 
