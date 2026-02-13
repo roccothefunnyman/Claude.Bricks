@@ -1,0 +1,27 @@
+# Generated output files (open output/ dir stays via .gitkeep)
+output/*.ldr
+output/*.mpd
+
+# Reference LDR files (large, often copyrighted)
+reference/*.ldr
+reference/*.mpd
+
+# LDraw example files (copyrighted official LEGO sets)
+ldraw_examples/
+
+# Archived work from earlier sessions
+oldstuff/
+
+# Claude Code local settings
+.claude/
+
+# Windows artifacts
+nul
+
+# Editor / OS files
+*.swp
+*.swo
+*~
+Thumbs.db
+Desktop.ini
+.DS_Store
