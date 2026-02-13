@@ -335,18 +335,18 @@ $fsy1 = -156
 $fsy2 = -164
 
 foreach ($yp in @($fsy1, $fsy2)) {
-    # --- CONTINUOUS WALL BRICKS at floor sep level ---
-    # Front wall: full building-color bricks (no gaps - floor sep is solid)
-    FillX $Tan  0 $DivX $yp $FZ
-    FillX $Blue $DivX 640 $yp $FZ
+    # --- WALL PLATES at floor sep level (8 LDU plates, NOT 24 LDU bricks!) ---
+    # Front wall: building-color plates to maintain wall continuity
+    FillXPlate $Tan  0 $DivX $yp $FZ
+    FillXPlate $Blue $DivX 640 $yp $FZ
 
     # Back wall
-    FillX $Tan  0 $DivX $yp $BZ
-    FillX $Blue $DivX 640 $yp $BZ
+    FillXPlate $Tan  0 $DivX $yp $BZ
+    FillXPlate $Blue $DivX 640 $yp $BZ
 
     # Side walls
-    FillZ $Tan  0 640 $yp $LX
-    FillZ $Blue 0 640 $yp $RX
+    FillZPlate $Tan  0 640 $yp $LX
+    FillZPlate $Blue 0 640 $yp $RX
 
     # --- INTERIOR FLOOR PLATES (not touching any exterior wall) ---
     for ($z = ($FZ + 20); $z -le ($BZ - 20); $z += 20) {
