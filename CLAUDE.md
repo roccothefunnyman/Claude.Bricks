@@ -104,8 +104,10 @@ TILES (no studs):
   2431.dat  = 1x4   6636.dat  = 1x6   4162.dat  = 1x8
 
 WINDOWS & DOORS:
-  60594.dat  = Window Frame 1x4x6
-  60592.dat  = Window Glass 1x4x6
+  60594.dat  = Window Frame 1x4x3
+  60592.dat  = Window 1x2x2 Flat Front
+  60603.dat  = Window Glass for 60594 (1x4x3)
+  86210.dat  = Window Glass for 60594 (1x4x3 alternate)
   60596.dat  = Door Frame 1x4x6
   57895.dat  = Door Glass (right handle)
   57896.dat  = Door Glass (left handle)
@@ -161,11 +163,18 @@ Two slopes meeting at ridge, 20 LDU apart:
   B $Roof $x $y ($z+20) "-1 0 0 0 1 0 0 0 -1"  "3040b.dat"   # down
 ```
 
-### Window/Door Standard
+### Window 1x4x3 Standard
 ```
-Frame + glass at same position. Frame in color 15, glass in color 47.
-  B 15 $x $y $z $R0 "60594.dat"   # window frame
-  B 47 $x $y $z $R0 "60592.dat"   # window glass
+Frame + glass at same position. Frame in wall color or 15, glass in 47.
+  B 15 $x $y $z $R0 "60594.dat"   # window frame 1x4x3
+  B 47 $x $y $z $R0 "60603.dat"   # window glass 1x4x3
+```
+
+### Door 1x4x6 Standard
+```
+Frame + door at same position. Glass in accent color.
+  B 15 $x $y $z $R0 "60596.dat"   # door frame 1x4x6
+  B 71 $x $y $z $R0 "57895.dat"   # door glass (right handle)
 ```
 
 ### SNOT Mounting
@@ -242,6 +251,15 @@ Y=-84    Row 4
 Y=-108   Row 5
 Y=-132   Roof level
 ```
+
+### Module System
+All scripts should import the shared module:
+```powershell
+Import-Module (Join-Path $PSScriptRoot "..\modules\LDraw.psm1") -Force
+```
+The module provides: core output functions, fill functions, wall generation,
+window/door assemblies with depth, cornice bands, floor plates, and style templates.
+See `modules/LDraw.psm1` for full API reference.
 
 ## Multi-Agent Workflow
 

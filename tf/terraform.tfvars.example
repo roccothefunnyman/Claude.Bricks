@@ -1,0 +1,36 @@
+# -------------------------------------------------------
+# Azure ML Modular Buildings - Example tfvars
+# -------------------------------------------------------
+# Copy this file to terraform.tfvars and fill in your values.
+#   cp terraform.tfvars.example terraform.tfvars
+# -------------------------------------------------------
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "00000000-0000-0000-0000-000000000000"
+
+project     = "azureml-modularbuildings"
+environment = "dev"
+location    = "eastus"
+
+# OpenAI fine-tuning regions: East US, East US 2, North Central US,
+# Sweden Central, Switzerland West
+openai_location = "eastus"
+
+tags = {
+  Project     = "ClaudeBricks"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+}
+
+# Feature flags - set false to skip deploying
+deploy_custom_vision    = true
+deploy_openai           = true
+deploy_gpu_cluster      = true
+deploy_compute_instance = true
+
+# Compute sizing
+compute_instance_size = "Standard_DS3_v2"
+cpu_cluster_size      = "Standard_DS3_v2"
+cpu_cluster_max_nodes = 4
+gpu_cluster_size      = "Standard_NC4as_T4_v3"
+gpu_cluster_max_nodes = 2
