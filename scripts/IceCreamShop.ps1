@@ -135,14 +135,14 @@ Add-Part $LtGray 120 $doorTopY $FZ "57895.dat" $R0
 
 # Right section door
 Add-DoorSurround -FrameColor $White -DoorColor $LtGray -WallColor $Blue `
-    -X 440 -Y $doorTopY -Z $FZ -Wall "Front" -Recessed $false -Header $true
+    -X 440 -Y $doorTopY -Z $FZ -Wall "Front" -Recessed $false -Header $false
 
 # Right section windows
 $winY = $doorTopY
 Add-WindowBay -FrameColor $White -WallColor $Blue `
-    -X 320 -Y $winY -Z $FZ -Wall "Front" -Recessed $false -Sill $true -Header $true
+    -X 320 -Y $winY -Z $FZ -Wall "Front" -Recessed $false -Sill $false -Header $false
 Add-WindowBay -FrameColor $White -WallColor $Blue `
-    -X 560 -Y $winY -Z $FZ -Wall "Front" -Recessed $false -Sill $true -Header $true
+    -X 560 -Y $winY -Z $FZ -Wall "Front" -Recessed $false -Sill $false -Header $false
 
 # Shop sign tile above door
 Add-Part $White 440 ($Ground - 4 * 24) $FZ "3069b.dat" $R0
@@ -213,7 +213,7 @@ Add-Part $Tan 120 $ffArchY $FZ "3307.dat" $R0
 # Left section window (inside arch)
 $ffWinY = $ffBaseY - 6 * 24    # -308
 Add-WindowBay -FrameColor $White -WallColor $Tan `
-    -X 120 -Y $ffWinY -Z $FZ -Wall "Front" -Recessed $false -Sill $true -Header $false
+    -X 120 -Y $ffWinY -Z $FZ -Wall "Front" -Recessed $false -Sill $false -Header $false
 
 Add-Step
 Add-Comment "Back wall (solid)"
@@ -237,11 +237,11 @@ Add-Comment "First floor windows"
 
 # Right section windows
 Add-WindowBay -FrameColor $White -WallColor $Blue `
-    -X 320 -Y $ffWinY -Z $FZ -Wall "Front" -Recessed $false -Sill $true -Header $true
+    -X 320 -Y $ffWinY -Z $FZ -Wall "Front" -Recessed $false -Sill $false -Header $false
 Add-WindowBay -FrameColor $White -WallColor $Blue `
-    -X 440 -Y $ffWinY -Z $FZ -Wall "Front" -Recessed $false -Sill $true -Header $true
+    -X 440 -Y $ffWinY -Z $FZ -Wall "Front" -Recessed $false -Sill $false -Header $false
 Add-WindowBay -FrameColor $White -WallColor $Blue `
-    -X 560 -Y $ffWinY -Z $FZ -Wall "Front" -Recessed $false -Sill $true -Header $true
+    -X 560 -Y $ffWinY -Z $FZ -Wall "Front" -Recessed $false -Sill $false -Header $false
 
 # Flower boxes (first floor right section)
 $boxY = $ffWinY + 80   # Just below window sill

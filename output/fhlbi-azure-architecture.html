@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FHLBI Azure Landing Zone Architecture</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f0f2f5;overflow:hidden;height:100vh}
+#toolbar{position:fixed;top:0;left:0;right:0;height:44px;background:linear-gradient(135deg,#1a2a4a,#2d4a7a);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#toolbar h1{font-size:15px;font-weight:600;letter-spacing:.5px}
+#toolbar .controls{display:flex;gap:6px;align-items:center}
+#toolbar button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;transition:background .2s}
+#toolbar button:hover{background:rgba(255,255,255,.3)}
+#zoom-level{font-size:11px;color:rgba(255,255,255,.7);min-width:45px;text-align:center}
+#viewport{position:absolute;top:44px;left:0;right:0;bottom:0;overflow:hidden;cursor:grab;background-color:#e8ecf0;background-image:radial-gradient(circle,#ccc 1px,transparent 1px);background-size:20px 20px}
+#viewport.dragging{cursor:grabbing}
+#canvas{position:absolute;transform-origin:0 0;width:4600px;height:3500px}
+.sub{position:absolute;border:3px dashed #c9a800;border-radius:12px;background:#fff;overflow:visible;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.sub-header{padding:6px 12px;border-radius:8px 8px 0 0;background:linear-gradient(90deg,#d4a017,#e8c547);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;justify-content:space-between;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sub-header img{width:20px;height:20px;filter:brightness(0) invert(1)}
+.sub-header .sid{font-size:9px;font-weight:400;opacity:.85}
+.sub-body{padding:8px;overflow:visible}
+.sub.xprem{border-color:#666}
+.sub.xprem .sub-header{background:linear-gradient(90deg,#555,#888)}
+.vnet{border:2px dashed #4a6fa5;border-radius:8px;background:rgba(200,220,245,.15);margin-bottom:6px;overflow:visible}
+.vnet-header{padding:3px 8px;font-size:10px;font-weight:600;color:#2c5282;display:flex;align-items:center;gap:4px;background:linear-gradient(90deg,#dce6f2,#eaf0f8);border-radius:6px 6px 0 0}
+.vnet-header img{width:14px;height:14px}
+.vnet-body{padding:4px 6px}
+.snet{border:1px dotted #999;border-radius:5px;background:#fff;padding:3px 5px;margin-bottom:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:8.5px;color:#333}
+.snet-name{font-weight:600;color:#1a365d;min-width:80px}
+.badge{display:inline-block;padding:1px 4px;border-radius:3px;font-size:7px;font-weight:700;color:#fff;margin-left:2px}
+.badge-nsg{background:#e74c3c}
+.badge-udr{background:#8e44ad}
+.res{display:inline-flex;align-items:center;gap:2px;margin:1px 3px;font-size:8px;color:#444;white-space:nowrap}
+.res img{width:14px;height:14px}
+.section-title{font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin:4px 0 2px 2px;border-bottom:1px solid #ddd;padding-bottom:2px}
+.shared-svc{display:flex;flex-wrap:wrap;gap:3px;padding:4px;background:rgba(240,240,240,.5);border-radius:5px;margin-top:4px}
+.ext-res{display:flex;flex-wrap:wrap;gap:3px;padding:4px;background:rgba(255,248,220,.4);border:1px solid #e8d88c;border-radius:5px;margin-top:4px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px}
+.res-group{display:flex;flex-wrap:wrap;gap:2px;margin:2px 0}
+#conn-lines{position:absolute;top:0;left:0;width:4600px;height:3500px;pointer-events:none;z-index:0}
+.conn-label{font-size:8px;font-weight:600;paint-order:stroke;stroke:#fff;stroke-width:3px}
+#legend{position:fixed;bottom:12px;right:12px;background:#fff;border:1px solid #ccc;border-radius:8px;padding:10px 14px;font-size:9px;z-index:1001;box-shadow:0 2px 10px rgba(0,0,0,.15);max-width:260px}
+#legend h3{font-size:11px;margin-bottom:6px;color:#333}
+.leg-row{display:flex;align-items:center;gap:6px;margin:3px 0}
+.leg-icon{width:16px;height:16px}
+.leg-line{width:30px;height:0;border-top:2px dashed}
+.leg-box{width:24px;height:14px;border-radius:3px}
+.avd-hosts{display:flex;flex-wrap:wrap;gap:2px;margin:2px 0}
+#sub-conn .sub-header{font-size:10px;padding:3px 10px;background:linear-gradient(90deg,#1a365d,#2a4a7a)}
+.conn-title{font-size:32px;font-weight:800;text-align:center;color:#1a365d;letter-spacing:3px;padding:12px 0 2px;text-transform:uppercase}
+.conn-subtitle{font-size:11px;text-align:center;color:#888;padding-bottom:10px;border-bottom:2px solid #e0dcc8;margin-bottom:10px}
+.conn-layout{display:grid;grid-template-columns:200px 1fr 1fr;gap:12px;padding:0 12px}
+.conn-sidebar{display:flex;flex-direction:column;gap:2px;padding:8px;background:rgba(248,245,230,.6);border:1px solid #e0dcc8;border-radius:8px}
+.conn-sidebar .section-title{margin-top:0}
+.conn-sidebar .res{display:flex;align-items:center;gap:5px;font-size:9px;padding:3px 2px;border-bottom:1px solid rgba(0,0,0,.06)}
+.conn-sidebar .res:last-child{border-bottom:none}
+.conn-sidebar .res img{width:20px;height:20px}
+.conn-region{padding:6px 10px;font-size:12px;font-weight:700;color:#1a5276;background:linear-gradient(90deg,#d4e6f1,#e8f0f8);border-radius:5px;text-align:center;margin-bottom:8px;letter-spacing:.5px}
+.conn-col .vnet{margin-bottom:10px}
+.conn-col .vnet-header{padding:4px 10px;font-size:11px}
+.conn-col .vnet-header img{width:16px;height:16px}
+.conn-col .snet{padding:5px 10px;margin-bottom:4px}
+.conn-col .snet-name{font-size:9px}
+.conn-col .res{font-size:9px;margin:2px 4px}
+.conn-col .res img{width:20px;height:20px}
+.conn-ext{margin:4px 12px 10px;padding:10px;background:rgba(255,248,220,.5);border:1px solid #e8d88c;border-radius:8px}
+.conn-ext .section-title{margin-top:0}
+.conn-ext .res{font-size:9px;margin:2px 6px}
+.conn-ext .res img{width:20px;height:20px}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <h1>FHLBI - Azure Landing Zone Architecture (Hub &amp; Spoke)</h1>
+  <div class="controls">
+    <button onclick="zoomBy(-0.1)">-</button>
+    <span id="zoom-level">100%</span>
+    <button onclick="zoomBy(0.1)">+</button>
+    <button onclick="fitToScreen()">Fit</button>
+    <button onclick="resetView()">Reset</button>
+  </div>
+</div>
+<div id="viewport">
+  <svg id="conn-lines"></svg>
+  <div id="canvas"></div>
+</div>
+<div id="legend"></div>
+
+<script>
+// === ICON PATHS ===
+const B='../azure-icons';
+const I={
+  vm:B+'/compute/10021-icon-service-Virtual-Machine.svg',
+  vnet:B+'/networking/10061-icon-service-Virtual-Networks.svg',
+  nsg:B+'/networking/10067-icon-service-Network-Security-Groups.svg',
+  udr:B+'/networking/10082-icon-service-Route-Tables.svg',
+  lb:B+'/networking/10062-icon-service-Load-Balancers.svg',
+  fw:B+'/networking/10084-icon-service-Firewalls.svg',
+  er:B+'/networking/10079-icon-service-ExpressRoute-Circuits.svg',
+  vgw:B+'/networking/10063-icon-service-Virtual-Network-Gateways.svg',
+  lgw:B+'/networking/10077-icon-service-Local-Network-Gateways.svg',
+  ddos:B+'/networking/10072-icon-service-DDoS-Protection-Plans.svg',
+  bas:B+'/networking/02422-icon-service-Bastions.svg',
+  rs:B+'/networking/02496-icon-service-Virtual-Router.svg',
+  cn:B+'/networking/10081-icon-service-Connections.svg',
+  pl:B+'/networking/00427-icon-service-Private-Link.svg',
+  dns:B+'/networking/10064-icon-service-DNS-Zones.svg',
+  dnsr:B+'/networking/02882-icon-service-DNS-Private-Resolver.svg',
+  kv:B+'/security/10245-icon-service-Key-Vaults.svg',
+  sen:B+'/security/10248-icon-service-Azure-Sentinel.svg',
+  sto:B+'/storage/10086-icon-service-Storage-Accounts.svg',
+  alr:B+'/management + governance/00002-icon-service-Alerts.svg',
+  aut:B+'/management + governance/00022-icon-service-Automation-Accounts.svg',
+  rsv:B+'/management + governance/00017-icon-service-Recovery-Services-Vaults.svg',
+  pol:B+'/management + governance/10316-icon-service-Policy.svg',
+  law:B+'/analytics/00009-icon-service-Log-Analytics-Workspaces.svg',
+  sub:B+'/general/10002-icon-service-Subscriptions.svg',
+  svr:B+'/general/10835-icon-service-Server-Farm.svg',
+  mi:B+'/identity/10227-icon-service-Managed-Identities.svg',
+  pe:B+'/other/02579-icon-service-Private-Endpoints.svg',
+  bv:B+'/other/02361-icon-service-Backup-Vault.svg',
+  avd:B+'/other/00327-icon-service-Azure-Virtual-Desktop.svg',
+  dcr:B+'/other/01857-icon-service-Data-Collection-Rules.svg',
+  dvo:B+'/devops/10261-icon-service-Azure-DevOps.svg',
+  la:B+'/integration/02631-icon-service-Logic-Apps.svg',
+  nw:B+'/monitor/10066-icon-service-Network-Watcher.svg',
+  mig:B+'/migrate/10281-icon-service-Azure-Migrate.svg',
+  img:B+'/compute/10038-icon-service-Image-Versions.svg',
+};
+
+// === HELPER FUNCTIONS ===
+function icon(src,sz=14){return `<img src="${src}" width="${sz}" height="${sz}" alt="">`}
+function res(ic,label){return `<span class="res">${icon(ic)}${label}</span>`}
+function badge(type){return `<span class="badge badge-${type}">${type.toUpperCase()}</span>`}
+function snet(name,badges,resources){
+  return `<div class="snet"><span class="snet-name">${name}</span>${badges.map(b=>badge(b)).join('')}<span style="flex:1"></span>${resources}</div>`;
+}
+function vnetWrap(name,body){
+  return `<div class="vnet"><div class="vnet-header">${icon(I.vnet,14)}${name}</div><div class="vnet-body">${body}</div></div>`;
+}
+function subWrap(id,left,top,width,title,sid,body,cls=''){
+  return `<div class="sub ${cls}" id="${id}" style="left:${left}px;top:${top}px;width:${width}px"><div class="sub-header">${icon(I.sub,20)}${title}<span class="sid">${sid}</span></div><div class="sub-body">${body}</div></div>`;
+}
+function secTitle(t){return `<div class="section-title">${t}</div>`}
+function sharedSvc(items){return `<div class="shared-svc">${items}</div>`}
+function extRes(items){return `<div class="ext-res">${items}</div>`}
+function vmRow(ic,names){return names.map(n=>res(ic,n)).join('')}
+function alertBlock(){return res(I.alr,'8x Alert Rules')}
+function rbacBlock(){return res(I.pol,'RBAC Policy')}
+
+// Workload subnet template (7 subnets)
+function workloadSubnets(prefix,opts={}){
+  let h='';
+  h+=snet('WebSubnet',['nsg','udr'],vmRow(I.svr,['Web-01','Web-02','Web-03','Web-04']));
+  h+=snet('AppSubnet',['nsg','udr'],vmRow(I.svr,['App-01','App-02','App-03','App-04']));
+  h+=snet('DataSubnet',['nsg','udr'],vmRow(I.svr,['DB-01','DB-02','DB-03','DB-04']));
+  h+=snet('PrivateEndpointSubnet',['nsg','udr'],res(I.pe,'Private Endpoints'));
+  h+=snet('IdentitySubnet',['nsg','udr'],vmRow(I.vm,['DC-01','DC-02']));
+  h+=snet('ManagementSubnet',['nsg','udr'],res(I.bas,'Bastion Host')+res(I.vm,'Mgmt Box'));
+  h+=snet('DRHASubnet',['nsg','udr'],res(I.vm,'DR/HA Resources'));
+  if(opts.avd){
+    h+=`<div class="section-title">AVD Session Hosts</div><div class="avd-hosts">`;
+    for(let i=1;i<=6;i++) h+=res(I.avd,`SessionHost-${String(i).padStart(2,'0')}`);
+    h+=`</div>`;
+  }
+  return h;
+}
+
+function workloadShared(env,opts={}){
+  let s='';
+  s+=res(I.aut,`aa-eus2-${env}-asr`);
+  s+=res(I.bv,`bvault-eus2-${env}-fhlbi`);
+  s+=res(I.law,opts.law||`law-eus2-${env}-01`);
+  s+=res(I.mi,`uai-eus2-${env}_kv`);
+  if(opts.mi2) s+=res(I.mi,opts.mi2);
+  s+=res(I.rsv,`rsv-eus2-${env}-fhlbi-asr`);
+  s+=res(I.rsv,`rsv-eus2-${env}-fhlbi-imm`);
+  s+=res(I.sto,`staeus2${env}asr`)+res(I.pe,'PE');
+  s+=res(I.kv,`kv-eus2-${env}-sta-vault`)+res(I.pe,'PE');
+  s+=alertBlock();
+  s+=rbacBlock();
+  return s;
+}
+
+// === BUILD SUBSCRIPTIONS ===
+const canvas=document.getElementById('canvas');
+
+// --- 1. INFRASTRUCTURE ---
+let infraBody='';
+infraBody+=secTitle('VNet Grid');
+infraBody+=`<div class="grid-2">`;
+infraBody+=vnetWrap('vnet-eus-infra-general',
+  snet('snet-eus2-infra-general',['udr'],res(I.vm,'General Resources'))
+);
+infraBody+=vnetWrap('vnet-eus-infra-netops',
+  snet('snet-mgmt',['nsg'],res(I.vm,'Mgmt Resources'))+
+  snet('snet-data',['nsg'],res(I.vm,'vm-netbox-ipam'))
+);
+infraBody+=vnetWrap('vnet-eus2-infra-monitor',
+  snet('snet-eus2-infra-ampls (AMPLS)',['udr'],res(I.pl,'AMPLS'))
+);
+infraBody+=vnetWrap('vnet-eus2-infra-dns',
+  snet('DNS-Inbound',['nsg'],res(I.dnsr,'DNS Resolver In'))+
+  snet('DNS-Outbound',['nsg'],res(I.dnsr,'DNS Resolver Out'))
+);
+infraBody+=vnetWrap('vnet-eus2-infra-migrate',
+  snet('snet-migrate',['nsg'],res(I.mig,'Azure Migrate'))
+);
+infraBody+=vnetWrap('vnet-eus2-infra-stasupport',
+  snet('snet-storage',['nsg'],res(I.sto,'Storage')+res(I.kv,'Key Vault')+res(I.pe,'PEs'))
+);
+infraBody+=`</div>`;
+
+infraBody+=secTitle('Core Infrastructure VNet');
+infraBody+=vnetWrap('vnet-eus2-infra-infra (Core)',
+  snet('snet-eus2-infra-data',['nsg','udr'],
+    res(I.vm,'goldvm03')+res(I.vm,'goldvm04')+res(I.lb,'ILB')+
+    res(I.law,'law-eus2-infra-01')+res(I.sen,'law-eus2-infra-mssentinel')+
+    res(I.la,'pb-Extract-incident')+res(I.la,'pb-Get-VTReport')+res(I.la,'pb-Run-MDEAntivirus')+
+    res(I.img,'Image Versions')+res(I.dvo,'Azure DevOps')+
+    res(I.dcr,'DCR/DCE (Linux)')+res(I.dcr,'DCR/DCE (Windows)')+
+    res(I.dns,'Private Link DNS Zones')
+  )
+);
+
+infraBody+=secTitle('Storage Accounts');
+infraBody+=`<div class="res-group">${res(I.sto,'staeus2infraasr')}${res(I.sto,'staeus2infraflowlogs')}${res(I.sto,'staeus2infraactivitysta')}</div>`;
+infraBody+=secTitle('Key Vaults');
+infraBody+=`<div class="res-group">${res(I.kv,'kv-infra-connkeys')}${res(I.kv,'kv-infra-vms')}${res(I.kv,'kv-infra-general')}${res(I.kv,'kv-infra-rsv-kv')}${res(I.kv,'am-fhlbi0514kv')}</div>`;
+
+infraBody+=secTitle('Shared Services');
+infraBody+=sharedSvc(
+  res(I.aut,'Automation')+res(I.bv,'Backup Vault')+
+  res(I.law,'Log Analytics (activity)')+res(I.mi,'Managed Identities')+
+  res(I.rsv,'Recovery Vaults')+alertBlock()+rbacBlock()
+);
+
+canvas.innerHTML+=subWrap('sub-infra',20,40,1020,'Infrastructure','sub-infra-001',infraBody);
+
+// --- 2. CROSS-PREMISES ---
+let xpremBody='';
+xpremBody+=secTitle('On-Premises Servers');
+xpremBody+=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2px">`;
+for(let i=1;i<=20;i++) xpremBody+=res(I.svr,`Server-${String(i).padStart(2,'0')}`);
+xpremBody+=`</div>`;
+xpremBody+=`<div style="margin-top:6px;padding:4px;background:#f7f3e3;border-radius:4px;text-align:center;font-size:8px;font-weight:600;color:#555">`;
+xpremBody+=res(I.er,'ExpressRoute via Expedient')+`<br>`+res(I.vgw,'VPN Gateway Redundancy');
+xpremBody+=`</div>`;
+canvas.innerHTML+=subWrap('sub-xprem',20,1300,500,'Cross-Premises Network','on-prem',xpremBody,'xprem');
+
+// --- 3. CONNECTIVITY ---
+let connBody='';
+connBody+='<div class="conn-title">Connectivity</div>';
+connBody+='<div class="conn-subtitle">sub-connectivity</div>';
+connBody+='<div class="conn-layout">';
+
+// Left sidebar: Shared Services
+connBody+='<div class="conn-sidebar">';
+connBody+=secTitle('Shared Services');
+connBody+=res(I.aut,'aa-eus2-conn-asr');
+connBody+=res(I.bv,'bvault-eus2-dev-fhlbi');
+connBody+=res(I.law,'law-eus2-dev-sqlvm-inbound');
+connBody+=res(I.mi,'uai-eus2-dev_kv');
+connBody+=res(I.mi,'uai-eus2-dev_kv_sta');
+connBody+=res(I.rsv,'rsv-eus2-dev-fhlbi-asr');
+connBody+=res(I.rsv,'rsv-eus2-dev-fhlbi-imm');
+connBody+=res(I.sto,'staeus2connasr');
+connBody+=res(I.pe,'Blob Private Endpoint');
+connBody+=res(I.kv,'kv-eus2-conn-sta-vault');
+connBody+=res(I.pe,'KV Private Endpoint');
+connBody+=res(I.nw,'Network Watcher');
+connBody+=res(I.alr,'8x Alert Rules');
+connBody+=res(I.pol,'RBAC Policy');
+connBody+='</div>';
+
+// Center column: East US 2
+connBody+='<div class="conn-col">';
+connBody+='<div class="conn-region">East US 2 (Primary)</div>';
+connBody+=vnetWrap('vnet-eus2-conn-firewall',
+  snet('snet-fw-untrust',['udr'],res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02'))+
+  snet('snet-fw-trust',['udr'],res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02'))+
+  '<div class="res-group">'+res(I.lb,'lbi-firewall (ILB)')+'</div>'
+);
+connBody+=vnetWrap('vnet-eus2-conn-transit',
+  snet('RouteServerSubnet',['udr'],res(I.rs,'ars-eus2-sbx-dataplane'))+
+  snet('GatewaySubnet',['udr'],res(I.vgw,'vng-eus2-sbx-fhlbi-vpn'))
+);
+connBody+=vnetWrap('vnet-eus2-sbx-control-ars',
+  snet('RouteServerSubnet',[],res(I.rs,'ars-eus2-sbx-controlplane'))
+);
+connBody+=vnetWrap('vnet-eus2-conn-general',
+  snet('snet-general',['udr'],res(I.vm,'General Resources'))
+);
+connBody+=vnetWrap('vnet-eus2-conn-firewall-bastion',
+  snet('AzureBastionSubnet',[],res(I.bas,'Azure Bastion'))
+);
+connBody+='</div>';
+
+// Right column: Central US
+connBody+='<div class="conn-col">';
+connBody+='<div class="conn-region">Central US (DR)</div>';
+connBody+=vnetWrap('vnet-cus-sbx-transit',
+  snet('snet-fw-trust',[],res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02'))+
+  snet('snet-fw-untrust',['udr'],res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02'))+
+  snet('snet-fw-mgmt',['udr'],res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02'))+
+  snet('RouteServerSubnet',['udr'],res(I.rs,'ars-cus-sbx-dataplane'))+
+  snet('GatewaySubnet',['udr'],res(I.vgw,'vng-cus-sbx-fhlbi-vpn'))
+);
+connBody+=vnetWrap('vnet-cus-sbx-control-ars',
+  snet('RouteServerSubnet',[],res(I.rs,'ars-cus-sbx-controlplane'))
+);
+connBody+=vnetWrap('vnet-cus-sbx-expressroute',
+  snet('GatewaySubnet',[],res(I.vgw,'ExpressRoute GW'))
+);
+connBody+='</div>';
+connBody+='</div>'; // close conn-layout
+
+// External Resources bar
+connBody+='<div class="conn-ext">';
+connBody+=secTitle('External Resources');
+connBody+='<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">';
+connBody+=res(I.er,'ckt-eus2-conn-expressroute-1');
+connBody+=res(I.vgw,'vgw-eus2-conn-expedient');
+connBody+=res(I.vgw,'vgw-eus2-conn-expedient2');
+connBody+=res(I.lgw,'LNG-01');
+connBody+=res(I.lgw,'LNG-02');
+connBody+=res(I.lgw,'LNG-03');
+connBody+=res(I.lgw,'LNG-04');
+connBody+=res(I.ddos,'ddos-eus2-conn-01');
+connBody+=res(I.cn,'Azure-to-Expedient');
+connBody+='</div></div>';
+
+canvas.innerHTML+=subWrap('sub-conn',1120,1000,1500,'Connectivity','sub-connectivity',connBody);
+
+// --- 4. PROD ---
+let prodBody='';
+prodBody+=vnetWrap('vnet-eus2-sbx (PROD)',workloadSubnets('prod',{avd:true}));
+prodBody+=secTitle('Shared Services');
+prodBody+=sharedSvc(workloadShared('sbx',{law:'law-eus2-sbx-01',mi2:'uai-eus2-uat_sbx_sta'}));
+canvas.innerHTML+=subWrap('sub-prod',1220,20,1100,'Production (PROD)','sub-prod-001',prodBody);
+
+// --- 5. UAT ---
+let uatBody='';
+uatBody+=vnetWrap('vnet-eus2-uat',workloadSubnets('uat'));
+uatBody+=secTitle('Shared Services');
+uatBody+=sharedSvc(workloadShared('uat',{law:'law-eus2-dev-sqlvm-inbound',mi2:'uai-eus2-uat_kv_sta'}));
+canvas.innerHTML+=subWrap('sub-uat',2650,20,880,'UAT','sub-uat-001',uatBody);
+
+// --- 6. QA ---
+let qaBody='';
+qaBody+=vnetWrap('vnet-eus2-qa',workloadSubnets('qa'));
+qaBody+=secTitle('Shared Services');
+qaBody+=sharedSvc(workloadShared('qa',{law:'law-eus2-qa-01'}));
+canvas.innerHTML+=subWrap('sub-qa',2650,830,880,'QA','sub-qa-001',qaBody);
+
+// --- 7. Dev ---
+let devBody='';
+devBody+=vnetWrap('vnet-eus2-dev',workloadSubnets('dev'));
+devBody+=secTitle('Shared Services');
+devBody+=sharedSvc(workloadShared('dev',{law:'law-eus2-dev-sqlvm-inbound',mi2:'uai-eus2-dev_kv_sta'}));
+canvas.innerHTML+=subWrap('sub-dev',2650,1640,880,'Development (Dev)','sub-dev-001',devBody);
+
+// --- 8. SANDBOX ---
+let sbxBody='';
+let sbxSubnets='';
+sbxSubnets+=snet('WebSubnet',['nsg','udr'],vmRow(I.svr,['Web-01','Web-02','Web-03','Web-04']));
+sbxSubnets+=snet('PrivateEndpointSubnet',['nsg','udr'],res(I.pe,'Private Endpoints'));
+sbxSubnets+=snet('ManagementSubnet',['nsg','udr'],res(I.bas,'Bastion Host')+res(I.vm,'Mgmt Box'));
+sbxBody+=vnetWrap('vnet-eus2-sbx (Sandbox)',sbxSubnets);
+sbxBody+=secTitle('Shared Services');
+sbxBody+=sharedSvc(
+  res(I.aut,'aa-eus2-sbx-asr')+
+  res(I.bv,'bvault-eus2-sbx-fhlbi')+
+  res(I.law,'law-eus2-sbx-01')+
+  res(I.mi,'uai-eus2-sbx_kv')+
+  res(I.rsv,'rsv-eus2-sbx-fhlbi-asr')+res(I.rsv,'rsv-eus2-sbx-fhlbi-imm')+
+  res(I.sto,'staeus2sbxasr')+res(I.pe,'PE')+
+  res(I.kv,'kv-eus2-sbx-sta-vault')+res(I.pe,'PE')+
+  alertBlock()+rbacBlock()
+);
+canvas.innerHTML+=subWrap('sub-sbx',1220,2350,880,'Sandbox','sub-sbx-001',sbxBody);
+
+// --- 9. DECOMM ---
+let decommBody='';
+let decommSubnets='';
+decommSubnets+=snet('Servers',['nsg'],vmRow(I.vm,['Decomm-01','Decomm-02','Decomm-03','Decomm-04','Decomm-05']));
+decommSubnets+=snet('DRHASubnet',['nsg'],res(I.vm,'DR/HA Resources'));
+decommSubnets+=snet('PrivateEndpointSubnet',['nsg'],res(I.pe,'Private Endpoints'));
+decommBody+=vnetWrap('vnet-eus2-sbx (Decomm)',decommSubnets);
+decommBody+=secTitle('Legacy Storage');
+decommBody+=`<div class="res-group">${res(I.sto,'oldstorage')}${res(I.pe,'PE')}</div>`;
+decommBody+=secTitle('Legacy Key Vault');
+decommBody+=`<div class="res-group">${res(I.kv,'oldkv')}${res(I.pe,'PE')}</div>`;
+decommBody+=secTitle('Shared Services');
+decommBody+=sharedSvc(
+  res(I.rsv,'Site Recovery')+res(I.bv,'Backup Vault')+rbacBlock()
+);
+canvas.innerHTML+=subWrap('sub-decomm',60,1850,720,'Decommissioned','sub-decomm-001',decommBody);
+
+// === SVG CONNECTION LINES ===
+const lines=[
+  {x1:1770,y1:940,x2:1770,y2:1000,label:'VNet Peering (Critical)',critical:true},
+  {x1:2650,y1:395,x2:2620,y2:1100,label:'VNet Peering (Critical)',critical:true},
+  {x1:2650,y1:1205,x2:2620,y2:1400,label:'VNet Peering',critical:false},
+  {x1:2650,y1:2015,x2:2620,y2:1950,label:'VNet Peering',critical:false},
+  {x1:1660,y1:2350,x2:1660,y2:2280,label:'VNet Peering',critical:false},
+  {x1:780,y1:2110,x2:1120,y2:1950,label:'VNet Peering',critical:false},
+  {x1:1040,y1:640,x2:1120,y2:1200,label:'VNet Peering',critical:false},
+  {x1:520,y1:1510,x2:1120,y2:1510,label:'ExpressRoute / VPN',critical:false},
+];
+
+const svg=document.getElementById('conn-lines');
+svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
+let svgContent='<defs>';
+svgContent+=`<marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#27ae60"/></marker>`;
+svgContent+=`<marker id="arrow-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#e74c3c"/></marker>`;
+svgContent+='</defs>';
+
+lines.forEach(l=>{
+  const color=l.critical?'#e74c3c':'#27ae60';
+  const mid=`arrow-${l.critical?'red':'green'}`;
+  svgContent+=`<line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${color}" stroke-width="2.5" stroke-dasharray="8,4" marker-end="url(#${mid})"/>`;
+  const mx=(l.x1+l.x2)/2, my=(l.y1+l.y2)/2;
+  const angle=Math.atan2(l.y2-l.y1,l.x2-l.x1)*180/Math.PI;
+  const textAngle=(angle>90||angle<-90)?angle+180:angle;
+  svgContent+=`<text x="${mx}" y="${my-6}" text-anchor="middle" fill="${color}" class="conn-label" transform="rotate(${textAngle},${mx},${my-6})">${l.label}</text>`;
+});
+svg.innerHTML=svgContent;
+
+// === LEGEND ===
+document.getElementById('legend').innerHTML=`
+<h3>Legend</h3>
+<div class="leg-row">${icon(I.vm,16)} Virtual Machine</div>
+<div class="leg-row">${icon(I.svr,16)} Server / Web Host</div>
+<div class="leg-row">${icon(I.fw,16)} Firewall (Palo Alto NVA)</div>
+<div class="leg-row">${icon(I.vnet,16)} Virtual Network</div>
+<div class="leg-row">${icon(I.nsg,16)} Network Security Group</div>
+<div class="leg-row">${icon(I.udr,16)} Route Table (UDR)</div>
+<div class="leg-row">${icon(I.lb,16)} Load Balancer</div>
+<div class="leg-row">${icon(I.er,16)} ExpressRoute Circuit</div>
+<div class="leg-row">${icon(I.vgw,16)} VPN / ExpressRoute Gateway</div>
+<div class="leg-row">${icon(I.bas,16)} Azure Bastion</div>
+<div class="leg-row">${icon(I.rs,16)} Route Server</div>
+<div class="leg-row">${icon(I.kv,16)} Key Vault</div>
+<div class="leg-row">${icon(I.sto,16)} Storage Account</div>
+<div class="leg-row">${icon(I.law,16)} Log Analytics</div>
+<div class="leg-row">${icon(I.sen,16)} Microsoft Sentinel</div>
+<div class="leg-row">${icon(I.pe,16)} Private Endpoint</div>
+<div class="leg-row">${icon(I.avd,16)} Azure Virtual Desktop</div>
+<div class="leg-row">${icon(I.rsv,16)} Recovery Services Vault</div>
+<div class="leg-row">${icon(I.bv,16)} Backup Vault</div>
+<div class="leg-row">${icon(I.aut,16)} Automation Account</div>
+<div class="leg-row">${icon(I.mi,16)} Managed Identity</div>
+<div class="leg-row">${icon(I.pol,16)} Azure Policy / RBAC</div>
+<div class="leg-row">${icon(I.ddos,16)} DDoS Protection</div>
+<div class="leg-row">${icon(I.nw,16)} Network Watcher</div>
+<div class="leg-row">${icon(I.alr,16)} Alert Rules</div>
+<div style="margin-top:6px;border-top:1px solid #ddd;padding-top:4px">
+  <div class="leg-row"><span class="leg-line" style="border-color:#e74c3c"></span> Critical Path (Red Dashed)</div>
+  <div class="leg-row"><span class="leg-line" style="border-color:#27ae60"></span> VNet Peering (Green Dashed)</div>
+  <div class="leg-row"><span class="leg-box" style="border:3px dashed #c9a800"></span> Subscription</div>
+  <div class="leg-row"><span class="leg-box" style="border:2px dashed #4a6fa5;background:rgba(200,220,245,.15)"></span> Virtual Network</div>
+  <div class="leg-row"><span class="leg-box" style="border:1px dotted #999"></span> Subnet</div>
+  <div class="leg-row"><span class="leg-box" style="border:3px dashed #666"></span> Cross-Premises</div>
+</div>
+`;
+
+// === ZOOM & PAN ===
+let scale=1, panX=0, panY=0, dragging=false, startX, startY;
+const viewport=document.getElementById('viewport');
+
+function applyTransform(){
+  canvas.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  svg.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  svg.style.transformOrigin='0 0';
+  document.getElementById('zoom-level').textContent=Math.round(scale*100)+'%';
+}
+
+function zoomBy(delta){
+  scale=Math.max(0.1,Math.min(3,scale+delta));
+  applyTransform();
+}
+
+function fitToScreen(){
+  const vw=viewport.clientWidth, vh=viewport.clientHeight;
+  const sx=vw/4600, sy=vh/3500;
+  scale=Math.min(sx,sy)*0.95;
+  panX=(vw-4600*scale)/2;
+  panY=(vh-3500*scale)/2;
+  applyTransform();
+}
+
+function resetView(){
+  scale=1;panX=0;panY=0;applyTransform();
+}
+
+viewport.addEventListener('mousedown',e=>{
+  if(e.button!==0)return;
+  dragging=true;startX=e.clientX-panX;startY=e.clientY-panY;
+  viewport.classList.add('dragging');
+});
+window.addEventListener('mousemove',e=>{
+  if(!dragging)return;
+  panX=e.clientX-startX;panY=e.clientY-startY;
+  applyTransform();
+});
+window.addEventListener('mouseup',()=>{
+  dragging=false;viewport.classList.remove('dragging');
+});
+
+viewport.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const rect=viewport.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const wx=(mx-panX)/scale, wy=(my-panY)/scale;
+  const delta=e.deltaY>0?-0.08:0.08;
+  const newScale=Math.max(0.1,Math.min(3,scale+delta));
+  panX=mx-wx*newScale;
+  panY=my-wy*newScale;
+  scale=newScale;
+  applyTransform();
+},{passive:false});
+
+// Initial fit
+fitToScreen();
+</script>
+</body>
+</html>

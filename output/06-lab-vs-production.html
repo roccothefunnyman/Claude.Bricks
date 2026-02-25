@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Defaults vs Production Hardening</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    padding: 30px 20px;
+    color: #323130;
+    min-height: 100vh;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #0078d4;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #605e5c;
+    margin-bottom: 24px;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Toggle switch */
+  .toggle-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 12px 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e1dfdd;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .toggle-label {
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    user-select: none;
+  }
+
+  .toggle-label.lab {
+    color: #9a6700;
+  }
+
+  .toggle-label.prod {
+    color: #107c10;
+  }
+
+  .toggle-label.active-lab {
+    background: #fff4ce;
+    color: #835c00;
+  }
+
+  .toggle-label.active-prod {
+    background: #dff6dd;
+    color: #0e6b0e;
+  }
+
+  .toggle-label.dimmed {
+    opacity: 0.4;
+  }
+
+  /* Toggle switch control */
+  .switch {
+    position: relative;
+    width: 56px;
+    height: 28px;
+    cursor: pointer;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #c19c00;
+    border-radius: 28px;
+    transition: background 0.3s ease;
+  }
+
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .switch input:checked + .slider {
+    background: #107c10;
+  }
+
+  .switch input:checked + .slider::before {
+    transform: translateX(28px);
+  }
+
+  .view-mode-label {
+    font-size: 11px;
+    color: #797775;
+    text-align: center;
+    margin-bottom: 2px;
+  }
+
+  .toggle-both {
+    font-size: 11px;
+    color: #0078d4;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid #0078d4;
+    background: transparent;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    margin-left: 8px;
+  }
+
+  .toggle-both:hover {
+    background: #0078d4;
+    color: white;
+  }
+
+  .toggle-both.active {
+    background: #0078d4;
+    color: white;
+  }
+
+  /* Split panel layout */
+  .split-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    transition: all 0.4s ease;
+  }
+
+  .split-container.show-lab-only {
+    grid-template-columns: 1fr 0fr;
+  }
+
+  .split-container.show-prod-only {
+    grid-template-columns: 0fr 1fr;
+  }
+
+  .split-container.show-lab-only .panel.prod {
+    opacity: 0;
+    overflow: hidden;
+    padding: 0;
+    border-width: 0;
+    min-height: 0;
+  }
+
+  .split-container.show-prod-only .panel.lab {
+    opacity: 0;
+    overflow: hidden;
+    padding: 0;
+    border-width: 0;
+    min-height: 0;
+  }
+
+  /* Panels */
+  .panel {
+    border-radius: 14px;
+    padding: 24px 20px;
+    position: relative;
+    transition: all 0.4s ease;
+    overflow: visible;
+  }
+
+  .panel.lab {
+    background: linear-gradient(180deg, #fffdf5 0%, #ffffff 50%);
+    border: 2.5px solid #e3b300;
+    box-shadow: 0 4px 20px rgba(227, 179, 0, 0.1), 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .panel.prod {
+    background: linear-gradient(180deg, #f5fff5 0%, #ffffff 50%);
+    border: 2.5px solid #107c10;
+    box-shadow: 0 4px 20px rgba(16, 124, 16, 0.1), 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1.5px solid #e1dfdd;
+  }
+
+  .panel.lab .panel-header {
+    border-bottom-color: #f0d060;
+  }
+
+  .panel.prod .panel-header {
+    border-bottom-color: #8fdf8f;
+  }
+
+  .panel-icon {
+    font-size: 24px;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .panel.lab .panel-title {
+    color: #835c00;
+  }
+
+  .panel.prod .panel-title {
+    color: #0e6b0e;
+  }
+
+  .panel-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+  }
+
+  .panel.lab .panel-badge {
+    background: #fff4ce;
+    color: #835c00;
+  }
+
+  .panel.prod .panel-badge {
+    background: #dff6dd;
+    color: #0e6b0e;
+  }
+
+  /* Resource cards */
+  .resource-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .resource-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1.5px solid #e1dfdd;
+    transition: all 0.25s ease;
+    position: relative;
+    cursor: default;
+  }
+
+  .resource-card:hover {
+    transform: translateY(-1px);
+  }
+
+  .panel.lab .resource-card {
+    border-left: 4px solid #e3b300;
+  }
+
+  .panel.lab .resource-card:hover {
+    border-color: #c19c00;
+    box-shadow: 0 4px 14px rgba(227, 179, 0, 0.15);
+  }
+
+  .panel.prod .resource-card {
+    border-left: 4px solid #107c10;
+  }
+
+  .panel.prod .resource-card:hover {
+    border-color: #0e6b0e;
+    box-shadow: 0 4px 14px rgba(16, 124, 16, 0.15);
+  }
+
+  .resource-icon-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .resource-icon-wrap img {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Status indicator overlays */
+  .status-overlay {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+
+  .status-overlay.open {
+    background: #ffd335;
+    color: #835c00;
+  }
+
+  .status-overlay.locked {
+    background: #107c10;
+    color: #ffffff;
+  }
+
+  .resource-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .resource-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #323130;
+    margin-bottom: 3px;
+  }
+
+  .resource-config {
+    font-size: 11.5px;
+    color: #605e5c;
+    line-height: 1.45;
+  }
+
+  .resource-config strong {
+    color: #323130;
+  }
+
+  /* Config tags */
+  .config-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+  }
+
+  .config-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .config-tag.warn {
+    background: #fff4ce;
+    color: #835c00;
+  }
+
+  .config-tag.ok {
+    background: #dff6dd;
+    color: #0e6b0e;
+  }
+
+  .config-tag.info {
+    background: #e8f4fd;
+    color: #0078d4;
+  }
+
+  .config-tag::before {
+    font-size: 10px;
+  }
+
+  .config-tag.warn::before {
+    content: '\26A0';
+  }
+
+  .config-tag.ok::before {
+    content: '\2713';
+  }
+
+  /* Hover detail tooltip */
+  .hover-detail {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #323130;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  .hover-detail::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #323130;
+  }
+
+  .resource-card:hover .hover-detail {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Production VNet boundary */
+  .vnet-boundary {
+    border: 2px dashed #4668c5;
+    border-radius: 12px;
+    padding: 16px 14px 14px 14px;
+    position: relative;
+    margin-bottom: 16px;
+    background: rgba(70, 104, 197, 0.03);
+  }
+
+  .vnet-label {
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    background: #f5fff5;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4668c5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .vnet-label img {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Production-only badges row */
+  .security-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .security-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1.5px solid #107c10;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0e6b0e;
+    transition: all 0.2s ease;
+  }
+
+  .security-badge:hover {
+    background: #dff6dd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 124, 16, 0.15);
+  }
+
+  .security-badge img {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Firewall bar at top of prod VNet */
+  .firewall-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(90deg, #fff2f0, #fff8f0, #fff2f0);
+    border: 1.5px solid #da3b01;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #a4262c;
+  }
+
+  .firewall-bar img {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* PE badges on prod cards */
+  .pe-badge {
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #ffffff;
+    border: 1.5px solid #4668c5;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #4668c5;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .pe-badge img {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Comparison summary bar */
+  .comparison-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 22px;
+  }
+
+  .summary-card {
+    padding: 16px 20px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e1dfdd;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .summary-card h3 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .summary-card.lab-summary h3 { color: #835c00; }
+  .summary-card.prod-summary h3 { color: #0e6b0e; }
+
+  .summary-list {
+    list-style: none;
+    font-size: 11.5px;
+    color: #605e5c;
+    line-height: 1.8;
+  }
+
+  .summary-list li::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .lab-summary .summary-list li::before { background: #e3b300; }
+  .prod-summary .summary-list li::before { background: #107c10; }
+
+  /* Managed Identity badge (small inline) */
+  .mi-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    vertical-align: middle;
+  }
+
+  .mi-inline img {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Animations */
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .panel.lab { animation: slideInLeft 0.5s ease-out; }
+  .panel.prod { animation: slideInRight 0.5s ease-out; }
+
+  .resource-card {
+    animation: fadeIn 0.3s ease-out both;
+  }
+
+  .resource-card:nth-child(1) { animation-delay: 0.1s; }
+  .resource-card:nth-child(2) { animation-delay: 0.15s; }
+  .resource-card:nth-child(3) { animation-delay: 0.2s; }
+  .resource-card:nth-child(4) { animation-delay: 0.25s; }
+  .resource-card:nth-child(5) { animation-delay: 0.3s; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 850px) {
+    .split-container {
+      grid-template-columns: 1fr;
+    }
+    .comparison-bar {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>Lab Defaults vs Production Hardening</h1>
+<p class="subtitle">DP-100 &bull; Same resources, different security postures</p>
+
+<div class="container">
+
+  <!-- Toggle Control -->
+  <div class="toggle-bar">
+    <span class="toggle-label lab active-lab" id="labelLab" onclick="showView('lab')">Lab Environment</span>
+    <label class="switch" title="Toggle between Lab and Production view">
+      <input type="checkbox" id="viewToggle" onchange="handleToggle(this)">
+      <span class="slider"></span>
+    </label>
+    <span class="toggle-label prod" id="labelProd" onclick="showView('prod')">Production Environment</span>
+    <button class="toggle-both" id="btnBoth" onclick="showView('both')" title="Show both panels side by side">Show Both</button>
+  </div>
+
+  <!-- Split Panels -->
+  <div class="split-container" id="splitContainer">
+
+    <!-- LAB PANEL -->
+    <div class="panel lab" id="panelLab">
+      <div class="panel-header">
+        <span class="panel-icon">&#128300;</span>
+        <span class="panel-title">Lab Environment</span>
+        <span class="panel-badge">Development</span>
+      </div>
+
+      <div class="resource-list">
+
+        <!-- Storage Account - Lab -->
+        <div class="resource-card">
+          <div class="hover-detail">
+            <strong>Lab config:</strong> Quick to set up, public blob access<br>
+            allowed. No private endpoints. Shared key<br>
+            access enabled for easy SDK connection.
+          </div>
+          <div class="resource-icon-wrap">
+            <img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="Storage">
+            <span class="status-overlay open" title="Open access">&#9888;</span>
+          </div>
+          <div class="resource-info">
+            <div class="resource-name">Storage Account</div>
+            <div class="resource-config">Public access enabled. Shared key authentication. No IP restrictions.</div>
+            <div class="config-tags">
+              <span class="config-tag warn">Public blob access</span>
+              <span class="config-tag warn">Shared key auth</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Key Vault - Lab -->
+        <div class="resource-card">
+          <div class="hover-detail">
+            <strong>Lab config:</strong> Purge protection disabled for easy<br>
+            cleanup. No firewall rules. RBAC or access<br>
+            policy - default settings only.
+          </div>
+          <div class="resource-icon-wrap">
+            <img src="../azure-icons/security/10245-icon-service-Key-Vaults.svg" alt="Key Vault">
+            <span class="status-overlay open" title="Open access">&#9888;</span>
+          </div>
+          <div class="resource-info">
+            <div class="resource-name">Key Vault</div>
+            <div class="resource-config">Purge protection OFF. No firewall rules. Public endpoint.</div>
+            <div class="config-tags">
+              <span class="config-tag warn">No purge protection</span>
+              <span class="config-tag warn">No firewall</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Container Registry - Lab -->
+        <div class="resource-card">
+          <div class="hover-detail">
+            <strong>Lab config:</strong> Admin user enabled for simple<br>
+            docker login. Basic SKU, public endpoint.<br>
+            No geo-replication.
+          </div>
+          <div class="resource-icon-wrap">
+            <img src="../azure-icons/containers/10105-icon-service-Container-Registries.svg" alt="ACR">
+            <span class="status-overlay open" title="Open access">&#9888;</span>
+          </div>
+          <div class="resource-info">
+            <div class="resource-name">Container Registry</div>
+            <div class="resource-config">Admin user <strong>enabled</strong>. Basic SKU. Public endpoint.</div>
+            <div class="config-tags">
+              <span class="config-tag warn">Admin enabled</span>
+              <span class="config-tag info">Basic SKU</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ML Workspace - Lab -->
+        <div class="resource-card">
+          <div class="hover-detail">
+            <strong>Lab config:</strong> Public network access for Studio UI<br>
+            and SDK. No VNet integration. Convenient<br>
+            for development and experimentation.
+          </div>
+          <div class="resource-icon-wrap">
+            <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML Workspace">
+            <span class="status-overlay open" title="Open access">&#9888;</span>
+          </div>
+          <div class="resource-info">
+            <div class="resource-name">ML Workspace</div>
+            <div class="resource-config">Public endpoints. No VNet integration. Open Studio access.</div>
+            <div class="config-tags">
+              <span class="config-tag warn">Public endpoints</span>
+              <span class="config-tag warn">No VNet</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Search - Lab -->
+        <div class="resource-card">
+          <div class="hover-detail">
+            <strong>Lab config:</strong> Public access enabled. API keys<br>
+            for authentication. No IP restrictions<br>
+            or managed identity integration.
+          </div>
+          <div class="resource-icon-wrap">
+            <img src="../azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="AI Search">
+            <span class="status-overlay open" title="Open access">&#9888;</span>
+          </div>
+          <div class="resource-info">
+            <div class="resource-name">AI Search</div>
+            <div class="resource-config">Public access. API key authentication only.</div>
+            <div class="config-tags">
+              <span class="config-tag warn">Public access</span>
+              <span class="config-tag warn">API keys only</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PRODUCTION PANEL -->
+    <div class="panel prod" id="panelProd">
+      <div class="panel-header">
+        <span class="panel-icon">&#128737;</span>
+        <span class="panel-title">Production Environment</span>
+        <span class="panel-badge">Hardened</span>
+      </div>
+
+      <!-- VNet Boundary -->
+      <div class="vnet-boundary">
+        <span class="vnet-label">
+          <img src="../azure-icons/networking/10061-icon-service-Virtual-Networks.svg" alt="VNet">
+          Virtual Network
+        </span>
+
+        <!-- Firewall -->
+        <div class="firewall-bar">
+          <img src="../azure-icons/networking/10084-icon-service-Firewalls.svg" alt="Firewall">
+          Azure Firewall &mdash; Network Edge Protection
+        </div>
+
+        <div class="resource-list">
+
+          <!-- Storage Account - Prod -->
+          <div class="resource-card">
+            <div class="pe-badge">
+              <img src="../azure-icons/other/02579-icon-service-Private-Endpoints.svg" alt="PE">
+              Private Endpoint
+            </div>
+            <div class="hover-detail">
+              <strong>Production config:</strong> Private endpoint only -<br>
+              no public access. Managed identity auth.<br>
+              Soft delete + versioning enabled. Firewall<br>
+              rules restricting to VNet subnets only.
+            </div>
+            <div class="resource-icon-wrap">
+              <img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="Storage">
+              <span class="status-overlay locked" title="Secured">&#10003;</span>
+            </div>
+            <div class="resource-info">
+              <div class="resource-name">Storage Account</div>
+              <div class="resource-config">Private endpoint, no public access. <span class="mi-inline"><img src="../azure-icons/identity/10227-icon-service-Managed-Identities.svg" alt="MI">Managed identity</span> auth.</div>
+              <div class="config-tags">
+                <span class="config-tag ok">Private endpoint</span>
+                <span class="config-tag ok">Managed identity</span>
+                <span class="config-tag ok">No public access</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Vault - Prod -->
+          <div class="resource-card">
+            <div class="pe-badge">
+              <img src="../azure-icons/other/02579-icon-service-Private-Endpoints.svg" alt="PE">
+              Private Endpoint
+            </div>
+            <div class="hover-detail">
+              <strong>Production config:</strong> Purge protection ON with<br>
+              90-day retention. Firewall rules + VNet service<br>
+              endpoints. RBAC-only (no access policies).<br>
+              Managed identity for all service access.
+            </div>
+            <div class="resource-icon-wrap">
+              <img src="../azure-icons/security/10245-icon-service-Key-Vaults.svg" alt="Key Vault">
+              <span class="status-overlay locked" title="Secured">&#10003;</span>
+            </div>
+            <div class="resource-info">
+              <div class="resource-name">Key Vault</div>
+              <div class="resource-config">Purge protection ON. Firewall rules. <span class="mi-inline"><img src="../azure-icons/identity/10227-icon-service-Managed-Identities.svg" alt="MI">Managed identity</span> access.</div>
+              <div class="config-tags">
+                <span class="config-tag ok">Purge protection</span>
+                <span class="config-tag ok">Firewall rules</span>
+                <span class="config-tag ok">RBAC only</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Container Registry - Prod -->
+          <div class="resource-card">
+            <div class="pe-badge">
+              <img src="../azure-icons/other/02579-icon-service-Private-Endpoints.svg" alt="PE">
+              Private Endpoint
+            </div>
+            <div class="hover-detail">
+              <strong>Production config:</strong> Admin user disabled.<br>
+              Premium SKU for private endpoints + geo-<br>
+              replication. Managed identity for pulls.<br>
+              Content trust enabled.
+            </div>
+            <div class="resource-icon-wrap">
+              <img src="../azure-icons/containers/10105-icon-service-Container-Registries.svg" alt="ACR">
+              <span class="status-overlay locked" title="Secured">&#10003;</span>
+            </div>
+            <div class="resource-info">
+              <div class="resource-name">Container Registry</div>
+              <div class="resource-config">Admin <strong>disabled</strong>. Premium SKU. <span class="mi-inline"><img src="../azure-icons/identity/10227-icon-service-Managed-Identities.svg" alt="MI">Managed identity</span> pulls.</div>
+              <div class="config-tags">
+                <span class="config-tag ok">Admin disabled</span>
+                <span class="config-tag ok">Managed identity</span>
+                <span class="config-tag info">Premium SKU</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ML Workspace - Prod -->
+          <div class="resource-card">
+            <div class="pe-badge">
+              <img src="../azure-icons/other/02579-icon-service-Private-Endpoints.svg" alt="PE">
+              Private Endpoint
+            </div>
+            <div class="hover-detail">
+              <strong>Production config:</strong> Private endpoints for<br>
+              workspace access. VNet integration for all<br>
+              compute. No public network access. Managed<br>
+              identity for dependent resource access.
+            </div>
+            <div class="resource-icon-wrap">
+              <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML Workspace">
+              <span class="status-overlay locked" title="Secured">&#10003;</span>
+            </div>
+            <div class="resource-info">
+              <div class="resource-name">ML Workspace</div>
+              <div class="resource-config">Private endpoints. Full VNet integration. No public access.</div>
+              <div class="config-tags">
+                <span class="config-tag ok">Private endpoints</span>
+                <span class="config-tag ok">VNet integrated</span>
+                <span class="config-tag ok">No public access</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Search - Prod -->
+          <div class="resource-card">
+            <div class="pe-badge">
+              <img src="../azure-icons/other/02579-icon-service-Private-Endpoints.svg" alt="PE">
+              Private Endpoint
+            </div>
+            <div class="hover-detail">
+              <strong>Production config:</strong> Private endpoint only.<br>
+              Managed identity authentication. System-<br>
+              assigned MI for data source connections.<br>
+              IP firewall rules as secondary control.
+            </div>
+            <div class="resource-icon-wrap">
+              <img src="../azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="AI Search">
+              <span class="status-overlay locked" title="Secured">&#10003;</span>
+            </div>
+            <div class="resource-info">
+              <div class="resource-name">AI Search</div>
+              <div class="resource-config">Private endpoint. <span class="mi-inline"><img src="../azure-icons/identity/10227-icon-service-Managed-Identities.svg" alt="MI">Managed identity</span> auth. IP firewall.</div>
+              <div class="config-tags">
+                <span class="config-tag ok">Private endpoint</span>
+                <span class="config-tag ok">Managed identity</span>
+                <span class="config-tag ok">IP firewall</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Security Badges -->
+      <div class="security-badges">
+        <div class="security-badge">
+          <img src="../azure-icons/networking/10061-icon-service-Virtual-Networks.svg" alt="VNet">
+          VNet Integration
+        </div>
+        <div class="security-badge">
+          <img src="../azure-icons/other/02579-icon-service-Private-Endpoints.svg" alt="PE">
+          Private Endpoints
+        </div>
+        <div class="security-badge">
+          <img src="../azure-icons/identity/10227-icon-service-Managed-Identities.svg" alt="MI">
+          Managed Identity
+        </div>
+        <div class="security-badge">
+          <img src="../azure-icons/networking/10084-icon-service-Firewalls.svg" alt="FW">
+          Firewall
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Summary Comparison -->
+  <div class="comparison-bar">
+    <div class="summary-card lab-summary">
+      <h3>Lab Characteristics</h3>
+      <ul class="summary-list">
+        <li>Public endpoints for all resources</li>
+        <li>Shared key / API key authentication</li>
+        <li>No network isolation (no VNet)</li>
+        <li>Admin accounts enabled where available</li>
+        <li>Purge protection disabled for easy cleanup</li>
+        <li>Optimized for speed of setup and experimentation</li>
+      </ul>
+    </div>
+    <div class="summary-card prod-summary">
+      <h3>Production Characteristics</h3>
+      <ul class="summary-list">
+        <li>Private endpoints on every resource</li>
+        <li>Managed identity for all authentication</li>
+        <li>Full VNet integration with firewall</li>
+        <li>Admin accounts disabled, RBAC enforced</li>
+        <li>Purge protection ON, soft delete enabled</li>
+        <li>Optimized for security, compliance, and auditability</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentView = 'both'; // 'lab', 'prod', or 'both'
+
+  function showView(view) {
+    currentView = view;
+    const container = document.getElementById('splitContainer');
+    const labelLab = document.getElementById('labelLab');
+    const labelProd = document.getElementById('labelProd');
+    const btnBoth = document.getElementById('btnBoth');
+    const toggle = document.getElementById('viewToggle');
+
+    container.classList.remove('show-lab-only', 'show-prod-only');
+
+    labelLab.classList.remove('active-lab', 'dimmed');
+    labelProd.classList.remove('active-prod', 'dimmed');
+    btnBoth.classList.remove('active');
+
+    if (view === 'lab') {
+      container.classList.add('show-lab-only');
+      labelLab.classList.add('active-lab');
+      labelProd.classList.add('dimmed');
+      toggle.checked = false;
+    } else if (view === 'prod') {
+      container.classList.add('show-prod-only');
+      labelProd.classList.add('active-prod');
+      labelLab.classList.add('dimmed');
+      toggle.checked = true;
+    } else {
+      // both
+      labelLab.classList.add('active-lab');
+      labelProd.classList.add('active-prod');
+      btnBoth.classList.add('active');
+    }
+  }
+
+  function handleToggle(el) {
+    if (el.checked) {
+      showView('prod');
+    } else {
+      showView('lab');
+    }
+  }
+
+  // Start in "both" view
+  showView('both');
+</script>
+
+</body>
+</html>

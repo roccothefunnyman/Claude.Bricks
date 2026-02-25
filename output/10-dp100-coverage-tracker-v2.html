@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DP-100 Skills Coverage Tracker</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a1a;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 24px;
+  }
+
+  .container {
+    max-width: 1400px;
+    max-height: 100vh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px 0;
+    width: 100%;
+  }
+
+  /* -- Header -- */
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    padding: 7px 20px;
+    border-radius: 24px;
+    margin-bottom: 10px;
+  }
+
+  .header-badge::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: #50e6ff;
+    border-radius: 50%;
+  }
+
+  .header h1 {
+    font-size: 35px;
+    font-weight: 700;
+    color: #1b1b1b;
+    margin-bottom: 5px;
+  }
+
+  .header p {
+    font-size: 18px;
+    color: #5f6368;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.45;
+  }
+
+  /* -- Summary Bar -- */
+  .summary-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px 36px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+    border: 1px solid #e8eaed;
+    flex-wrap: wrap;
+  }
+
+  .summary-overall {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .overall-donut {
+    position: relative;
+    width: 88px; height: 88px;
+    flex-shrink: 0;
+  }
+
+  .overall-donut svg { width: 88px; height: 88px; transform: rotate(-90deg); }
+
+  .overall-donut .donut-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1b1b1b;
+  }
+
+  .overall-text h3 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1b1b1b;
+  }
+
+  .overall-text p {
+    font-size: 15px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  .summary-legend {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #4b5563;
+  }
+
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-dot.green  { background: #107c41; }
+  .legend-dot.yellow { background: #d69e2e; }
+  .legend-dot.red    { background: #d13438; }
+
+  .legend-count {
+    font-weight: 400;
+    color: #9ca3af;
+  }
+
+  /* -- Domain Sections -- */
+  .domain-section {
+    background: #fff;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+    border: 1px solid #e8eaed;
+    overflow: hidden;
+    transition: box-shadow .2s ease;
+  }
+
+  .domain-section:hover {
+    box-shadow: 0 4px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
+  }
+
+  .domain-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 28px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s ease;
+    position: relative;
+  }
+
+  .domain-header:hover { background: #f8f9fb; }
+
+  .domain-icon {
+    width: 56px; height: 56px;
+    flex-shrink: 0;
+    background: #f4f8ff;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0eaf5;
+  }
+
+  .domain-icon img { width: 38px; height: 38px; }
+
+  .domain-info { flex: 1; min-width: 0; }
+
+  .domain-info h2 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1b1b1b;
+    line-height: 1.3;
+  }
+
+  .domain-info .domain-weight {
+    font-size: 15px;
+    font-weight: 500;
+    color: #6b7280;
+    margin-top: 1px;
+  }
+
+  .domain-stats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .domain-mini-donut {
+    position: relative;
+    width: 55px; height: 55px;
+    flex-shrink: 0;
+  }
+
+  .domain-mini-donut svg { width: 55px; height: 55px; transform: rotate(-90deg); }
+
+  .domain-mini-donut .mini-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1b1b1b;
+  }
+
+  .domain-chevron {
+    width: 24px; height: 24px;
+    flex-shrink: 0;
+    transition: transform .25s ease;
+    color: #9ca3af;
+  }
+
+  .domain-section.open .domain-chevron { transform: rotate(180deg); }
+
+  /* skill list */
+  .skill-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .35s ease;
+  }
+
+  .domain-section.open .skill-list { max-height: 2000px; }
+
+  .skill-list-inner {
+    padding: 0 28px 18px;
+    border-top: 1px solid #ebedf0;
+  }
+
+  .skill-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background .12s ease;
+  }
+
+  .skill-row:last-child { border-bottom: none; }
+
+  .skill-row:hover { background: #f8f9fb; margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 6px; }
+
+  .skill-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 3px;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor;
+  }
+
+  .skill-dot.green  { background: #107c41; color: #107c41; }
+  .skill-dot.yellow { background: #d69e2e; color: #d69e2e; }
+  .skill-dot.red    { background: #d13438; color: #d13438; }
+
+  .skill-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .skill-name {
+    font-size: 17px;
+    font-weight: 500;
+    color: #1b1b1b;
+    line-height: 1.4;
+  }
+
+  .skill-note {
+    font-size: 14px;
+    color: #9ca3af;
+    font-style: italic;
+    margin-top: 1px;
+  }
+
+  .skill-badge {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    margin-top: 1px;
+  }
+
+  .skill-badge.green  { background: #e6f7ed; color: #0e6027; }
+  .skill-badge.yellow { background: #fef3cd; color: #856404; }
+  .skill-badge.red    { background: #fde8e8; color: #991b1b; }
+
+  /* -- Footer -- */
+  .footer {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 15px;
+    color: #9ca3af;
+    letter-spacing: .3px;
+  }
+
+  /* -- Donut helper classes -- */
+  .donut-bg  { fill: none; stroke: #ebedf0; }
+  .donut-fg  { fill: none; stroke-linecap: round; transition: stroke-dasharray .4s ease; }
+  .donut-green  { stroke: #107c41; }
+  .donut-yellow { stroke: #d69e2e; }
+  .donut-red    { stroke: #d13438; }
+
+  /* -- Overflow safety for expanded state -- */
+  .domain-section.open ~ .domain-section {
+    /* When a section is expanded, allow scrolling within the domains container */
+  }
+
+  #domains {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Subtle scrollbar for when sections are expanded */
+  #domains::-webkit-scrollbar {
+    width: 6px;
+  }
+  #domains::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #domains::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+  #domains::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">Claude.Bricks Portfolio</div>
+    <h1>DP-100 Skills Coverage Tracker</h1>
+    <p>Comprehensive checklist mapping every DP-100 study guide skill to project coverage status.</p>
+  </div>
+
+  <!-- Summary Bar -->
+  <div class="summary-bar" id="summaryBar">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Domain Sections (built by JS) -->
+  <div id="domains"></div>
+
+  <div class="footer">Claude.Bricks &middot; DP-100 Azure Data Scientist Associate &middot; 2026</div>
+</div>
+
+<script>
+// -- Data --
+const domains = [
+  {
+    id: 1,
+    title: "Domain 1: Design and Prepare a ML Solution",
+    weight: "20 - 25%",
+    icon: "../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg",
+    accentStart: "#0078d4",
+    accentEnd: "#50e6ff",
+    skills: [
+      { name: "Identify structure and format for datasets", status: "green", label: "Covered" },
+      { name: "Determine compute specifications for ML workload", status: "green", label: "Covered" },
+      { name: "Select development approach to train a model", status: "green", label: "Covered" },
+      { name: "Create and manage a workspace", status: "green", label: "Covered" },
+      { name: "Create and manage datastores", status: "green", label: "Covered" },
+      { name: "Create and manage compute targets", status: "green", label: "Covered" },
+      { name: "Set up Git integration for source control", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Create and manage data assets", status: "green", label: "Covered" },
+      { name: "Create and manage environments", status: "green", label: "Covered" },
+      { name: "Share assets across workspaces using registries", status: "yellow", label: "Partial", note: "Discussed, no hands-on lab" }
+    ]
+  },
+  {
+    id: 2,
+    title: "Domain 2: Explore Data and Run Experiments",
+    weight: "20 - 25%",
+    icon: "../azure-icons/devops/00012-icon-service-Application-Insights.svg",
+    accentStart: "#00b7c3",
+    accentEnd: "#0078d4",
+    skills: [
+      { name: "Use AutoML for tabular data", status: "green", label: "Covered" },
+      { name: "Use AutoML for computer vision", status: "green", label: "Covered" },
+      { name: "Use AutoML for NLP", status: "yellow", label: "Partial", note: "Discussed, no hands-on lab" },
+      { name: "Select and understand training options", status: "green", label: "Covered" },
+      { name: "Evaluate AutoML run with responsible AI", status: "yellow", label: "Partial", note: "Discussed, no hands-on lab" },
+      { name: "Configure compute instance terminal", status: "green", label: "Covered" },
+      { name: "Access and wrangle data in notebooks", status: "green", label: "Covered" },
+      { name: "Wrangle data with Synapse Spark", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Retrieve features from feature store", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Track model training with MLflow", status: "green", label: "Covered" },
+      { name: "Evaluate model with responsible AI", status: "yellow", label: "Partial", note: "Discussed, no hands-on lab" },
+      { name: "Select sampling method for hyperparameter tuning", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Define search space", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Define primary metric", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Define early termination options", status: "red", label: "Gap", note: "Study separately" }
+    ]
+  },
+  {
+    id: 3,
+    title: "Domain 3: Train and Deploy Models",
+    weight: "25 - 30%",
+    icon: "../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg",
+    accentStart: "#107c41",
+    accentEnd: "#50e6ff",
+    skills: [
+      { name: "Consume data in a job", status: "green", label: "Covered" },
+      { name: "Configure compute for a job run", status: "green", label: "Covered" },
+      { name: "Configure environment for a job run", status: "green", label: "Covered" },
+      { name: "Track model training with MLflow in a job", status: "green", label: "Covered" },
+      { name: "Define parameters for a job", status: "green", label: "Covered" },
+      { name: "Run a script as a job", status: "green", label: "Covered" },
+      { name: "Use logs to troubleshoot job run errors", status: "green", label: "Covered" },
+      { name: "Create custom components", status: "green", label: "Covered" },
+      { name: "Create a pipeline", status: "green", label: "Covered" },
+      { name: "Pass data between steps in a pipeline", status: "green", label: "Covered" },
+      { name: "Run and schedule a pipeline", status: "green", label: "Covered" },
+      { name: "Monitor and troubleshoot pipeline runs", status: "green", label: "Covered" },
+      { name: "Define signature in MLmodel file", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Package feature retrieval spec with model", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Register an MLflow model", status: "green", label: "Covered" },
+      { name: "Assess model using responsible AI principles", status: "yellow", label: "Partial", note: "Discussed, no hands-on lab" },
+      { name: "Configure settings for online deployment", status: "green", label: "Covered" },
+      { name: "Deploy model to online endpoint", status: "green", label: "Covered" },
+      { name: "Test online deployed service", status: "green", label: "Covered" },
+      { name: "Configure compute for batch deployment", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Deploy model to batch endpoint", status: "red", label: "Gap", note: "Study separately" },
+      { name: "Invoke batch endpoint for batch scoring", status: "red", label: "Gap", note: "Study separately" }
+    ]
+  },
+  {
+    id: 4,
+    title: "Domain 4: Optimize Language Models",
+    weight: "25 - 30%",
+    icon: "../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg",
+    accentStart: "#8764b8",
+    accentEnd: "#d83b01",
+    skills: [
+      { name: "Select and deploy model from model catalog", status: "green", label: "Covered" },
+      { name: "Compare models using benchmarks", status: "green", label: "Covered" },
+      { name: "Test deployed model in playground", status: "green", label: "Covered" },
+      { name: "Select an optimization approach", status: "green", label: "Covered" },
+      { name: "Test prompts with manual evaluation", status: "green", label: "Covered" },
+      { name: "Define and track prompt variants", status: "green", label: "Covered" },
+      { name: "Create prompt templates", status: "green", label: "Covered" },
+      { name: "Define chaining logic with prompt flow SDK", status: "green", label: "Covered" },
+      { name: "Use tracing to evaluate flow", status: "green", label: "Covered" },
+      { name: "Prepare data for RAG (cleaning, chunking, embedding)", status: "green", label: "Covered" },
+      { name: "Configure a vector store", status: "green", label: "Covered" },
+      { name: "Configure Azure AI Search index store", status: "green", label: "Covered" },
+      { name: "Evaluate RAG solution", status: "green", label: "Covered" },
+      { name: "Prepare data for fine-tuning", status: "green", label: "Covered" },
+      { name: "Select appropriate base model", status: "green", label: "Covered" },
+      { name: "Run a fine-tuning job", status: "yellow", label: "Partial", note: "Region-dependent availability" },
+      { name: "Evaluate fine-tuned model", status: "green", label: "Covered" }
+    ]
+  }
+];
+
+// -- Helpers --
+function countByStatus(skills, status) {
+  return skills.filter(s => s.status === status).length;
+}
+
+function makeDonutSVG(size, stroke, covered, partial, total) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const gPct = covered / total;
+  const yPct = partial / total;
+  const rPct = 1 - gPct - yPct;
+  const gLen = gPct * circ;
+  const yLen = yPct * circ;
+  const rLen = rPct * circ;
+
+  return `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle class="donut-bg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}"/>
+      <circle class="donut-fg donut-green" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}"
+              stroke-dasharray="${gLen} ${circ - gLen}" stroke-dashoffset="0"/>
+      <circle class="donut-fg donut-yellow" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}"
+              stroke-dasharray="${yLen} ${circ - yLen}" stroke-dashoffset="${-gLen}"/>
+      <circle class="donut-fg donut-red" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}"
+              stroke-dasharray="${rLen} ${circ - rLen}" stroke-dashoffset="${-(gLen + yLen)}"/>
+    </svg>`;
+}
+
+// -- Build Summary Bar --
+function buildSummary() {
+  const all = domains.flatMap(d => d.skills);
+  const total = all.length;
+  const green = countByStatus(all, 'green');
+  const yellow = countByStatus(all, 'yellow');
+  const red = countByStatus(all, 'red');
+  const pct = Math.round(((green + yellow * 0.5) / total) * 100);
+
+  document.getElementById('summaryBar').innerHTML = `
+    <div class="summary-overall">
+      <div class="overall-donut">
+        ${makeDonutSVG(88, 8, green, yellow, total)}
+        <div class="donut-label">${pct}%</div>
+      </div>
+      <div class="overall-text">
+        <h3>Overall Coverage</h3>
+        <p>${green + yellow} of ${total} skills addressed</p>
+      </div>
+    </div>
+    <div class="summary-legend">
+      <div class="legend-item">
+        <span class="legend-dot green"></span>
+        Covered <span class="legend-count">(${green})</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot yellow"></span>
+        Partial <span class="legend-count">(${yellow})</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot red"></span>
+        Gap <span class="legend-count">(${red})</span>
+      </div>
+    </div>`;
+}
+
+// -- Build Domain Sections --
+function buildDomains() {
+  const container = document.getElementById('domains');
+
+  domains.forEach((d, idx) => {
+    const total = d.skills.length;
+    const green = countByStatus(d.skills, 'green');
+    const yellow = countByStatus(d.skills, 'yellow');
+
+    const section = document.createElement('div');
+    // ALL sections start collapsed for presentation fit
+    section.className = 'domain-section';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'domain-header';
+    header.innerHTML = `
+      <div class="domain-icon"><img src="${d.icon}" alt=""></div>
+      <div class="domain-info">
+        <h2>${d.title}</h2>
+        <div class="domain-weight">Exam weight: ${d.weight} &nbsp;&middot;&nbsp; ${green + yellow}/${total} skills addressed</div>
+      </div>
+      <div class="domain-stats">
+        <div class="domain-mini-donut">
+          ${makeDonutSVG(55, 6, green, yellow, total)}
+          <div class="mini-label">${green}/${total}</div>
+        </div>
+      </div>
+      <svg class="domain-chevron" viewBox="0 0 20 20" fill="none">
+        <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+    header.addEventListener('click', () => section.classList.toggle('open'));
+    section.appendChild(header);
+
+    // Skill list
+    const listWrap = document.createElement('div');
+    listWrap.className = 'skill-list';
+    const listInner = document.createElement('div');
+    listInner.className = 'skill-list-inner';
+
+    d.skills.forEach(sk => {
+      const row = document.createElement('div');
+      row.className = 'skill-row';
+      row.innerHTML = `
+        <span class="skill-dot ${sk.status}"></span>
+        <div class="skill-text">
+          <div class="skill-name">${sk.name}</div>
+          ${sk.note ? `<div class="skill-note">${sk.note}</div>` : ''}
+        </div>
+        <span class="skill-badge ${sk.status}">${sk.label}</span>`;
+      listInner.appendChild(row);
+    });
+
+    listWrap.appendChild(listInner);
+    section.appendChild(listWrap);
+    container.appendChild(section);
+  });
+}
+
+// -- Init --
+buildSummary();
+buildDomains();
+</script>
+
+</body>
+</html>

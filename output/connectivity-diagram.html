@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FHLBI - Connectivity Subscription Architecture</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#e8ecf0;overflow:hidden;height:100vh}
+
+/* Toolbar */
+#toolbar{position:fixed;top:0;left:0;right:0;height:44px;background:linear-gradient(135deg,#1a2a4a,#2d4a7a);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#toolbar h1{font-size:15px;font-weight:600;letter-spacing:.5px}
+#toolbar .controls{display:flex;gap:6px;align-items:center}
+#toolbar button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;transition:background .2s}
+#toolbar button:hover{background:rgba(255,255,255,.3)}
+#zoom-level{font-size:11px;color:rgba(255,255,255,.7);min-width:45px;text-align:center}
+
+/* Viewport / Canvas */
+#viewport{position:absolute;top:44px;left:0;right:0;bottom:0;overflow:hidden;cursor:grab;background-color:#e8ecf0;background-image:radial-gradient(circle,#ccc 1px,transparent 1px);background-size:20px 20px}
+#viewport.dragging{cursor:grabbing}
+#canvas{position:absolute;transform-origin:0 0}
+
+/* Subscription wrapper - fills viewport */
+.sub{border:3px dashed #c9a800;border-radius:14px;background:#fffef8;box-shadow:0 4px 20px rgba(0,0,0,.08);margin:12px;overflow:visible}
+.sub-header{padding:10px 20px;border-radius:10px 10px 0 0;background:linear-gradient(90deg,#d4a017,#e8c547);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px;justify-content:space-between;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sub-header img{width:28px;height:28px;filter:brightness(0) invert(1)}
+.sub-header .sid{font-size:11px;font-weight:400;opacity:.85}
+.sub-body{padding:16px 20px}
+
+.sub.xprem{border-color:#777;margin:12px}
+.sub.xprem .sub-header{background:linear-gradient(90deg,#555,#888)}
+
+/* Title area */
+.conn-title{font-size:32px;font-weight:800;text-align:center;color:#1a365d;letter-spacing:2px;padding:6px 0 2px;text-transform:uppercase}
+.conn-subtitle{font-size:12px;text-align:center;color:#999;padding-bottom:12px;border-bottom:2px solid #e0dcc8;margin-bottom:16px}
+
+/* Main layout */
+.conn-layout{display:flex;gap:16px;padding:0 6px;align-items:flex-start}
+
+/* Sidebar */
+.conn-sidebar{width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:2px;padding:12px;background:rgba(248,245,230,.6);border:1px solid #e0dcc8;border-radius:8px;align-self:stretch}
+.conn-sidebar .section-title{margin-top:0}
+.conn-sidebar .res{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 3px;border-bottom:1px solid rgba(0,0,0,.05)}
+.conn-sidebar .res:last-child{border-bottom:none}
+.conn-sidebar .res img{width:26px;height:26px}
+
+/* Region wrapper */
+.region{flex:1;min-width:0}
+.region-label{padding:8px 14px;font-size:14px;font-weight:700;color:#1a5276;background:linear-gradient(90deg,#d4e6f1,#e8f0f8);border-radius:6px;text-align:center;margin-bottom:12px;letter-spacing:.5px}
+
+/* VNet grid - compact boxes flowing */
+.vnet-grid{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+
+/* VNet box - sized to content */
+.vnet{border:2px dashed #4a6fa5;border-radius:8px;background:rgba(200,220,245,.12);overflow:visible;flex-shrink:0}
+.vnet.v-fw{width:340px}
+.vnet.v-transit{width:300px}
+.vnet.v-single{width:260px}
+.vnet.v-cus-transit{width:100%}
+.vnet-header{padding:5px 12px;font-size:12px;font-weight:600;color:#2c5282;display:flex;align-items:center;gap:6px;background:linear-gradient(90deg,#dce6f2,#eaf0f8);border-radius:6px 6px 0 0}
+.vnet-header img{width:18px;height:18px}
+.vnet-body{padding:8px 10px}
+
+/* Subnet - compact block */
+.snet{border:1px dotted #999;border-radius:6px;background:#fff;padding:8px 10px;margin-bottom:6px}
+.snet:last-child{margin-bottom:0}
+.snet-top{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.snet-name{font-weight:600;color:#1a365d;font-size:11px}
+.snet-resources{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+
+/* Badges */
+.badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:8px;font-weight:700;color:#fff;margin-left:2px}
+.badge-nsg{background:#e74c3c}
+.badge-udr{background:#8e44ad}
+
+/* Resource chip */
+.res{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#444;white-space:nowrap;padding:4px 7px;background:rgba(240,245,250,.6);border-radius:4px;border:1px solid rgba(0,0,0,.05)}
+.res img{width:26px;height:26px}
+
+/* Standalone res-group */
+.res-group{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;padding:2px 0}
+
+/* Section titles */
+.section-title{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin:6px 0 4px 2px;border-bottom:1px solid #ddd;padding-bottom:3px}
+
+/* External resources bar */
+.conn-ext{margin:14px 6px 6px;padding:12px 14px;background:rgba(255,248,220,.5);border:1px solid #e8d88c;border-radius:8px}
+.conn-ext .section-title{margin-top:0}
+.conn-ext .ext-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
+
+/* On-prem grid */
+.xprem-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:10px}
+.xprem-footer{padding:8px;background:#f7f3e3;border-radius:5px;text-align:center;font-size:10px;font-weight:600;color:#555}
+
+/* Connection lines SVG */
+#conn-lines{position:absolute;top:0;left:0;pointer-events:none;z-index:5}
+.conn-label{font-size:10px;font-weight:600;paint-order:stroke;stroke:#fff;stroke-width:3px}
+
+/* Legend */
+#legend{position:fixed;bottom:12px;right:12px;background:#fff;border:1px solid #ccc;border-radius:8px;padding:12px 16px;font-size:11px;z-index:1001;box-shadow:0 2px 12px rgba(0,0,0,.15);max-width:260px;max-height:calc(100vh - 80px);overflow-y:auto}
+#legend h3{font-size:13px;margin-bottom:8px;color:#333}
+.leg-row{display:flex;align-items:center;gap:8px;margin:4px 0}
+.leg-line{width:30px;height:0;border-top:2px dashed}
+.leg-box{width:24px;height:14px;border-radius:3px}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>FHLBI - Connectivity Subscription Architecture</h1>
+  <div class="controls">
+    <button onclick="zoomBy(-0.1)">-</button>
+    <span id="zoom-level">100%</span>
+    <button onclick="zoomBy(0.1)">+</button>
+    <button onclick="fitToScreen()">Fit</button>
+    <button onclick="resetView()">Reset</button>
+  </div>
+</div>
+
+<div id="viewport">
+  <svg id="conn-lines"></svg>
+  <div id="canvas"></div>
+</div>
+
+<div id="legend"></div>
+
+<script>
+// === ICON PATHS ===
+const B='../azure-icons';
+const I={
+  vm:   B+'/compute/10021-icon-service-Virtual-Machine.svg',
+  vnet: B+'/networking/10061-icon-service-Virtual-Networks.svg',
+  nsg:  B+'/networking/10067-icon-service-Network-Security-Groups.svg',
+  udr:  B+'/networking/10082-icon-service-Route-Tables.svg',
+  lb:   B+'/networking/10062-icon-service-Load-Balancers.svg',
+  fw:   B+'/networking/10084-icon-service-Firewalls.svg',
+  er:   B+'/networking/10079-icon-service-ExpressRoute-Circuits.svg',
+  vgw:  B+'/networking/10063-icon-service-Virtual-Network-Gateways.svg',
+  lgw:  B+'/networking/10077-icon-service-Local-Network-Gateways.svg',
+  ddos: B+'/networking/10072-icon-service-DDoS-Protection-Plans.svg',
+  bas:  B+'/networking/02422-icon-service-Bastions.svg',
+  rs:   B+'/networking/02496-icon-service-Virtual-Router.svg',
+  cn:   B+'/networking/10081-icon-service-Connections.svg',
+  kv:   B+'/security/10245-icon-service-Key-Vaults.svg',
+  sto:  B+'/storage/10086-icon-service-Storage-Accounts.svg',
+  alr:  B+'/management + governance/00002-icon-service-Alerts.svg',
+  aut:  B+'/management + governance/00022-icon-service-Automation-Accounts.svg',
+  rsv:  B+'/management + governance/00017-icon-service-Recovery-Services-Vaults.svg',
+  pol:  B+'/management + governance/10316-icon-service-Policy.svg',
+  law:  B+'/analytics/00009-icon-service-Log-Analytics-Workspaces.svg',
+  sub:  B+'/general/10002-icon-service-Subscriptions.svg',
+  svr:  B+'/general/10835-icon-service-Server-Farm.svg',
+  mi:   B+'/identity/10227-icon-service-Managed-Identities.svg',
+  pe:   B+'/other/02579-icon-service-Private-Endpoints.svg',
+  bv:   B+'/other/02361-icon-service-Backup-Vault.svg',
+  nw:   B+'/monitor/10066-icon-service-Network-Watcher.svg',
+};
+
+// === HELPERS ===
+function icon(src,sz=14){return `<img src="${src}" width="${sz}" height="${sz}" alt="">`}
+function res(ic,label){return `<span class="res">${icon(ic,26)}${label}</span>`}
+function badge(type){return `<span class="badge badge-${type}">${type.toUpperCase()}</span>`}
+
+function snet(name,badges,resources){
+  return `<div class="snet">
+    <div class="snet-top"><span class="snet-name">${name}</span>${badges.map(b=>badge(b)).join('')}</div>
+    <div class="snet-resources">${resources}</div>
+  </div>`;
+}
+
+function vnetWrap(name,body,cls=''){
+  return `<div class="vnet ${cls}"><div class="vnet-header">${icon(I.vnet,18)}${name}</div><div class="vnet-body">${body}</div></div>`;
+}
+function secTitle(t){return `<div class="section-title">${t}</div>`}
+
+const canvas=document.getElementById('canvas');
+
+// ==========================================
+// CONNECTIVITY SUBSCRIPTION
+// ==========================================
+let connBody='';
+connBody+='<div class="conn-title">Connectivity</div>';
+connBody+='<div class="conn-subtitle">sub-connectivity</div>';
+connBody+='<div class="conn-layout">';
+
+// --- Left sidebar: Shared Services ---
+connBody+='<div class="conn-sidebar">';
+connBody+=secTitle('Shared Services');
+connBody+=res(I.aut,'aa-eus2-conn-asr');
+connBody+=res(I.bv,'bvault-eus2-dev-fhlbi');
+connBody+=res(I.law,'law-eus2-dev-sqlvm-inbound');
+connBody+=res(I.mi,'uai-eus2-dev_kv');
+connBody+=res(I.mi,'uai-eus2-dev_kv_sta');
+connBody+=res(I.rsv,'rsv-eus2-dev-fhlbi-asr');
+connBody+=res(I.rsv,'rsv-eus2-dev-fhlbi-imm');
+connBody+=res(I.sto,'staeus2connasr');
+connBody+=res(I.pe,'Blob Private Endpoint');
+connBody+=res(I.kv,'kv-eus2-conn-sta-vault');
+connBody+=res(I.pe,'KV Private Endpoint');
+connBody+=res(I.nw,'Network Watcher');
+connBody+=res(I.alr,'8x Alert Rules');
+connBody+=res(I.pol,'RBAC Policy');
+connBody+='</div>';
+
+// --- East US 2 (Primary) ---
+connBody+='<div class="region">';
+connBody+='<div class="region-label">East US 2 (Primary)</div>';
+connBody+='<div class="vnet-grid">';
+
+connBody+=vnetWrap('vnet-eus2-conn-firewall',
+  snet('snet-fw-untrust',['udr'],
+    res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02')
+  )+
+  snet('snet-fw-trust',['udr'],
+    res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02')
+  )+
+  `<div class="res-group">${res(I.lb,'lbi-firewall (ILB)')}</div>`
+,'v-fw');
+
+connBody+=vnetWrap('vnet-eus2-conn-transit',
+  snet('RouteServerSubnet',['udr'],
+    res(I.rs,'ars-eus2-sbx-dataplane')
+  )+
+  snet('GatewaySubnet',['udr'],
+    res(I.vgw,'vng-eus2-sbx-fhlbi-vpn')
+  )
+,'v-transit');
+
+connBody+=vnetWrap('vnet-eus2-sbx-control-ars',
+  snet('RouteServerSubnet',[],
+    res(I.rs,'ars-eus2-sbx-controlplane')
+  )
+,'v-single');
+
+connBody+=vnetWrap('vnet-eus2-conn-general',
+  snet('snet-general',['udr'],
+    res(I.vm,'General Resources')
+  )
+,'v-single');
+
+connBody+=vnetWrap('vnet-eus2-conn-firewall-bastion',
+  snet('AzureBastionSubnet',[],
+    res(I.bas,'Azure Bastion')
+  )
+,'v-single');
+
+connBody+='</div></div>';
+
+// --- Central US (DR) ---
+connBody+='<div class="region">';
+connBody+='<div class="region-label">Central US (DR)</div>';
+connBody+='<div class="vnet-grid">';
+
+connBody+=vnetWrap('vnet-cus-sbx-transit',
+  snet('snet-fw-trust',[],
+    res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02')
+  )+
+  snet('snet-fw-untrust',['udr'],
+    res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02')
+  )+
+  snet('snet-fw-mgmt',['udr'],
+    res(I.fw,'Palo Alto-01')+res(I.fw,'Palo Alto-02')
+  )+
+  snet('RouteServerSubnet',['udr'],
+    res(I.rs,'ars-cus-sbx-dataplane')
+  )+
+  snet('GatewaySubnet',['udr'],
+    res(I.vgw,'vng-cus-sbx-fhlbi-vpn')
+  )
+,'v-cus-transit');
+
+connBody+=vnetWrap('vnet-cus-sbx-control-ars',
+  snet('RouteServerSubnet',[],
+    res(I.rs,'ars-cus-sbx-controlplane')
+  )
+,'v-single');
+
+connBody+=vnetWrap('vnet-cus-sbx-expressroute',
+  snet('GatewaySubnet',[],
+    res(I.vgw,'ExpressRoute GW')
+  )
+,'v-single');
+
+connBody+='</div></div>';
+connBody+='</div>'; // close conn-layout
+
+// --- External Resources ---
+connBody+='<div class="conn-ext">';
+connBody+=secTitle('External Resources');
+connBody+='<div class="ext-row">';
+connBody+=res(I.er,'ckt-eus2-conn-expressroute-1');
+connBody+=res(I.vgw,'vgw-eus2-conn-expedient');
+connBody+=res(I.vgw,'vgw-eus2-conn-expedient2');
+connBody+=res(I.lgw,'LNG-01');
+connBody+=res(I.lgw,'LNG-02');
+connBody+=res(I.lgw,'LNG-03');
+connBody+=res(I.lgw,'LNG-04');
+connBody+=res(I.ddos,'ddos-eus2-conn-01');
+connBody+=res(I.cn,'Azure-to-Expedient');
+connBody+='</div></div>';
+
+// Build connectivity subscription - no absolute positioning, flows in canvas
+canvas.innerHTML=`
+<div class="sub" id="sub-conn">
+  <div class="sub-header">${icon(I.sub,28)}Connectivity<span class="sid">sub-connectivity</span></div>
+  <div class="sub-body">${connBody}</div>
+</div>
+<div style="display:flex;gap:16px;padding:0 12px;align-items:flex-start">
+  <div class="sub xprem" id="sub-xprem" style="flex:0 0 500px">
+    <div class="sub-header">${icon(I.sub,28)}Cross-Premises Network<span class="sid">on-prem</span></div>
+    <div class="sub-body">
+      ${secTitle('On-Premises Servers')}
+      <div class="xprem-grid">
+        ${Array.from({length:20},(_,i)=>res(I.svr,`Server-${String(i+1).padStart(2,'0')}`)).join('')}
+      </div>
+      <div class="xprem-footer">
+        ${res(I.er,'ExpressRoute via Expedient')}<br>
+        ${res(I.vgw,'VPN Gateway Redundancy')}
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+// ==========================================
+// LEGEND
+// ==========================================
+document.getElementById('legend').innerHTML=`
+<h3>Legend</h3>
+<div class="leg-row">${icon(I.fw,20)} Firewall (Palo Alto NVA)</div>
+<div class="leg-row">${icon(I.vnet,20)} Virtual Network</div>
+<div class="leg-row">${icon(I.vm,20)} Virtual Machine</div>
+<div class="leg-row">${icon(I.svr,20)} Server / Web Host</div>
+<div class="leg-row">${icon(I.lb,20)} Load Balancer</div>
+<div class="leg-row">${icon(I.er,20)} ExpressRoute Circuit</div>
+<div class="leg-row">${icon(I.vgw,20)} VPN / ExpressRoute GW</div>
+<div class="leg-row">${icon(I.lgw,20)} Local Network Gateway</div>
+<div class="leg-row">${icon(I.bas,20)} Azure Bastion</div>
+<div class="leg-row">${icon(I.rs,20)} Route Server</div>
+<div class="leg-row">${icon(I.kv,20)} Key Vault</div>
+<div class="leg-row">${icon(I.sto,20)} Storage Account</div>
+<div class="leg-row">${icon(I.law,20)} Log Analytics</div>
+<div class="leg-row">${icon(I.pe,20)} Private Endpoint</div>
+<div class="leg-row">${icon(I.rsv,20)} Recovery Services Vault</div>
+<div class="leg-row">${icon(I.bv,20)} Backup Vault</div>
+<div class="leg-row">${icon(I.aut,20)} Automation Account</div>
+<div class="leg-row">${icon(I.mi,20)} Managed Identity</div>
+<div class="leg-row">${icon(I.pol,20)} Azure Policy / RBAC</div>
+<div class="leg-row">${icon(I.ddos,20)} DDoS Protection</div>
+<div class="leg-row">${icon(I.nw,20)} Network Watcher</div>
+<div class="leg-row">${icon(I.cn,20)} Connection</div>
+<div style="margin-top:6px;border-top:1px solid #ddd;padding-top:6px">
+  <div class="leg-row"><span class="leg-line" style="border-color:#27ae60"></span> VNet Peering</div>
+  <div class="leg-row"><span class="leg-line" style="border-color:#e74c3c"></span> Critical Path</div>
+  <div class="leg-row"><span class="leg-box" style="border:3px dashed #c9a800"></span> Subscription</div>
+  <div class="leg-row"><span class="leg-box" style="border:2px dashed #4a6fa5;background:rgba(200,220,245,.15)"></span> Virtual Network</div>
+  <div class="leg-row"><span class="leg-box" style="border:1px dotted #999"></span> Subnet</div>
+  <div class="leg-row"><span class="badge badge-udr" style="font-size:9px">UDR</span> User-Defined Route</div>
+  <div class="leg-row"><span class="leg-box" style="border:3px dashed #666"></span> Cross-Premises</div>
+</div>
+`;
+
+// ==========================================
+// ZOOM & PAN - sized to actual content
+// ==========================================
+let scale=1, panX=0, panY=0, dragging=false, startX, startY;
+const viewport=document.getElementById('viewport');
+
+// Let canvas size itself to content, then measure
+requestAnimationFrame(()=>{
+  const w=canvas.scrollWidth;
+  const h=canvas.scrollHeight;
+  canvas.style.width=w+'px';
+  canvas.style.height=h+'px';
+
+  const svg=document.getElementById('conn-lines');
+  svg.style.width=w+'px';
+  svg.style.height=h+'px';
+
+  fitToScreen();
+});
+
+function applyTransform(){
+  const svg=document.getElementById('conn-lines');
+  canvas.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  svg.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  svg.style.transformOrigin='0 0';
+  document.getElementById('zoom-level').textContent=Math.round(scale*100)+'%';
+}
+
+function zoomBy(delta){
+  scale=Math.max(0.1,Math.min(3,scale+delta));
+  applyTransform();
+}
+
+function fitToScreen(){
+  const vw=viewport.clientWidth;
+  const vh=viewport.clientHeight;
+  const cw=canvas.scrollWidth||1600;
+  const ch=canvas.scrollHeight||1000;
+  const sx=vw/cw;
+  const sy=vh/ch;
+  scale=Math.min(sx,sy)*0.96;
+  // Ensure minimum readable scale
+  scale=Math.max(scale, 0.85);
+  panX=(vw-cw*scale)/2;
+  panY=Math.max(4,(vh-ch*scale)/2);
+  applyTransform();
+}
+
+function resetView(){
+  scale=1;
+  panX=0;
+  panY=0;
+  applyTransform();
+}
+
+viewport.addEventListener('mousedown',e=>{
+  if(e.button!==0)return;
+  dragging=true;startX=e.clientX-panX;startY=e.clientY-panY;
+  viewport.classList.add('dragging');
+});
+window.addEventListener('mousemove',e=>{
+  if(!dragging)return;
+  panX=e.clientX-startX;panY=e.clientY-startY;
+  applyTransform();
+});
+window.addEventListener('mouseup',()=>{
+  dragging=false;viewport.classList.remove('dragging');
+});
+viewport.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const rect=viewport.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const wx=(mx-panX)/scale, wy=(my-panY)/scale;
+  const delta=e.deltaY>0?-0.08:0.08;
+  const newScale=Math.max(0.1,Math.min(3,scale+delta));
+  panX=mx-wx*newScale;
+  panY=my-wy*newScale;
+  scale=newScale;
+  applyTransform();
+},{passive:false});
+</script>
+</body>
+</html>

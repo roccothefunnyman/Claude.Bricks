@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure ML Modular Buildings - Full Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    padding: 30px 20px;
+    color: #323130;
+    min-height: 100vh;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #0078d4;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #605e5c;
+    margin-bottom: 28px;
+  }
+
+  .diagram {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Resource Group boundary */
+  .rg-box {
+    border: 2.5px solid #0078d4;
+    border-radius: 14px;
+    padding: 56px 28px 28px 28px;
+    position: relative;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 120, 212, 0.08), 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .rg-label {
+    position: absolute;
+    top: -16px;
+    left: 28px;
+    background: linear-gradient(135deg, #0078d4, #005a9e);
+    color: white;
+    padding: 5px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+  }
+
+  .rg-label img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(10);
+  }
+
+  /* Region badge */
+  .region-badge {
+    position: absolute;
+    top: -16px;
+    right: 28px;
+    background: #e1dfdd;
+    color: #484644;
+    padding: 5px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .region-badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: #107c10;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* Tier sections */
+  .tier {
+    border: 1.5px dashed #d2d0ce;
+    border-radius: 10px;
+    padding: 20px 18px 16px 18px;
+    position: relative;
+    margin-bottom: 18px;
+    background: #faf9f8;
+    transition: background 0.2s ease;
+  }
+
+  .tier:hover {
+    background: #f3f2f1;
+    border-color: #a19f9d;
+  }
+
+  .tier-label {
+    position: absolute;
+    top: -11px;
+    left: 18px;
+    background: #faf9f8;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #605e5c;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    transition: background 0.2s ease;
+  }
+
+  .tier:hover .tier-label {
+    background: #f3f2f1;
+  }
+
+  /* Main layout grid */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    grid-template-rows: auto auto auto auto;
+    gap: 18px;
+  }
+
+  .left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .right-sidebar {
+    grid-row: 1 / 4;
+    grid-column: 2;
+  }
+
+  .bottom-full {
+    grid-column: 1 / -1;
+  }
+
+  /* Node cards */
+  .node-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-top: 6px;
+  }
+
+  .node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 16px 12px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1.5px solid #e1dfdd;
+    min-width: 120px;
+    max-width: 160px;
+    cursor: default;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .node:hover {
+    border-color: #0078d4;
+    box-shadow: 0 4px 16px rgba(0, 120, 212, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .node img {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 8px;
+  }
+
+  .node-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #323130;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .node-detail {
+    font-size: 10px;
+    color: #797775;
+    text-align: center;
+    margin-top: 3px;
+    line-height: 1.2;
+  }
+
+  /* Hub node (ML Workspace) */
+  .node.hub {
+    border: 2.5px solid #0078d4;
+    background: linear-gradient(180deg, #f0f6ff 0%, #ffffff 100%);
+    min-width: 150px;
+    padding: 16px 20px 14px;
+    box-shadow: 0 2px 12px rgba(0, 120, 212, 0.12);
+  }
+
+  .node.hub img {
+    width: 52px;
+    height: 52px;
+  }
+
+  .node.hub .node-name {
+    font-size: 13px;
+    color: #0078d4;
+  }
+
+  .node.hub::after {
+    content: 'HUB';
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    background: #0078d4;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Sub-label badge */
+  .sub-badge {
+    display: inline-block;
+    background: #e8f4fd;
+    color: #0078d4;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #323130;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #323130;
+  }
+
+  .node:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Monitoring sidebar */
+  .monitoring-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+    padding-top: 6px;
+  }
+
+  .monitoring-stack .node {
+    width: 100%;
+    max-width: 180px;
+    border-left: 3px solid #8764b8;
+  }
+
+  .monitoring-stack .node:hover {
+    border-left-color: #5c2d91;
+    border-color: #5c2d91;
+    box-shadow: 0 4px 16px rgba(92, 45, 145, 0.15);
+  }
+
+  /* SVG connections overlay */
+  .connections-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-top: 22px;
+    padding: 14px 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e1dfdd;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: #484644;
+    font-weight: 500;
+  }
+
+  .legend-line {
+    width: 32px;
+    height: 3px;
+    border-radius: 2px;
+  }
+
+  .legend-line.solid-blue {
+    background: #0078d4;
+  }
+
+  .legend-line.dashed-gray {
+    background: repeating-linear-gradient(90deg, #8764b8 0px, #8764b8 6px, transparent 6px, transparent 10px);
+    height: 2px;
+  }
+
+  .legend-line.arrow-green {
+    background: #107c10;
+    position: relative;
+  }
+
+  .legend-line.arrow-green::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    border-left-color: #107c10;
+  }
+
+  /* Compute sub-tier */
+  .compute-group {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    padding-top: 6px;
+  }
+
+  .compute-group .node {
+    border-top: 3px solid #0078d4;
+  }
+
+  /* AI Services sub-group */
+  .ai-services-row .node {
+    border-bottom: 3px solid #00a6a0;
+  }
+
+  .ai-services-row .node:hover {
+    border-color: #00a6a0;
+    box-shadow: 0 4px 16px rgba(0, 166, 160, 0.15);
+  }
+
+  /* Endpoints */
+  .endpoint-bar {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    padding-top: 6px;
+  }
+
+  .endpoint-bar .node {
+    border: 2px dashed #107c10;
+    background: linear-gradient(180deg, #f1faf1 0%, #ffffff 100%);
+    min-width: 180px;
+  }
+
+  .endpoint-bar .node:hover {
+    border-color: #107c10;
+    border-style: solid;
+    box-shadow: 0 4px 16px rgba(16, 124, 16, 0.15);
+  }
+
+  /* Flow arrow indicator */
+  .flow-arrow {
+    text-align: center;
+    color: #107c10;
+    font-size: 18px;
+    margin: 4px 0;
+    opacity: 0.6;
+  }
+
+  /* Tier icons */
+  .tier-icon {
+    position: absolute;
+    top: -11px;
+    right: 18px;
+    background: #faf9f8;
+    padding: 0 6px;
+    font-size: 14px;
+    transition: background 0.2s ease;
+  }
+
+  .tier:hover .tier-icon {
+    background: #f3f2f1;
+  }
+
+  /* Animated pulse for hub */
+  @keyframes hubPulse {
+    0%, 100% { box-shadow: 0 2px 12px rgba(0, 120, 212, 0.12); }
+    50% { box-shadow: 0 2px 20px rgba(0, 120, 212, 0.25); }
+  }
+
+  .node.hub {
+    animation: hubPulse 3s ease-in-out infinite;
+  }
+
+  .node.hub:hover {
+    animation: none;
+    box-shadow: 0 6px 24px rgba(0, 120, 212, 0.25);
+    transform: translateY(-3px);
+  }
+
+  /* Connection dots */
+  .connection-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #0078d4;
+    border-radius: 50%;
+    margin: 0 2px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main-grid {
+      grid-template-columns: 1fr;
+    }
+    .right-sidebar {
+      grid-row: auto;
+      grid-column: auto;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>Azure ML Modular Buildings &mdash; Full Architecture</h1>
+<p class="subtitle">DP-100 Lab Environment &bull; All Azure Resources &amp; Relationships</p>
+
+<div class="diagram" id="diagram">
+  <div class="rg-box" id="rgBox">
+    <span class="rg-label">
+      <img src="../azure-icons/general/10007-icon-service-Resource-Groups.svg" alt="RG">
+      rg-dp100-labs
+    </span>
+    <span class="region-badge">East US</span>
+
+    <div class="main-grid">
+      <!-- LEFT COLUMN -->
+      <div class="left-column">
+
+        <!-- FOUNDATION TIER -->
+        <div class="tier" id="tierFoundation">
+          <span class="tier-label">Foundation Services</span>
+          <span class="tier-icon">&#9881;</span>
+          <div class="node-row">
+
+            <div class="node" id="nodeStorage">
+              <div class="tooltip">
+                <strong>Storage Account</strong><br>
+                SKU: Standard_LRS<br>
+                Kind: StorageV2<br>
+                Used for: ML datasets, model artifacts,<br>
+                pipeline outputs, logs
+              </div>
+              <img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="Storage">
+              <span class="node-name">Storage Account</span>
+              <span class="node-detail">Standard_LRS</span>
+            </div>
+
+            <div class="node" id="nodeKeyVault">
+              <div class="tooltip">
+                <strong>Key Vault</strong><br>
+                SKU: Standard<br>
+                Used for: Secrets, keys, certificates<br>
+                Managed by ML Workspace
+              </div>
+              <img src="../azure-icons/security/10245-icon-service-Key-Vaults.svg" alt="Key Vault">
+              <span class="node-name">Key Vault</span>
+              <span class="node-detail">Standard tier</span>
+            </div>
+
+            <div class="node" id="nodeACR">
+              <div class="tooltip">
+                <strong>Container Registry</strong><br>
+                SKU: Basic<br>
+                Used for: Docker images for training<br>
+                and deployment environments
+              </div>
+              <img src="../azure-icons/containers/10105-icon-service-Container-Registries.svg" alt="ACR">
+              <span class="node-name">Container Registry</span>
+              <span class="node-detail">Basic SKU</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ML PLATFORM TIER -->
+        <div class="tier" id="tierML">
+          <span class="tier-label">ML Platform</span>
+          <span class="tier-icon">&#9733;</span>
+          <div class="node-row" style="margin-bottom: 10px;">
+            <div class="node hub" id="nodeMLWorkspace">
+              <div class="tooltip">
+                <strong>ML Workspace</strong><br>
+                The central hub for all ML operations.<br>
+                Manages compute, data, models,<br>
+                experiments, and endpoints.<br>
+                SKU: Basic
+              </div>
+              <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML Workspace">
+              <span class="node-name">ML Workspace</span>
+              <span class="node-detail">Central orchestration hub</span>
+            </div>
+          </div>
+          <div class="flow-arrow">&#9660;</div>
+          <div class="compute-group" id="computeGroup">
+            <div class="node" id="nodeComputeInstance">
+              <div class="tooltip">
+                <strong>Compute Instance</strong><br>
+                Type: Standard_DS11_v2<br>
+                Used for: Development, notebooks,<br>
+                experimentation (single-user VM)
+              </div>
+              <img src="../azure-icons/compute/10021-icon-service-Virtual-Machine.svg" alt="Compute Instance">
+              <span class="node-name">Compute Instance</span>
+              <span class="node-detail">DS11_v2</span>
+            </div>
+
+            <div class="node" id="nodeCPUCluster">
+              <div class="tooltip">
+                <strong>CPU Cluster</strong><br>
+                Type: Standard_DS3_v2<br>
+                Nodes: 0-4 (auto-scale)<br>
+                Used for: Training jobs,<br>
+                pipeline steps, batch scoring
+              </div>
+              <img src="../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="CPU Cluster">
+              <span class="node-name">CPU Cluster</span>
+              <span class="node-detail">DS3_v2, 0-4 nodes</span>
+            </div>
+
+            <div class="node" id="nodeGPUCluster">
+              <div class="tooltip">
+                <strong>GPU Cluster</strong><br>
+                Type: Standard_NC6s_v3<br>
+                Nodes: 0-2 (auto-scale)<br>
+                Used for: Deep learning training,<br>
+                fine-tuning, GPU-accelerated tasks
+              </div>
+              <img src="../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="GPU Cluster">
+              <span class="node-name">GPU Cluster</span>
+              <span class="node-detail">NC6s_v3, 0-2 nodes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI SERVICES TIER -->
+        <div class="tier" id="tierAI">
+          <span class="tier-label">AI Services</span>
+          <span class="tier-icon">&#10024;</span>
+          <div class="node-row ai-services-row">
+
+            <div class="node" id="nodeCVTrain">
+              <div class="tooltip">
+                <strong>Custom Vision - Training</strong><br>
+                Tier: Free (F0) / Standard (S0)<br>
+                Used for: Image classification,<br>
+                object detection model training
+              </div>
+              <img src="../azure-icons/ai + machine learning/00793-icon-service-Custom-Vision.svg" alt="Custom Vision">
+              <span class="node-name">Custom Vision</span>
+              <span class="node-detail">Training resource</span>
+            </div>
+
+            <div class="node" id="nodeCVPredict">
+              <div class="tooltip">
+                <strong>Custom Vision - Prediction</strong><br>
+                Tier: Free (F0) / Standard (S0)<br>
+                Used for: Inference endpoint for<br>
+                trained Custom Vision models
+              </div>
+              <img src="../azure-icons/ai + machine learning/00793-icon-service-Custom-Vision.svg" alt="Custom Vision">
+              <span class="node-name">Custom Vision</span>
+              <span class="node-detail">Prediction resource</span>
+            </div>
+
+            <div class="node" id="nodeOpenAI">
+              <div class="tooltip">
+                <strong>Azure OpenAI Service</strong><br>
+                Model: GPT-4o-mini<br>
+                Tier: Standard (S0)<br>
+                Used for: NLP tasks, prompt engineering,<br>
+                RAG, text generation
+              </div>
+              <img src="../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg" alt="OpenAI">
+              <span class="node-name">Azure OpenAI</span>
+              <span class="sub-badge">GPT-4o-mini</span>
+            </div>
+
+            <div class="node" id="nodeAISearch">
+              <div class="tooltip">
+                <strong>Azure AI Search</strong><br>
+                Tier: Free / Basic<br>
+                Used for: Vector search, semantic<br>
+                ranking, RAG knowledge base
+              </div>
+              <img src="../azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="AI Search">
+              <span class="node-name">AI Search</span>
+              <span class="node-detail">Vector + semantic</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ENDPOINTS TIER -->
+        <div class="tier" id="tierEndpoints">
+          <span class="tier-label">Endpoints</span>
+          <span class="tier-icon">&#10145;</span>
+          <div class="endpoint-bar">
+
+            <div class="node" id="nodeEndpoint1">
+              <div class="tooltip">
+                <strong>Managed Online Endpoint</strong><br>
+                Type: Managed (AzureML)<br>
+                Instance: Standard_DS2_v2<br>
+                Used for: Real-time model inference,<br>
+                REST API for deployed models
+              </div>
+              <img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="Endpoint">
+              <span class="node-name">Managed Online Endpoint</span>
+              <span class="node-detail">Real-time inference</span>
+            </div>
+
+            <div class="node" id="nodeEndpoint2">
+              <div class="tooltip">
+                <strong>Batch Endpoint</strong><br>
+                Type: Managed (AzureML)<br>
+                Compute: CPU Cluster<br>
+                Used for: Large-scale batch<br>
+                scoring on datasets
+              </div>
+              <img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="Endpoint">
+              <span class="node-name">Batch Endpoint</span>
+              <span class="node-detail">Batch scoring</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT SIDEBAR - MONITORING -->
+      <div class="right-sidebar">
+        <div class="tier" style="height: 100%;" id="tierMonitoring">
+          <span class="tier-label">Monitoring</span>
+          <span class="tier-icon">&#128200;</span>
+          <div class="monitoring-stack">
+
+            <div class="node" id="nodeLogAnalytics">
+              <div class="tooltip" style="left: auto; right: 0; transform: none;">
+                <strong>Log Analytics Workspace</strong><br>
+                Tier: Per-GB<br>
+                Retention: 30 days<br>
+                Collects: Platform logs, metrics,<br>
+                diagnostic data from all resources
+              </div>
+              <img src="../azure-icons/management + governance/00009-icon-service-Log-Analytics-Workspaces.svg" alt="Log Analytics">
+              <span class="node-name">Log Analytics</span>
+              <span class="node-detail">Central log sink</span>
+            </div>
+
+            <div class="node" id="nodeAppInsights">
+              <div class="tooltip" style="left: auto; right: 0; transform: none;">
+                <strong>Application Insights</strong><br>
+                Type: Workspace-based<br>
+                Connected to: Log Analytics<br>
+                Tracks: Model performance,<br>
+                endpoint latency, errors
+              </div>
+              <img src="../azure-icons/devops/00012-icon-service-Application-Insights.svg" alt="App Insights">
+              <span class="node-name">Application Insights</span>
+              <span class="node-detail">APM telemetry</span>
+            </div>
+
+            <div class="node" id="nodeMonitor">
+              <div class="tooltip" style="left: auto; right: 0; transform: none;">
+                <strong>Azure Monitor</strong><br>
+                Alerts: Budget, compute utilization<br>
+                Dashboards: Resource health<br>
+                Integrates: Log Analytics +<br>
+                Application Insights
+              </div>
+              <img src="../azure-icons/monitor/00001-icon-service-Monitor.svg" alt="Monitor">
+              <span class="node-name">Azure Monitor</span>
+              <span class="node-detail">Alerts &amp; dashboards</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- SVG Connection Lines -->
+  <svg class="connections-svg" id="connectionsSvg">
+    <defs>
+      <!-- Arrowhead for green data-flow lines -->
+      <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M 0 0 L 8 4 L 0 8 Z" fill="#107c10"/>
+      </marker>
+      <!-- Arrowhead for blue dependency lines -->
+      <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M 0 0 L 8 4 L 0 8 Z" fill="#0078d4"/>
+      </marker>
+      <!-- Circle for monitoring lines -->
+      <marker id="dotPurple" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <circle cx="3" cy="3" r="2.5" fill="#8764b8"/>
+      </marker>
+    </defs>
+  </svg>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item">
+    <span class="legend-line solid-blue"></span>
+    Dependency
+  </div>
+  <div class="legend-item">
+    <span class="legend-line dashed-gray"></span>
+    Monitoring
+  </div>
+  <div class="legend-item">
+    <span class="legend-line arrow-green"></span>
+    Data Flow
+  </div>
+</div>
+
+<script>
+  // Draw SVG connection lines between nodes
+  function getCenter(el) {
+    const rect = el.getBoundingClientRect();
+    const svgRect = document.getElementById('diagram').getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2 - svgRect.left,
+      y: rect.top + rect.height / 2 - svgRect.top
+    };
+  }
+
+  function getEdge(el, side) {
+    const rect = el.getBoundingClientRect();
+    const svgRect = document.getElementById('diagram').getBoundingClientRect();
+    const r = {
+      left: rect.left - svgRect.left,
+      right: rect.right - svgRect.left,
+      top: rect.top - svgRect.top,
+      bottom: rect.bottom - svgRect.top,
+      cx: rect.left + rect.width / 2 - svgRect.left,
+      cy: rect.top + rect.height / 2 - svgRect.top
+    };
+    switch(side) {
+      case 'top': return { x: r.cx, y: r.top };
+      case 'bottom': return { x: r.cx, y: r.bottom };
+      case 'left': return { x: r.left, y: r.cy };
+      case 'right': return { x: r.right, y: r.cy };
+    }
+  }
+
+  function drawLine(svg, from, to, style) {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', from.x);
+    line.setAttribute('y1', from.y);
+    line.setAttribute('x2', to.x);
+    line.setAttribute('y2', to.y);
+    Object.entries(style).forEach(([k, v]) => line.setAttribute(k, v));
+    svg.appendChild(line);
+  }
+
+  function drawCurve(svg, from, to, style, curveOffset) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const midY = (from.y + to.y) / 2 + (curveOffset || 0);
+    const d = `M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}`;
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    Object.entries(style).forEach(([k, v]) => path.setAttribute(k, v));
+    svg.appendChild(path);
+  }
+
+  function drawConnections() {
+    const svg = document.getElementById('connectionsSvg');
+    // Clear existing lines
+    while (svg.childElementCount > 1) {
+      svg.removeChild(svg.lastChild);
+    }
+
+    const diagram = document.getElementById('diagram');
+    const dRect = diagram.getBoundingClientRect();
+    svg.setAttribute('width', dRect.width);
+    svg.setAttribute('height', dRect.height);
+
+    // Blue solid: Foundation -> ML Workspace (dependencies)
+    const blueStyle = { stroke: '#0078d4', 'stroke-width': '2', 'stroke-opacity': '0.5', 'marker-end': 'url(#arrowBlue)' };
+
+    ['nodeStorage', 'nodeKeyVault', 'nodeACR'].forEach(id => {
+      const from = getEdge(document.getElementById(id), 'bottom');
+      const to = getEdge(document.getElementById('nodeMLWorkspace'), 'top');
+      drawCurve(svg, from, to, blueStyle);
+    });
+
+    // Blue solid: ML Workspace -> Compute
+    ['nodeComputeInstance', 'nodeCPUCluster', 'nodeGPUCluster'].forEach(id => {
+      const from = getEdge(document.getElementById('nodeMLWorkspace'), 'bottom');
+      const to = getEdge(document.getElementById(id), 'top');
+      // These are implicit via the flow arrow, skip duplicate lines
+    });
+
+    // Green arrows: Data flow - Storage -> Compute -> Endpoints
+    const greenStyle = { stroke: '#107c10', 'stroke-width': '2', 'stroke-opacity': '0.45', 'stroke-dasharray': 'none', 'marker-end': 'url(#arrowGreen)' };
+
+    // Storage -> CPU Cluster
+    const storBottom = getEdge(document.getElementById('nodeStorage'), 'bottom');
+    const cpuTop = getEdge(document.getElementById('nodeCPUCluster'), 'top');
+    drawCurve(svg, storBottom, cpuTop, greenStyle, 20);
+
+    // CPU Cluster -> Endpoint 1
+    const cpuBottom = getEdge(document.getElementById('nodeCPUCluster'), 'bottom');
+    const ep1Top = getEdge(document.getElementById('nodeEndpoint1'), 'top');
+    drawCurve(svg, cpuBottom, ep1Top, greenStyle, 10);
+
+    // GPU Cluster -> Endpoint 2
+    const gpuBottom = getEdge(document.getElementById('nodeGPUCluster'), 'bottom');
+    const ep2Top = getEdge(document.getElementById('nodeEndpoint2'), 'top');
+    drawCurve(svg, gpuBottom, ep2Top, greenStyle, 10);
+
+    // ML Workspace -> Endpoints
+    const mlBottom = getEdge(document.getElementById('nodeMLWorkspace'), 'bottom');
+    ['nodeEndpoint1', 'nodeEndpoint2'].forEach(id => {
+      const to = getEdge(document.getElementById(id), 'top');
+      drawCurve(svg, mlBottom, to, { ...blueStyle, 'stroke-opacity': '0.25' }, 40);
+    });
+
+    // Purple dashed: Monitoring connections
+    const purpleStyle = { stroke: '#8764b8', 'stroke-width': '1.5', 'stroke-dasharray': '6 4', 'stroke-opacity': '0.45', 'marker-end': 'url(#dotPurple)' };
+
+    // Various resources -> Log Analytics
+    ['nodeMLWorkspace', 'nodeStorage', 'nodeKeyVault'].forEach(id => {
+      const from = getEdge(document.getElementById(id), 'right');
+      const to = getEdge(document.getElementById('nodeLogAnalytics'), 'left');
+      drawLine(svg, from, to, purpleStyle);
+    });
+
+    // Log Analytics -> App Insights
+    const laBottom = getEdge(document.getElementById('nodeLogAnalytics'), 'bottom');
+    const aiTop = getEdge(document.getElementById('nodeAppInsights'), 'top');
+    drawLine(svg, laBottom, aiTop, { stroke: '#8764b8', 'stroke-width': '1.5', 'stroke-opacity': '0.5' });
+
+    // App Insights -> Monitor
+    const aiBottom = getEdge(document.getElementById('nodeAppInsights'), 'bottom');
+    const monTop = getEdge(document.getElementById('nodeMonitor'), 'top');
+    drawLine(svg, aiBottom, monTop, { stroke: '#8764b8', 'stroke-width': '1.5', 'stroke-opacity': '0.5' });
+  }
+
+  // Draw on load and resize
+  window.addEventListener('load', () => {
+    setTimeout(drawConnections, 100);
+  });
+  window.addEventListener('resize', drawConnections);
+</script>
+
+</body>
+</html>

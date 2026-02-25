@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DP-100 Domain Coverage Matrix</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a1a;
+    padding: 40px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ─────────────────────────────────────── */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    color: #5a6a7a;
+    font-weight: 400;
+  }
+  .header .accent-line {
+    width: 60px;
+    height: 3px;
+    background: #0078d4;
+    margin: 14px auto 0;
+    border-radius: 2px;
+  }
+
+  /* ── Domain Lane ────────────────────────────────── */
+  .domain-lane {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .domain-lane:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.09), 0 8px 28px rgba(0,0,0,0.07);
+    transform: translateY(-2px);
+  }
+
+  .lane-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid #eef0f3;
+  }
+  .lane-icon {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+  }
+  .lane-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .lane-title-group {
+    flex: 1;
+    min-width: 0;
+  }
+  .lane-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.3;
+  }
+  .lane-domain-num {
+    display: inline-block;
+    background: #0078d4;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.3px;
+  }
+
+  /* Weight badge on the right */
+  .weight-badge {
+    flex-shrink: 0;
+    background: #e8f4fd;
+    color: #0078d4;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 10px;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .weight-badge .label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: #5a9fd4;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 2px;
+  }
+
+  /* ── Bar + Badges area ──────────────────────────── */
+  .lane-body {
+    padding: 16px 24px 20px;
+  }
+
+  /* Progress-style bar */
+  .coverage-bar-track {
+    position: relative;
+    width: 100%;
+    height: 10px;
+    background: #eef0f3;
+    border-radius: 5px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .coverage-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.8s ease;
+  }
+  .fill-strong { background: linear-gradient(90deg, #28a745, #5cc975); }
+  .fill-partial { background: linear-gradient(90deg, #28a745 0%, #28a745 60%, #ffc107 60%, #ffc107 100%); }
+  .fill-gap { background: linear-gradient(90deg, #28a745 0%, #28a745 50%, #fd7e14 50%, #fd7e14 100%); }
+
+  /* Badge rows */
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .badge-row + .badge-row {
+    margin-top: 10px;
+  }
+  .badge-row-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #8a96a4;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 16px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: default;
+  }
+  .badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+
+  .badge-strong {
+    background: #e6f4ea;
+    color: #1a7f37;
+    border: 1px solid #b4dfbf;
+  }
+  .badge-strong .dot { background: #28a745; }
+
+  .badge-partial {
+    background: #fff8e1;
+    color: #8a6d00;
+    border: 1px solid #ffe082;
+  }
+  .badge-partial .dot { background: #ffc107; }
+
+  .badge-gap {
+    background: #fff3e6;
+    color: #c45200;
+    border: 1px solid #ffc599;
+  }
+  .badge-gap .dot { background: #fd7e14; }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Legend ──────────────────────────────────────── */
+  .legend-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    padding: 20px 28px;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .legend-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #5a6a7a;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .legend-items {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #3a4a5a;
+    font-weight: 500;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .swatch-strong { background: #28a745; }
+  .swatch-partial { background: #ffc107; }
+  .swatch-gap { background: #fd7e14; }
+
+  /* ── Footer ─────────────────────────────────────── */
+  .footer {
+    text-align: center;
+    margin-top: 36px;
+    font-size: 12px;
+    color: #9aa5b0;
+  }
+
+  /* ── Responsive ─────────────────────────────────── */
+  @media (max-width: 640px) {
+    .lane-header { flex-wrap: wrap; gap: 10px; }
+    .weight-badge { margin-left: auto; }
+    .badge-row-label { width: 100%; }
+    .legend-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>DP-100 Domain Coverage Matrix</h1>
+    <p class="subtitle">Exam domains mapped to course modules &mdash; identifying strengths and gaps</p>
+    <div class="accent-line"></div>
+  </div>
+
+  <!-- Domain 1 -->
+  <div class="domain-lane">
+    <div class="lane-header">
+      <div class="lane-icon">
+        <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML Workspace">
+      </div>
+      <div class="lane-title-group">
+        <div class="lane-title">
+          <span class="lane-domain-num">Domain 1</span>
+          Design and Prepare a Machine Learning Solution
+        </div>
+      </div>
+      <div class="weight-badge">
+        20-25%
+        <span class="label">Weight</span>
+      </div>
+    </div>
+    <div class="lane-body">
+      <div class="coverage-bar-track">
+        <div class="coverage-bar-fill fill-strong" style="width: 92%;"></div>
+      </div>
+      <div class="badge-row">
+        <span class="badge-row-label">Coverage</span>
+        <span class="badge badge-strong"><span class="dot"></span>Module 1 &mdash; Strong</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Domain 2 -->
+  <div class="domain-lane">
+    <div class="lane-header">
+      <div class="lane-icon">
+        <img src="../azure-icons/devops/00012-icon-service-Application-Insights.svg" alt="Application Insights">
+      </div>
+      <div class="lane-title-group">
+        <div class="lane-title">
+          <span class="lane-domain-num">Domain 2</span>
+          Explore Data and Run Experiments
+        </div>
+      </div>
+      <div class="weight-badge">
+        20-25%
+        <span class="label">Weight</span>
+      </div>
+    </div>
+    <div class="lane-body">
+      <div class="coverage-bar-track">
+        <div class="coverage-bar-fill fill-gap" style="width: 88%;"></div>
+      </div>
+      <div class="badge-row">
+        <span class="badge-row-label">Coverage</span>
+        <span class="badge badge-strong"><span class="dot"></span>Module 2 &mdash; Strong</span>
+        <span class="badge badge-strong"><span class="dot"></span>Module 3 &mdash; Strong</span>
+      </div>
+      <div class="badge-row">
+        <span class="badge-row-label">Gaps</span>
+        <span class="badge badge-gap"><span class="dot"></span>Hyperparameter Tuning</span>
+        <span class="badge badge-gap"><span class="dot"></span>Synapse Spark</span>
+        <span class="badge badge-gap"><span class="dot"></span>Feature Stores</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Domain 3 -->
+  <div class="domain-lane">
+    <div class="lane-header">
+      <div class="lane-icon">
+        <img src="../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="VM Scale Sets">
+      </div>
+      <div class="lane-title-group">
+        <div class="lane-title">
+          <span class="lane-domain-num">Domain 3</span>
+          Train and Deploy Models
+        </div>
+      </div>
+      <div class="weight-badge">
+        25-30%
+        <span class="label">Weight</span>
+      </div>
+    </div>
+    <div class="lane-body">
+      <div class="coverage-bar-track">
+        <div class="coverage-bar-fill fill-gap" style="width: 85%;"></div>
+      </div>
+      <div class="badge-row">
+        <span class="badge-row-label">Coverage</span>
+        <span class="badge badge-strong"><span class="dot"></span>Module 3 &mdash; Strong</span>
+      </div>
+      <div class="badge-row">
+        <span class="badge-row-label">Gaps</span>
+        <span class="badge badge-gap"><span class="dot"></span>Batch Endpoints</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Domain 4 -->
+  <div class="domain-lane">
+    <div class="lane-header">
+      <div class="lane-icon">
+        <img src="../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg" alt="Azure OpenAI">
+      </div>
+      <div class="lane-title-group">
+        <div class="lane-title">
+          <span class="lane-domain-num">Domain 4</span>
+          Optimize Language Models for AI Applications
+        </div>
+      </div>
+      <div class="weight-badge">
+        25-30%
+        <span class="label">Weight</span>
+      </div>
+    </div>
+    <div class="lane-body">
+      <div class="coverage-bar-track">
+        <div class="coverage-bar-fill fill-strong" style="width: 94%;"></div>
+      </div>
+      <div class="badge-row">
+        <span class="badge-row-label">Coverage</span>
+        <span class="badge badge-strong"><span class="dot"></span>Module 4 &mdash; Strong</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend-card">
+    <span class="legend-title">Legend</span>
+    <div class="legend-items">
+      <div class="legend-item">
+        <div class="legend-swatch swatch-strong"></div>
+        Strong Coverage
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch swatch-partial"></div>
+        Partial Coverage
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch swatch-gap"></div>
+        Gap &mdash; Supplemental Study Needed
+      </div>
+    </div>
+  </div>
+
+  <p class="footer">DP-100: Designing and Implementing a Data Science Solution on Azure &mdash; Coverage Analysis</p>
+</div>
+
+</body>
+</html>

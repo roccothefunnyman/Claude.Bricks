@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Agents → Azure Resource Map</title>
+<style>
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    padding: 32px 24px 48px;
+    color: #1a1a1a;
+  }
+  .page-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .page-header h1 {
+    font-size: 28px; font-weight: 700; color: #0078d4;
+  }
+  .page-header p {
+    margin-top: 6px; font-size: 14px; color: #605e5c;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 32px;
+    overflow-x: auto;
+  }
+
+  /* ---- Matrix Table ---- */
+  .matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  /* Column headers (resources) */
+  .matrix-table thead th {
+    padding: 12px 8px 16px;
+    vertical-align: bottom;
+    text-align: center;
+    border-bottom: 2px solid #edebe9;
+    position: relative;
+  }
+  .matrix-table thead th:first-child {
+    border-bottom-color: transparent;
+  }
+  .res-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 95px;
+  }
+  .res-header img {
+    width: 40px; height: 40px;
+  }
+  .res-header span {
+    font-size: 11px;
+    font-weight: 600;
+    color: #323130;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  /* Row headers (agents) */
+  .matrix-table tbody td:first-child {
+    padding: 14px 16px;
+    border-right: 2px solid #edebe9;
+    min-width: 200px;
+  }
+  .agent-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .agent-badge {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .agent-info .agent-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #323130;
+  }
+  .agent-info .agent-desc {
+    font-size: 11px;
+    color: #797775;
+    line-height: 1.3;
+    margin-top: 1px;
+  }
+
+  /* Data cells */
+  .matrix-table tbody td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 14px 8px;
+    transition: background 0.15s;
+  }
+  .matrix-table tbody tr {
+    transition: background 0.15s;
+  }
+  .matrix-table tbody tr:not(:last-child) td {
+    border-bottom: 1px solid #f3f2f1;
+  }
+  .matrix-table tbody tr:hover {
+    background: #f9f9fb;
+  }
+  .matrix-table tbody tr:hover td:first-child {
+    background: #f3f2f1;
+  }
+
+  /* Connection dot */
+  .dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: default;
+    position: relative;
+  }
+  .dot::after {
+    content: '✓';
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .dot:hover {
+    transform: scale(1.25);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .empty-cell {
+    color: #e1dfdd;
+    font-size: 18px;
+  }
+
+  /* Agent colors */
+  .color-1 { background: #0078d4; } /* Image Interpreter - blue */
+  .color-2 { background: #d63384; } /* .ldr Analyzer - pink */
+  .color-3 { background: #0d7d3f; } /* Spec Generator - green */
+  .color-4 { background: #e67e22; } /* Validator - orange */
+
+  /* Highlight columns on hover */
+  .matrix-table td.col-highlight {
+    background: #eff6fc;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: #605e5c;
+  }
+  .legend-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+  }
+
+  /* Summary cards below */
+  .summary-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .summary-card {
+    background: #faf9f8;
+    border: 1.5px solid #e1dfdd;
+    border-radius: 8px;
+    padding: 14px 18px;
+    min-width: 220px;
+    flex: 1;
+    max-width: 260px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .summary-card:hover {
+    border-color: #0078d4;
+    box-shadow: 0 2px 8px rgba(0,120,212,0.12);
+  }
+  .summary-card .sc-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #797775;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .summary-card .sc-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #323130;
+  }
+  .summary-card .sc-detail {
+    font-size: 11.5px;
+    color: #605e5c;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Claude Agents → Azure Resource Map</h1>
+  <p>Which agents connect to which Azure resources — hover a row or column to highlight</p>
+</div>
+
+<div class="container">
+  <table class="matrix-table" id="matrix">
+    <thead>
+      <tr>
+        <th></th>
+        <th>
+          <div class="res-header">
+            <img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="">
+            <span>Storage<br>Account</span>
+          </div>
+        </th>
+        <th>
+          <div class="res-header">
+            <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="">
+            <span>ML<br>Workspace</span>
+          </div>
+        </th>
+        <th>
+          <div class="res-header">
+            <img src="../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="">
+            <span>Compute<br>Cluster</span>
+          </div>
+        </th>
+        <th>
+          <div class="res-header">
+            <img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="">
+            <span>Managed<br>Endpoint</span>
+          </div>
+        </th>
+        <th>
+          <div class="res-header">
+            <img src="../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg" alt="">
+            <span>Azure<br>OpenAI</span>
+          </div>
+        </th>
+        <th>
+          <div class="res-header">
+            <img src="../azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="">
+            <span>Azure AI<br>Search</span>
+          </div>
+        </th>
+        <th>
+          <div class="res-header">
+            <img src="../azure-icons/security/10245-icon-service-Key-Vaults.svg" alt="">
+            <span>Key<br>Vault</span>
+          </div>
+        </th>
+        <th>
+          <div class="res-header">
+            <img src="../azure-icons/devops/00012-icon-service-Application-Insights.svg" alt="">
+            <span>App<br>Insights</span>
+          </div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Image Interpreter -->
+      <tr data-agent="1">
+        <td>
+          <div class="agent-cell">
+            <div class="agent-badge color-1">1</div>
+            <div class="agent-info">
+              <div class="agent-name">Image Interpreter</div>
+              <div class="agent-desc">Describes inspiration photos in text</div>
+            </div>
+          </div>
+        </td>
+        <td><div class="dot color-1"></div></td>
+        <td><div class="dot color-1"></div></td>
+        <td><div class="dot color-1"></div></td>
+        <td><div class="dot color-1"></div></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+      </tr>
+      <!-- .ldr Analyzer -->
+      <tr data-agent="2">
+        <td>
+          <div class="agent-cell">
+            <div class="agent-badge color-2">2</div>
+            <div class="agent-info">
+              <div class="agent-name">.ldr Analyzer</div>
+              <div class="agent-desc">Parses structural details from LEGO models</div>
+            </div>
+          </div>
+        </td>
+        <td><div class="dot color-2"></div></td>
+        <td><div class="dot color-2"></div></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+      </tr>
+      <!-- Spec Generator -->
+      <tr data-agent="3">
+        <td>
+          <div class="agent-cell">
+            <div class="agent-badge color-3">3</div>
+            <div class="agent-info">
+              <div class="agent-name">Spec Generator</div>
+              <div class="agent-desc">Drafts building specs from prompts &amp; patterns</div>
+            </div>
+          </div>
+        </td>
+        <td><div class="dot color-3"></div></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><div class="dot color-3"></div></td>
+        <td><div class="dot color-3"></div></td>
+        <td><div class="dot color-3"></div></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+      </tr>
+      <!-- Validator -->
+      <tr data-agent="4">
+        <td>
+          <div class="agent-cell">
+            <div class="agent-badge color-4">4</div>
+            <div class="agent-info">
+              <div class="agent-name">Validator</div>
+              <div class="agent-desc">Checks builds against learned patterns</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="empty-cell">—</span></td>
+        <td><div class="dot color-4"></div></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><div class="dot color-4"></div></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><span class="empty-cell">—</span></td>
+        <td><div class="dot color-4"></div></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot color-1"></div> Image Interpreter</div>
+    <div class="legend-item"><div class="legend-dot color-2"></div> .ldr Analyzer</div>
+    <div class="legend-item"><div class="legend-dot color-3"></div> Spec Generator</div>
+    <div class="legend-item"><div class="legend-dot color-4"></div> Validator</div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="summary-row">
+    <div class="summary-card">
+      <div class="sc-label">Most Connected Resource</div>
+      <div class="sc-value">ML Workspace</div>
+      <div class="sc-detail">Used by 3 of 4 agents</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">Most Connected Agent</div>
+      <div class="sc-value">Image Interpreter</div>
+      <div class="sc-detail">Touches 4 resources</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">LLM-Specific Resources</div>
+      <div class="sc-value">OpenAI + AI Search</div>
+      <div class="sc-detail">Used only by Spec Generator</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">Monitoring</div>
+      <div class="sc-value">App Insights</div>
+      <div class="sc-detail">Tracks Validator agent results</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Column highlight on hover
+  const table = document.getElementById('matrix');
+  const cells = table.querySelectorAll('td, th');
+  const rows = table.querySelectorAll('tbody tr');
+
+  // Highlight entire column on header hover
+  const headers = table.querySelectorAll('thead th');
+  headers.forEach((th, colIndex) => {
+    if (colIndex === 0) return;
+    th.addEventListener('mouseenter', () => {
+      rows.forEach(row => {
+        const td = row.children[colIndex];
+        if (td) td.classList.add('col-highlight');
+      });
+      th.style.background = '#eff6fc';
+    });
+    th.addEventListener('mouseleave', () => {
+      rows.forEach(row => {
+        const td = row.children[colIndex];
+        if (td) td.classList.remove('col-highlight');
+      });
+      th.style.background = '';
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Classification Lifecycle</title>
+<style>
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    padding: 32px 24px 48px;
+    color: #1a1a1a;
+  }
+  .page-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .page-header h1 {
+    font-size: 28px; font-weight: 700; color: #0078d4;
+  }
+  .page-header p {
+    margin-top: 6px; font-size: 14px; color: #605e5c;
+  }
+
+  /* ---- Journey Grid ---- */
+  .journey {
+    max-width: 1060px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto 48px auto;
+    gap: 0 24px;
+  }
+
+  /* ---- Stop Cards ---- */
+  .stop {
+    position: relative;
+    padding-top: 18px; /* room for badge */
+  }
+  .stop-inner {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 14px 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    text-align: center;
+    border-top: 3.5px solid var(--c);
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .stop-inner:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  }
+  .badge {
+    position: absolute;
+    top: 2px; left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    z-index: 2;
+  }
+  .stop-inner img {
+    width: 46px; height: 46px;
+    margin: 4px 0 10px;
+    transition: transform 0.2s;
+  }
+  .stop-inner:hover img { transform: scale(1.1); }
+  .stop-inner h3 {
+    font-size: 13.5px; font-weight: 700; color: #323130;
+    margin-bottom: 5px;
+  }
+  .stop-inner p {
+    font-size: 11.5px; color: #605e5c; line-height: 1.4;
+  }
+
+  /* ---- Row 1 stops (grid row 1) ---- */
+  .s1 { grid-column: 1; grid-row: 1; --c: #0078d4; }
+  .s2 { grid-column: 2; grid-row: 1; --c: #0e7fc0; }
+  .s3 { grid-column: 3; grid-row: 1; --c: #0d8faa; }
+  .s4 { grid-column: 4; grid-row: 1; --c: #00a2a0; }
+
+  /* ---- Row 2 stops (grid row 3, reversed order) ---- */
+  .s5 { grid-column: 4; grid-row: 3; --c: #00b7a3; }
+  .s6 { grid-column: 3; grid-row: 3; --c: #27a85e; }
+  .s7 { grid-column: 2; grid-row: 3; --c: #3e9c48; }
+  .s8 { grid-column: 1; grid-row: 3; --c: #54b054; }
+
+  /* ---- Arrow connectors (SVG overlay) ---- */
+  .arrows-layer {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .arrows-layer svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* ---- Progress bar ---- */
+  .progress-bar {
+    max-width: 1060px;
+    margin: 32px auto 0;
+    height: 5px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #0078d4 0%, #00b7c3 35%, #37a76f 65%, #54b054 100%);
+    opacity: 0.5;
+  }
+
+  /* ---- Phase labels ---- */
+  .phase-labels {
+    max-width: 1060px;
+    margin: 12px auto 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #a19f9d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 20px;
+  }
+
+  /* ---- Subtitle badge ---- */
+  .subtitle-badge {
+    display: inline-block;
+    background: #eff6fc;
+    border: 1px solid #c7e0f4;
+    border-radius: 6px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0078d4;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Scenario 1: Image Classification Lifecycle</h1>
+  <p>End-to-end ML pipeline from raw photos to real-time inference</p>
+  <div class="subtitle-badge">DP-100 Domains 2 &amp; 3</div>
+</div>
+
+<div class="journey" id="journey">
+
+  <!-- Row 1: Stops 1-4 -->
+  <div class="stop s1">
+    <div class="stop-inner">
+      <div class="badge">1</div>
+      <img src="../azure-icons/general/10780-icon-service-Blob-Block.svg" alt="">
+      <h3>Raw Photos</h3>
+      <p>Street photos uploaded to blob storage</p>
+    </div>
+  </div>
+  <div class="stop s2">
+    <div class="stop-inner">
+      <div class="badge">2</div>
+      <img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="">
+      <h3>Data Asset</h3>
+      <p>Registered as Azure ML data asset with labels</p>
+    </div>
+  </div>
+  <div class="stop s3">
+    <div class="stop-inner">
+      <div class="badge">3</div>
+      <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="">
+      <h3>AutoML / Training</h3>
+      <p>AutoML explores model candidates</p>
+    </div>
+  </div>
+  <div class="stop s4">
+    <div class="stop-inner">
+      <div class="badge">4</div>
+      <img src="../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="">
+      <h3>Compute</h3>
+      <p>CPU/GPU cluster runs training jobs</p>
+    </div>
+  </div>
+
+  <!-- Row 2: Stops 5-8 (reversed) -->
+  <div class="stop s5">
+    <div class="stop-inner">
+      <div class="badge">5</div>
+      <img src="../azure-icons/devops/00012-icon-service-Application-Insights.svg" alt="">
+      <h3>MLflow Tracking</h3>
+      <p>Metrics, parameters, artifacts logged</p>
+    </div>
+  </div>
+  <div class="stop s6">
+    <div class="stop-inner">
+      <div class="badge">6</div>
+      <img src="../azure-icons/containers/10105-icon-service-Container-Registries.svg" alt="">
+      <h3>Model Registry</h3>
+      <p>Best model registered with version</p>
+    </div>
+  </div>
+  <div class="stop s7">
+    <div class="stop-inner">
+      <div class="badge">7</div>
+      <img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="">
+      <h3>Managed Endpoint</h3>
+      <p>Deployed for real-time inference</p>
+    </div>
+  </div>
+  <div class="stop s8">
+    <div class="stop-inner">
+      <div class="badge">8</div>
+      <img src="../azure-icons/ai foundry/AIFoundry.svg" alt="">
+      <h3>Inference</h3>
+      <p>Agents call endpoint, get facade style</p>
+    </div>
+  </div>
+
+  <!-- SVG Arrows overlay — drawn by JS to match grid positions -->
+  <div class="arrows-layer" id="arrowsLayer">
+    <svg id="arrowsSvg"></svg>
+  </div>
+</div>
+
+<div class="progress-bar"></div>
+<div class="phase-labels">
+  <span>Data Ingestion</span>
+  <span>Model Training</span>
+  <span>Experiment Tracking</span>
+  <span>Deployment</span>
+</div>
+
+<script>
+function drawArrows() {
+  const journey = document.getElementById('journey');
+  const svg = document.getElementById('arrowsSvg');
+  const jRect = journey.getBoundingClientRect();
+
+  // Collect all stop cards by their grid class
+  const stops = [];
+  for (let i = 1; i <= 8; i++) {
+    const el = document.querySelector('.s' + i + ' .stop-inner');
+    const r = el.getBoundingClientRect();
+    stops.push({
+      cx: r.left + r.width / 2 - jRect.left,
+      cy: r.top + r.height / 2 - jRect.top,
+      right: r.right - jRect.left,
+      left: r.left - jRect.left,
+      top: r.top - jRect.top,
+      bottom: r.bottom - jRect.top,
+      w: r.width,
+      h: r.height
+    });
+  }
+
+  // Colors for each arrow segment
+  const colors = [
+    '#0078d4', '#0e7fc0', '#0d8faa', '#00a2a0',
+    '#00b7a3', '#27a85e', '#3e9c48'
+  ];
+
+  let html = '<defs>';
+  for (let i = 0; i < 7; i++) {
+    html += `<marker id="arr${i}" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="${colors[i]}"/>
+    </marker>`;
+  }
+  // Down arrow for the turn
+  html += `<marker id="arrDown" markerWidth="6" markerHeight="8" refX="3" refY="7" orient="auto">
+    <polygon points="0 0,6 0,3 8" fill="${colors[3]}"/>
+  </marker>`;
+  html += '</defs>';
+
+  // Row 1: horizontal arrows 1→2, 2→3, 3→4
+  for (let i = 0; i < 3; i++) {
+    const x1 = stops[i].right + 2;
+    const x2 = stops[i + 1].left - 2;
+    const y = stops[i].cy;
+    html += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"
+      stroke="${colors[i]}" stroke-width="2.5" stroke-dasharray="6,4"
+      marker-end="url(#arr${i})"/>`;
+  }
+
+  // Turn: 4 → 5 (down and across)
+  const turnX = stops[3].cx;
+  const turnY1 = stops[3].bottom + 2;
+  const turnY2 = stops[4].top - 2;
+  html += `<path d="M${turnX} ${turnY1} L${turnX} ${(turnY1 + turnY2) / 2} L${stops[4].cx} ${(turnY1 + turnY2) / 2} L${stops[4].cx} ${turnY2}"
+    stroke="${colors[3]}" stroke-width="2.5" stroke-dasharray="6,4" fill="none"
+    marker-end="url(#arrDown)"/>`;
+
+  // Row 2: horizontal arrows 5→6, 6→7, 7→8 (right to left)
+  for (let i = 4; i < 7; i++) {
+    const x1 = stops[i].left - 2;
+    const x2 = stops[i + 1].right + 2;
+    const y = stops[i].cy;
+    html += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"
+      stroke="${colors[i]}" stroke-width="2.5" stroke-dasharray="6,4"
+      marker-end="url(#arr${i})"/>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+// Draw on load and resize
+window.addEventListener('load', () => setTimeout(drawArrows, 100));
+window.addEventListener('resize', drawArrows);
+
+// Staggered fade-in
+document.addEventListener('DOMContentLoaded', () => {
+  const stops = document.querySelectorAll('.stop');
+  stops.forEach((stop, i) => {
+    stop.style.opacity = '0';
+    stop.style.transform = 'translateY(16px)';
+    stop.style.transition = `opacity 0.4s ${i * 0.08}s ease, transform 0.4s ${i * 0.08}s ease`;
+    setTimeout(() => {
+      stop.style.opacity = '1';
+      stop.style.transform = 'translateY(0)';
+    }, 80);
+  });
+});
+</script>
+</body>
+</html>

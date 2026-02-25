@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure ML Modular Buildings - Architecture Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    padding: 30px;
+    color: #323130;
+  }
+  h1 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    color: #0078d4;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #605e5c;
+    margin-bottom: 24px;
+  }
+  .diagram {
+    position: relative;
+    width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Resource Group boundary */
+  .rg-box {
+    border: 2.5px solid #0078d4;
+    border-radius: 12px;
+    padding: 60px 30px 30px 30px;
+    position: relative;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .rg-label {
+    position: absolute;
+    top: -16px;
+    left: 30px;
+    background: #0078d4;
+    color: white;
+    padding: 4px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rg-label img { width: 22px; height: 22px; filter: brightness(10); }
+
+  /* Region badge */
+  .region-badge {
+    position: absolute;
+    top: -16px;
+    right: 30px;
+    background: #edebe9;
+    color: #605e5c;
+    padding: 4px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Section groupings */
+  .section {
+    border: 1.5px dashed #c8c6c4;
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .section-label {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: #fff;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #797775;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Node cards */
+  .node {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 14px 10px;
+    border-radius: 8px;
+    background: #faf9f8;
+    border: 1.5px solid #e1dfdd;
+    min-width: 120px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .node:hover {
+    border-color: #0078d4;
+    box-shadow: 0 2px 8px rgba(0,120,212,0.15);
+    transform: translateY(-1px);
+  }
+  .node img {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 6px;
+  }
+  .node .name {
+    font-size: 11.5px;
+    font-weight: 600;
+    text-align: center;
+    color: #323130;
+    line-height: 1.3;
+  }
+  .node .detail {
+    font-size: 10px;
+    color: #797775;
+    text-align: center;
+    margin-top: 2px;
+    line-height: 1.2;
+  }
+  .node.hub {
+    border-color: #0078d4;
+    border-width: 2.5px;
+    background: #eff6fc;
+  }
+  .node.conditional::after {
+    content: 'OPTIONAL';
+    position: absolute;
+    top: -8px;
+    right: -4px;
+    background: #fff4ce;
+    color: #835c00;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid #f2c661;
+  }
+
+  /* Layout rows */
+  .row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* SVG connections layer */
+  .connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .connections line {
+    stroke: #a19f9d;
+    stroke-width: 1.5;
+    stroke-dasharray: 5,4;
+  }
+  .connections line.solid {
+    stroke-dasharray: none;
+    stroke: #0078d4;
+    stroke-width: 1.8;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    display: none;
+    position: absolute;
+    background: #323130;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    max-width: 260px;
+    z-index: 100;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+    font-size: 11px;
+    color: #605e5c;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-swatch {
+    width: 28px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .legend-swatch.solid { background: #0078d4; }
+  .legend-swatch.dashed {
+    background: repeating-linear-gradient(90deg, #a19f9d 0 5px, transparent 5px 9px);
+  }
+  .legend-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 2px solid #0078d4;
+    background: #eff6fc;
+  }
+  .legend-optional {
+    background: #fff4ce;
+    color: #835c00;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid #f2c661;
+  }
+
+  /* Arrow markers */
+  .arrow-marker { fill: #0078d4; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 11px;
+    color: #a19f9d;
+  }
+</style>
+</head>
+<body>
+
+<h1>Azure ML Modular Buildings</h1>
+<p class="subtitle">Dev Environment &mdash; Terraform Infrastructure (V23 Icons)</p>
+
+<div class="diagram">
+  <div class="rg-box">
+    <div class="rg-label">
+      <img src="../azure-icons/general/10007-icon-service-Resource-Groups.svg" alt="">
+      rg-azureml-modularbuildings-dev
+    </div>
+    <div class="region-badge">East US</div>
+
+    <!-- ========== SUPPORTING SERVICES ========== -->
+    <div class="section" style="margin-top: 10px;">
+      <div class="section-label">Supporting Services</div>
+      <div class="row">
+        <div class="node" id="storage"
+             data-tip="Azure Storage Account (StorageV2)&#10;SKU: Standard LRS&#10;Name: stazuremlmodularbuildings*&#10;Used for ML datasets, models, and outputs">
+          <img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="">
+          <div class="name">Storage Account</div>
+          <div class="detail">Standard LRS</div>
+        </div>
+        <div class="node" id="keyvault"
+             data-tip="Azure Key Vault&#10;SKU: Standard&#10;Name: kv-azureml-modularbuildings-dev&#10;Stores secrets and keys for ML workspace">
+          <img src="../azure-icons/security/10245-icon-service-Key-Vaults.svg" alt="">
+          <div class="name">Key Vault</div>
+          <div class="detail">Standard</div>
+        </div>
+        <div class="node" id="acr"
+             data-tip="Azure Container Registry&#10;SKU: Basic&#10;Name: crazuremlmodularbuildings*&#10;Stores container images for ML compute">
+          <img src="../azure-icons/containers/10105-icon-service-Container-Registries.svg" alt="">
+          <div class="name">Container Registry</div>
+          <div class="detail">Basic SKU</div>
+        </div>
+        <div class="node" id="law"
+             data-tip="Log Analytics Workspace&#10;SKU: PerGB2018&#10;Name: law-azureml-modularbuildings-dev&#10;30-day retention, feeds Application Insights">
+          <img src="../azure-icons/management + governance/00009-icon-service-Log-Analytics-Workspaces.svg" alt="">
+          <div class="name">Log Analytics</div>
+          <div class="detail">30-day retention</div>
+        </div>
+        <div class="node" id="appinsights"
+             data-tip="Application Insights&#10;Type: web&#10;Name: appi-azureml-modularbuildings-dev&#10;ML workspace monitoring, backed by Log Analytics">
+          <img src="../azure-icons/devops/00012-icon-service-Application-Insights.svg" alt="">
+          <div class="name">App Insights</div>
+          <div class="detail">Web type</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== ML WORKSPACE (HUB) ========== -->
+    <div style="display:flex; justify-content:center; margin: 24px 0 8px;">
+      <div style="position:relative;">
+        <!-- Arrows from supporting services (visual cue) -->
+        <svg width="500" height="30" style="display:block; margin:0 auto;">
+          <defs><marker id="arrowDown" markerWidth="8" markerHeight="6" refX="4" refY="3" orient="auto"><polygon points="0 0, 8 0, 4 6" class="arrow-marker"/></marker></defs>
+          <line x1="60" y1="0" x2="250" y2="25" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+          <line x1="150" y1="0" x2="250" y2="25" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+          <line x1="250" y1="0" x2="250" y2="25" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+          <line x1="350" y1="0" x2="250" y2="25" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+          <line x1="440" y1="0" x2="250" y2="25" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="node hub" id="mlworkspace"
+           data-tip="Azure Machine Learning Workspace&#10;SKU: Basic&#10;Name: mlw-azureml-modularbuildings-dev&#10;Central hub connecting all services&#10;Identity: SystemAssigned">
+        <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="">
+        <div class="name">ML Workspace</div>
+        <div class="detail">mlw-azureml-modularbuildings-dev<br>Basic SKU &bull; SystemAssigned</div>
+      </div>
+    </div>
+
+    <!-- Arrows down to compute -->
+    <div style="display:flex; justify-content:center; margin: 8px 0;">
+      <svg width="500" height="30" style="display:block;">
+        <line x1="250" y1="0" x2="110" y2="25" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+        <line x1="250" y1="0" x2="250" y2="25" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+        <line x1="250" y1="0" x2="390" y2="25" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+      </svg>
+    </div>
+
+    <!-- ========== COMPUTE ========== -->
+    <div class="section">
+      <div class="section-label">ML Compute</div>
+      <div class="row">
+        <div class="node conditional" id="ci"
+             data-tip="ML Compute Instance&#10;VM Size: Standard_DS3_v2 (4 vCPU, 14GB RAM)&#10;Name: ci-dev-dev&#10;Personal single-user dev notebook environment&#10;Feature flag: deploy_compute_instance">
+          <img src="../azure-icons/compute/10021-icon-service-Virtual-Machine.svg" alt="">
+          <div class="name">Dev Compute Instance</div>
+          <div class="detail">Standard_DS3_v2<br>4 vCPU &bull; 14 GB</div>
+        </div>
+        <div class="node" id="cpu"
+             data-tip="ML CPU Compute Cluster&#10;VM Size: Standard_DS3_v2&#10;Name: cpu-cluster&#10;0-4 nodes, LowPriority, 5min idle timeout&#10;Always deployed">
+          <img src="../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="">
+          <div class="name">CPU Cluster</div>
+          <div class="detail">Standard_DS3_v2<br>0-4 nodes &bull; LowPriority</div>
+        </div>
+        <div class="node conditional" id="gpu"
+             data-tip="ML GPU Compute Cluster&#10;VM Size: Standard_NC4as_T4_v3 (1x NVIDIA T4)&#10;Name: gpu-cluster&#10;0-2 nodes, LowPriority, 5min idle timeout&#10;Feature flag: deploy_gpu_cluster">
+          <img src="../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="">
+          <div class="name">GPU Cluster</div>
+          <div class="detail">NC4as_T4_v3 &bull; T4 GPU<br>0-2 nodes &bull; LowPriority</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== COGNITIVE SERVICES ========== -->
+    <div class="section">
+      <div class="section-label">Cognitive Services</div>
+      <div class="row">
+        <div class="node conditional" id="cvtrain"
+             data-tip="Custom Vision Training&#10;Kind: CustomVision.Training&#10;SKU: F0 (Free)&#10;Name: cv-train-azureml-modularbuildings-dev&#10;Feature flag: deploy_custom_vision">
+          <img src="../azure-icons/ai + machine learning/00793-icon-service-Custom-Vision.svg" alt="">
+          <div class="name">Custom Vision<br>Training</div>
+          <div class="detail">F0 (Free)</div>
+        </div>
+        <div class="node conditional" id="cvpred"
+             data-tip="Custom Vision Prediction&#10;Kind: CustomVision.Prediction&#10;SKU: F0 (Free)&#10;Name: cv-pred-azureml-modularbuildings-dev&#10;Feature flag: deploy_custom_vision">
+          <img src="../azure-icons/ai + machine learning/00793-icon-service-Custom-Vision.svg" alt="">
+          <div class="name">Custom Vision<br>Prediction</div>
+          <div class="detail">F0 (Free)</div>
+        </div>
+
+        <div style="display:inline-flex; align-items:center; gap: 12px;">
+          <div class="node conditional" id="openai"
+               data-tip="Azure OpenAI Service&#10;Kind: OpenAI&#10;SKU: S0 (Standard)&#10;Name: oai-azureml-modularbuildings-dev&#10;Region: eastus&#10;Feature flag: deploy_openai">
+            <img src="../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg" alt="">
+            <div class="name">Azure OpenAI</div>
+            <div class="detail">S0 Standard</div>
+          </div>
+          <svg width="36" height="20"><line x1="0" y1="10" x2="30" y2="10" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowDown)"/><defs><marker id="arrowRight" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="arrow-marker"/></marker></defs><line x1="0" y1="10" x2="30" y2="10" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowRight)"/></svg>
+          <div class="node conditional" id="gpt4o"
+               data-tip="GPT-4o-mini Deployment&#10;Model: gpt-4o-mini v2024-07-18&#10;Scale: Standard, 10 TPM units&#10;Deployed inside OpenAI account&#10;Feature flag: deploy_openai">
+            <img src="../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg" alt="">
+            <div class="name">GPT-4o-mini</div>
+            <div class="detail">v2024-07-18<br>10 TPM units</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end rg-box -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-box"></div>
+      <span>Hub resource</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch solid"></div>
+      <span>Dependency</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-optional">OPTIONAL</span>
+      <span>Feature-flagged</span>
+    </div>
+  </div>
+  <div class="footer">
+    Generated from <code>tf/terraform.tfvars</code> &mdash; All feature flags enabled &mdash; 14 resources total
+  </div>
+
+</div><!-- end diagram -->
+
+<!-- Tooltip logic -->
+<div class="tooltip" id="tooltip"></div>
+<script>
+  const tooltip = document.getElementById('tooltip');
+  document.querySelectorAll('.node[data-tip]').forEach(node => {
+    node.addEventListener('mouseenter', e => {
+      tooltip.innerText = node.getAttribute('data-tip');
+      tooltip.style.display = 'block';
+    });
+    node.addEventListener('mousemove', e => {
+      tooltip.style.left = (e.pageX + 14) + 'px';
+      tooltip.style.top = (e.pageY + 14) + 'px';
+    });
+    node.addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+    });
+  });
+</script>
+</body>
+</html>

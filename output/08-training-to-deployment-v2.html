@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training-to-Deployment Pipeline</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a1a;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 20px;
+  }
+
+  .container {
+    max-width: 1400px;
+    max-height: 100vh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* -- Header ------------------------------------------------ */
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .header h1 {
+    font-size: 35px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+  .header .subtitle {
+    font-size: 19px;
+    color: #5a6a7a;
+    font-weight: 400;
+  }
+  .header .accent-line {
+    width: 70px;
+    height: 3px;
+    background: #0078d4;
+    margin: 12px auto 0;
+    border-radius: 2px;
+  }
+
+  /* -- Pipeline spine ---------------------------------------- */
+  .pipeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Vertical line running through entire pipeline */
+  .pipeline::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    bottom: 40px;
+    left: 50%;
+    width: 3px;
+    background: linear-gradient(
+      to bottom,
+      #2563a8 0%,
+      #1a8a6a 55%,
+      #0f8a8a 100%
+    );
+    transform: translateX(-50%);
+    border-radius: 2px;
+    z-index: 0;
+    opacity: 0.18;
+  }
+
+  /* -- Stage card -------------------------------------------- */
+  .stage-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 850px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    overflow: hidden;
+    display: flex;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    cursor: default;
+  }
+  .stage-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 10px 32px rgba(0,0,0,0.07);
+    transform: translateY(-2px);
+  }
+
+  /* Left color stripe */
+  .stage-stripe {
+    width: 7px;
+    flex-shrink: 0;
+    border-radius: 14px 0 0 14px;
+  }
+
+  /* Stage content area */
+  .stage-body {
+    flex: 1;
+    padding: 16px 28px 14px 22px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .stage-icon {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .stage-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .stage-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stage-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 5px;
+  }
+  .stage-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .stage-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.2;
+  }
+  .stage-phase {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .stage-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 2px;
+  }
+  .stage-detail-line {
+    font-size: 16px;
+    color: #5a6a7a;
+    line-height: 1.4;
+    padding-left: 42px;
+  }
+  .stage-detail-line::before {
+    content: '\2022';
+    color: #aab4be;
+    margin-right: 6px;
+    margin-left: -10px;
+  }
+
+  /* -- Color themes per stage -------------------------------- */
+  /* Stage 1: Development - deep blue */
+  .stage-1 .stage-stripe { background: #2563a8; }
+  .stage-1 .stage-number { background: #2563a8; }
+  .stage-1 .stage-phase {
+    background: #e6eef8;
+    color: #2563a8;
+  }
+
+  /* Stage 2: Script Job - medium blue */
+  .stage-2 .stage-stripe { background: #1e7ac0; }
+  .stage-2 .stage-number { background: #1e7ac0; }
+  .stage-2 .stage-phase {
+    background: #e4f0fa;
+    color: #1e7ac0;
+  }
+
+  /* Stage 3: Pipeline - blue-green */
+  .stage-3 .stage-stripe { background: linear-gradient(to bottom, #1e7ac0, #1a8a6a); }
+  .stage-3 .stage-number { background: #1c826e; }
+  .stage-3 .stage-phase {
+    background: #e2f3ed;
+    color: #1c826e;
+  }
+
+  /* Stage 4: Model Registry - green */
+  .stage-4 .stage-stripe { background: #1a8a6a; }
+  .stage-4 .stage-number { background: #1a8a6a; }
+  .stage-4 .stage-phase {
+    background: #e0f4ec;
+    color: #1a8a6a;
+  }
+
+  /* Stage 5: Endpoint - green-teal */
+  .stage-5 .stage-stripe { background: #148a7a; }
+  .stage-5 .stage-number { background: #148a7a; }
+  .stage-5 .stage-phase {
+    background: #ddf4f0;
+    color: #148a7a;
+  }
+
+  /* Stage 6: Monitoring - teal */
+  .stage-6 .stage-stripe { background: #0f8a8a; }
+  .stage-6 .stage-number { background: #0f8a8a; }
+  .stage-6 .stage-phase {
+    background: #daf4f4;
+    color: #0f8a8a;
+  }
+
+  /* -- Vertical arrow between stages ------------------------- */
+  .stage-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 28px;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .stage-connector svg {
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+  }
+
+  /* -- Pipeline sub-steps (inside Stage 3) ------------------- */
+  .pipeline-substeps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 8px 0 2px 42px;
+  }
+  .substep {
+    background: #f5f8fb;
+    border: 1.5px solid #d0dae6;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2a5a8a;
+    text-align: center;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .substep:hover {
+    background: #e8f0f8;
+    border-color: #0078d4;
+  }
+  .substep-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    flex-shrink: 0;
+  }
+  .substep-arrow svg {
+    display: block;
+  }
+
+  /* -- Deployment split (inside Stage 5) --------------------- */
+  .deployment-split {
+    display: flex;
+    gap: 0;
+    margin: 8px 0 2px 42px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid #d0dae6;
+  }
+  .deploy-version {
+    flex: 1;
+    padding: 10px 18px;
+    text-align: center;
+    font-size: 15px;
+    transition: background 0.2s;
+  }
+  .deploy-version:hover {
+    filter: brightness(0.97);
+  }
+  .deploy-version .deploy-label {
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .deploy-version .deploy-traffic {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .deploy-v1 {
+    background: #e4f0f8;
+    color: #1a5a8a;
+    border-right: 1.5px solid #d0dae6;
+  }
+  .deploy-v1 .deploy-traffic { color: #3a7aaa; }
+  .deploy-v2 {
+    background: #e0f4ec;
+    color: #1a6a4a;
+  }
+  .deploy-v2 .deploy-traffic { color: #3a8a6a; }
+
+  /* -- Sub-icons row (inside Stage 6) ------------------------ */
+  .sub-icons {
+    display: flex;
+    gap: 18px;
+    margin: 8px 0 2px 42px;
+  }
+  .sub-icon-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f5f8fb;
+    border: 1.5px solid #d0dae6;
+    border-radius: 8px;
+    padding: 7px 14px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .sub-icon-item:hover {
+    background: #e8f0f8;
+    border-color: #0078d4;
+  }
+  .sub-icon-item img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+  .sub-icon-item span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #3a5a7a;
+  }
+
+  /* -- Tooltip on stage cards -------------------------------- */
+  .stage-card[data-tooltip] {
+    position: relative;
+  }
+  .stage-card[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    transform: translateY(-100%);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 400;
+    padding: 8px 14px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    max-width: 320px;
+    white-space: normal;
+    line-height: 1.4;
+  }
+
+  /* -- Legend ------------------------------------------------ */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: #5a6a7a;
+    font-weight: 500;
+  }
+  .legend-swatch {
+    width: 32px;
+    height: 5px;
+    border-radius: 2px;
+  }
+  .legend-swatch.dev { background: #2563a8; }
+  .legend-swatch.train { background: #1c826e; }
+  .legend-swatch.prod { background: #1a8a6a; }
+  .legend-swatch.ops { background: #0f8a8a; }
+
+  .footer-note {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 15px;
+    color: #8a9aaa;
+    font-style: italic;
+  }
+
+  /* -- Responsive -------------------------------------------- */
+  @media (max-width: 900px) {
+    .stage-card { max-width: 100%; }
+    .stage-body { padding: 14px 14px 12px 12px; gap: 14px; }
+    .pipeline-substeps { flex-wrap: wrap; margin-left: 0; gap: 6px; }
+    .deployment-split { margin-left: 0; }
+    .sub-icons { margin-left: 0; flex-wrap: wrap; }
+    .stage-detail-line { padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Training-to-Deployment Pipeline</h1>
+    <div class="subtitle">Azure Machine Learning lifecycle -- from notebook prototyping to production monitoring</div>
+    <div class="accent-line"></div>
+  </div>
+
+  <div class="pipeline">
+
+    <!-- ========================================================== -->
+    <!-- STAGE 1: Development                                        -->
+    <!-- ========================================================== -->
+    <div class="stage-card stage-1" data-tooltip="Use compute instances for interactive development with Jupyter notebooks. Ideal for EDA and rapid prototyping.">
+      <div class="stage-stripe"></div>
+      <div class="stage-body">
+        <div class="stage-icon">
+          <img src="../azure-icons/compute/10021-icon-service-Virtual-Machine.svg" alt="Compute Instance">
+        </div>
+        <div class="stage-info">
+          <div class="stage-header-row">
+            <div class="stage-number">1</div>
+            <div class="stage-title">Development</div>
+            <div class="stage-phase">Experiment</div>
+          </div>
+          <div class="stage-details">
+            <div class="stage-detail-line">Interactive notebooks on compute instance</div>
+            <div class="stage-detail-line">Explore data, prototype models, iterate quickly</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="stage-connector">
+      <svg width="18" height="24" viewBox="0 0 18 24" fill="none">
+        <line x1="9" y1="2" x2="9" y2="18" stroke="#1e7ac0" stroke-width="2.5" stroke-linecap="round"/>
+        <polyline points="4,15 9,20 14,15" stroke="#1e7ac0" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- STAGE 2: Script Job                                         -->
+    <!-- ========================================================== -->
+    <div class="stage-card stage-2" data-tooltip="Convert notebook experiments into reproducible command jobs. Use YAML or Python SDK v2 to define jobs.">
+      <div class="stage-stripe"></div>
+      <div class="stage-body">
+        <div class="stage-icon">
+          <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML Workspace">
+        </div>
+        <div class="stage-info">
+          <div class="stage-header-row">
+            <div class="stage-number">2</div>
+            <div class="stage-title">Script Job</div>
+            <div class="stage-phase">Formalize</div>
+          </div>
+          <div class="stage-details">
+            <div class="stage-detail-line">Package training code as reusable command job</div>
+            <div class="stage-detail-line">Configure compute target, environment, and hyperparameters</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="stage-connector">
+      <svg width="18" height="24" viewBox="0 0 18 24" fill="none">
+        <line x1="9" y1="2" x2="9" y2="18" stroke="#1c826e" stroke-width="2.5" stroke-linecap="round"/>
+        <polyline points="4,15 9,20 14,15" stroke="#1c826e" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- STAGE 3: Pipeline                                           -->
+    <!-- ========================================================== -->
+    <div class="stage-card stage-3" data-tooltip="Chain multiple steps into a reproducible pipeline. Each step runs on its own compute with data passing between them.">
+      <div class="stage-stripe"></div>
+      <div class="stage-body">
+        <div class="stage-icon">
+          <img src="../azure-icons/analytics/10126-icon-service-Data-Factories.svg" alt="Pipeline">
+        </div>
+        <div class="stage-info">
+          <div class="stage-header-row">
+            <div class="stage-number">3</div>
+            <div class="stage-title">Pipeline</div>
+            <div class="stage-phase">Automate</div>
+          </div>
+          <div class="stage-details">
+            <div class="stage-detail-line">Chain steps into a reproducible ML pipeline</div>
+            <div class="stage-detail-line">Pass data between components, run on managed compute</div>
+          </div>
+
+          <!-- Pipeline sub-steps -->
+          <div class="pipeline-substeps">
+            <div class="substep">Data Prep</div>
+            <div class="substep-arrow">
+              <svg width="24" height="14" viewBox="0 0 24 14" fill="none">
+                <line x1="2" y1="7" x2="18" y2="7" stroke="#1c826e" stroke-width="1.5" stroke-linecap="round"/>
+                <polyline points="14,3 19,7 14,11" stroke="#1c826e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="substep">Train</div>
+            <div class="substep-arrow">
+              <svg width="24" height="14" viewBox="0 0 24 14" fill="none">
+                <line x1="2" y1="7" x2="18" y2="7" stroke="#1c826e" stroke-width="1.5" stroke-linecap="round"/>
+                <polyline points="14,3 19,7 14,11" stroke="#1c826e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="substep">Evaluate</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="stage-connector">
+      <svg width="18" height="24" viewBox="0 0 18 24" fill="none">
+        <line x1="9" y1="2" x2="9" y2="18" stroke="#1a8a6a" stroke-width="2.5" stroke-linecap="round"/>
+        <polyline points="4,15 9,20 14,15" stroke="#1a8a6a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- STAGE 4: Model Registry                                     -->
+    <!-- ========================================================== -->
+    <div class="stage-card stage-4" data-tooltip="Register the best model with version tagging. MLflow model signatures define input/output schema for validation.">
+      <div class="stage-stripe"></div>
+      <div class="stage-body">
+        <div class="stage-icon">
+          <img src="../azure-icons/containers/10105-icon-service-Container-Registries.svg" alt="Model Registry">
+        </div>
+        <div class="stage-info">
+          <div class="stage-header-row">
+            <div class="stage-number">4</div>
+            <div class="stage-title">Model Registry</div>
+            <div class="stage-phase">Version</div>
+          </div>
+          <div class="stage-details">
+            <div class="stage-detail-line">Register best model with version tag and lineage</div>
+            <div class="stage-detail-line">MLflow model signature defines input/output schema</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="stage-connector">
+      <svg width="18" height="24" viewBox="0 0 18 24" fill="none">
+        <line x1="9" y1="2" x2="9" y2="18" stroke="#148a7a" stroke-width="2.5" stroke-linecap="round"/>
+        <polyline points="4,15 9,20 14,15" stroke="#148a7a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- STAGE 5: Managed Online Endpoint                            -->
+    <!-- ========================================================== -->
+    <div class="stage-card stage-5" data-tooltip="Deploy to managed online endpoints with blue-green deployments. Gradually shift traffic from v1 to v2 for safe rollout.">
+      <div class="stage-stripe"></div>
+      <div class="stage-body">
+        <div class="stage-icon">
+          <img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="Online Endpoint">
+        </div>
+        <div class="stage-info">
+          <div class="stage-header-row">
+            <div class="stage-number">5</div>
+            <div class="stage-title">Managed Online Endpoint</div>
+            <div class="stage-phase">Deploy</div>
+          </div>
+          <div class="stage-details">
+            <div class="stage-detail-line">Real-time inference via HTTPS endpoint</div>
+            <div class="stage-detail-line">Blue-green deployment with traffic splitting</div>
+          </div>
+
+          <!-- Deployment split visualization -->
+          <div class="deployment-split">
+            <div class="deploy-version deploy-v1">
+              <div class="deploy-label">v1 (blue)</div>
+              <div class="deploy-traffic">90% traffic</div>
+            </div>
+            <div class="deploy-version deploy-v2">
+              <div class="deploy-label">v2 (green)</div>
+              <div class="deploy-traffic">10% traffic</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="stage-connector">
+      <svg width="18" height="24" viewBox="0 0 18 24" fill="none">
+        <line x1="9" y1="2" x2="9" y2="18" stroke="#0f8a8a" stroke-width="2.5" stroke-linecap="round"/>
+        <polyline points="4,15 9,20 14,15" stroke="#0f8a8a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- STAGE 6: Monitoring                                         -->
+    <!-- ========================================================== -->
+    <div class="stage-card stage-6" data-tooltip="Monitor model performance, data drift, latency, and error rates. Set alerts for degradation and trigger retraining.">
+      <div class="stage-stripe"></div>
+      <div class="stage-body">
+        <div class="stage-icon">
+          <img src="../azure-icons/monitor/00001-icon-service-Monitor.svg" alt="Monitor">
+        </div>
+        <div class="stage-info">
+          <div class="stage-header-row">
+            <div class="stage-number">6</div>
+            <div class="stage-title">Monitoring</div>
+            <div class="stage-phase">Observe</div>
+          </div>
+          <div class="stage-details">
+            <div class="stage-detail-line">Track latency, error rate, and prediction distribution</div>
+            <div class="stage-detail-line">Detect data drift and trigger retraining pipelines</div>
+          </div>
+
+          <!-- Sub-icons for monitoring tools -->
+          <div class="sub-icons">
+            <div class="sub-icon-item">
+              <img src="../azure-icons/devops/00012-icon-service-Application-Insights.svg" alt="App Insights">
+              <span>Application Insights</span>
+            </div>
+            <div class="sub-icon-item">
+              <img src="../azure-icons/management + governance/00009-icon-service-Log-Analytics-Workspaces.svg" alt="Log Analytics">
+              <span>Log Analytics</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pipeline -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch dev"></div>
+      Development
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch train"></div>
+      Training
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch prod"></div>
+      Production
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch ops"></div>
+      Operations
+    </div>
+  </div>
+
+  <div class="footer-note">
+    DP-100: Designing and Implementing a Data Science Solution on Azure
+  </div>
+
+</div>
+
+</body>
+</html>

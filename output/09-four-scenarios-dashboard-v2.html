@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude.Bricks — Four ML Scenarios</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a1a;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 24px;
+  }
+
+  .container {
+    max-width: 1400px;
+    max-height: 100vh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px 0;
+  }
+
+  /* -- Header -- */
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    padding: 7px 20px;
+    border-radius: 24px;
+    margin-bottom: 12px;
+  }
+
+  .header-badge::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: #50e6ff;
+    border-radius: 50%;
+  }
+
+  .header h1 {
+    font-size: 38px;
+    font-weight: 700;
+    color: #1b1b1b;
+    margin-bottom: 6px;
+  }
+
+  .header h1 span { color: #0078d4; }
+
+  .header p {
+    font-size: 19px;
+    color: #5f6368;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* -- Grid -- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 740px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* -- Card -- */
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 28px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+    border: 1px solid #e8eaed;
+    transition: transform .22s ease, box-shadow .22s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .card:nth-child(1)::before { background: linear-gradient(90deg, #0078d4, #50e6ff); }
+  .card:nth-child(2)::before { background: linear-gradient(90deg, #e74856, #ff8c00); }
+  .card:nth-child(3)::before { background: linear-gradient(90deg, #00b7c3, #0078d4); }
+  .card:nth-child(4)::before { background: linear-gradient(90deg, #8764b8, #d83b01); }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+  }
+
+  /* card header */
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .card-icon {
+    width: 60px; height: 60px;
+    flex-shrink: 0;
+    background: #f4f8ff;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0eaf5;
+  }
+
+  .card-icon img { width: 40px; height: 40px; }
+
+  .card-head-text h2 {
+    font-size: 21px;
+    font-weight: 700;
+    color: #1b1b1b;
+    line-height: 1.25;
+  }
+
+  .card-head-text .scenario-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: #6b7280;
+    margin-bottom: 2px;
+  }
+
+  /* mini-flow */
+  .mini-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 14px 0;
+    padding: 12px 8px;
+    background: #f8f9fb;
+    border-radius: 12px;
+    border: 1px solid #ebedf0;
+  }
+
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 0 0 auto;
+  }
+
+  .flow-step-icon {
+    width: 55px; height: 55px;
+    background: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    border: 1px solid #e5e7eb;
+    transition: transform .18s ease;
+  }
+
+  .card:hover .flow-step-icon { transform: scale(1.06); }
+
+  .flow-step-icon img { width: 35px; height: 35px; }
+
+  .flow-step-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+    line-height: 1.2;
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    margin-bottom: 18px;          /* align with icon center */
+  }
+
+  .flow-arrow svg {
+    width: 34px;
+    height: 17px;
+    color: #b0b8c4;
+  }
+
+  /* description */
+  .card-desc {
+    font-size: 17px;
+    line-height: 1.5;
+    color: #4b5563;
+    margin-bottom: 12px;
+  }
+
+  /* domain tags */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 7px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .tag::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .tag-blue   { background: #e8f4fd; color: #0058a3; }
+  .tag-blue::before   { background: #0078d4; }
+
+  .tag-green  { background: #e6f7ed; color: #0e6027; }
+  .tag-green::before  { background: #107c41; }
+
+  .tag-purple { background: #f0e8f7; color: #5c2d91; }
+  .tag-purple::before { background: #8764b8; }
+
+  /* -- Footer -- */
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 15px;
+    color: #9ca3af;
+    letter-spacing: .3px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">DP-100 Portfolio</div>
+    <h1><span>Claude.Bricks</span> &mdash; Four ML Scenarios</h1>
+    <p>Each scenario applies Azure Machine Learning to LEGO modular building design, covering key DP-100 exam domains.</p>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid">
+
+    <!-- Card 1 -- Image Classification -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">
+          <img src="../azure-icons/ai + machine learning/00793-icon-service-Custom-Vision.svg" alt="Custom Vision">
+        </div>
+        <div class="card-head-text">
+          <div class="scenario-label">Scenario 1 &middot; Image Classification</div>
+          <h2>Facade Style Classification</h2>
+        </div>
+      </div>
+
+      <div class="mini-flow">
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="Storage"></div>
+          <div class="flow-step-label">Photos</div>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 28 14" fill="none"><path d="M2 7h20m0 0l-5-4.5M22 7l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML"></div>
+          <div class="flow-step-label">ML Training</div>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 28 14" fill="none"><path d="M2 7h20m0 0l-5-4.5M22 7l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="Endpoint"></div>
+          <div class="flow-step-label">Endpoint</div>
+        </div>
+      </div>
+
+      <p class="card-desc">Map street photos to LEGO-friendly facade styles using computer vision</p>
+      <div class="tags">
+        <span class="tag tag-blue">Domain 2: Explore Data</span>
+        <span class="tag tag-green">Domain 3: Train &amp; Deploy</span>
+      </div>
+    </div>
+
+    <!-- Card 2 -- Anomaly Detection -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">
+          <img src="../azure-icons/monitor/00001-icon-service-Monitor.svg" alt="Monitor">
+        </div>
+        <div class="card-head-text">
+          <div class="scenario-label">Scenario 2 &middot; Anomaly Detection</div>
+          <h2>Structural Validation</h2>
+        </div>
+      </div>
+
+      <div class="mini-flow">
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/general/10780-icon-service-Blob-Block.svg" alt="Blob"></div>
+          <div class="flow-step-label">.ldr Files</div>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 28 14" fill="none"><path d="M2 7h20m0 0l-5-4.5M22 7l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML"></div>
+          <div class="flow-step-label">Feature Eng.</div>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 28 14" fill="none"><path d="M2 7h20m0 0l-5-4.5M22 7l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="Endpoint"></div>
+          <div class="flow-step-label">Anomaly Model</div>
+        </div>
+      </div>
+
+      <p class="card-desc">Flag unsafe LEGO structures using anomaly detection on extracted features</p>
+      <div class="tags">
+        <span class="tag tag-blue">Domain 2: Explore Data</span>
+        <span class="tag tag-green">Domain 3: Train &amp; Deploy</span>
+      </div>
+    </div>
+
+    <!-- Card 3 -- Clustering & Embeddings -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">
+          <img src="../azure-icons/ai foundry/AIServices.svg" alt="AI Services">
+        </div>
+        <div class="card-head-text">
+          <div class="scenario-label">Scenario 3 &middot; Clustering &amp; Embeddings</div>
+          <h2>Pattern Extraction</h2>
+        </div>
+      </div>
+
+      <div class="mini-flow">
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="Storage"></div>
+          <div class="flow-step-label">Part Statistics</div>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 28 14" fill="none"><path d="M2 7h20m0 0l-5-4.5M22 7l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML"></div>
+          <div class="flow-step-label">Embeddings</div>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 28 14" fill="none"><path d="M2 7h20m0 0l-5-4.5M22 7l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="Search"></div>
+          <div class="flow-step-label">Clusters</div>
+        </div>
+      </div>
+
+      <p class="card-desc">Discover common building patterns across reference models via clustering</p>
+      <div class="tags">
+        <span class="tag tag-blue">Domain 2: Explore Data</span>
+      </div>
+    </div>
+
+    <!-- Card 4 -- Fine-Tuned LLM -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">
+          <img src="../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg" alt="Azure OpenAI">
+        </div>
+        <div class="card-head-text">
+          <div class="scenario-label">Scenario 4 &middot; Fine-Tuned LLM</div>
+          <h2>Spec Generator</h2>
+        </div>
+      </div>
+
+      <div class="mini-flow">
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="Storage"></div>
+          <div class="flow-step-label">Training Data</div>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 28 14" fill="none"><path d="M2 7h20m0 0l-5-4.5M22 7l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg" alt="OpenAI"></div>
+          <div class="flow-step-label">Fine-Tune</div>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 28 14" fill="none"><path d="M2 7h20m0 0l-5-4.5M22 7l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-step">
+          <div class="flow-step-icon"><img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="Endpoint"></div>
+          <div class="flow-step-label">Deploy</div>
+        </div>
+      </div>
+
+      <p class="card-desc">Generate detailed building specs using fine-tuned language model</p>
+      <div class="tags">
+        <span class="tag tag-purple">Domain 4: Optimize LLMs</span>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <div class="footer">Claude.Bricks &middot; DP-100 Azure Data Scientist Associate &middot; 2026</div>
+</div>
+
+</body>
+</html>

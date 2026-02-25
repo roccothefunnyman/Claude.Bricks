@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Architecture with Azure AI Search</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a1a;
+    padding: 40px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* -- Header ------------------------------------------------ */
+  .header {
+    text-align: center;
+    margin-bottom: 44px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    color: #5a6a7a;
+    font-weight: 400;
+  }
+  .header .accent-line {
+    width: 60px;
+    height: 3px;
+    background: #0078d4;
+    margin: 14px auto 0;
+    border-radius: 2px;
+  }
+
+  /* -- Architecture canvas ----------------------------------- */
+  .architecture {
+    position: relative;
+  }
+
+  /* -- Pipeline label badges --------------------------------- */
+  .pipeline-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .pipeline-label .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pipeline-label.indexing {
+    background: linear-gradient(135deg, #ede6f6, #e0d4f2);
+    color: #5b3fa0;
+  }
+  .pipeline-label.indexing .dot { background: #7b5fc7; }
+  .pipeline-label.query {
+    background: linear-gradient(135deg, #d8f3ea, #c8ede0);
+    color: #1a7a5a;
+  }
+  .pipeline-label.query .dot { background: #2a9d6a; }
+
+  /* -- Flow row container ------------------------------------ */
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  /* -- Step card ---------------------------------------------- */
+  .step-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 3px 12px rgba(0,0,0,0.04);
+    padding: 20px 14px 16px;
+    width: 165px;
+    flex-shrink: 0;
+    text-align: center;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    position: relative;
+    cursor: default;
+  }
+  .step-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 8px 28px rgba(0,0,0,0.07);
+    transform: translateY(-3px);
+  }
+  .step-card .step-num {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+  .step-card .step-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 10px;
+  }
+  .step-card .step-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .step-card .step-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 5px;
+    line-height: 1.25;
+  }
+  .step-card .step-desc {
+    font-size: 11px;
+    color: #6a7a8a;
+    line-height: 1.4;
+  }
+
+  /* Card color variants */
+  .step-card.idx {
+    border-top: 3px solid #7b5fc7;
+  }
+  .step-card.idx .step-num { background: #7b5fc7; }
+  .step-card.qry {
+    border-top: 3px solid #2a9d6a;
+  }
+  .step-card.qry .step-num { background: #2a9d6a; }
+  .step-card.shared {
+    border-top: 3px solid #0078d4;
+  }
+  .step-card.shared .step-num { background: #0078d4; }
+
+  /* -- Arrow between cards ----------------------------------- */
+  .h-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    flex-shrink: 0;
+  }
+  .h-arrow svg {
+    display: block;
+  }
+
+  /* -- Central vector store ---------------------------------- */
+  .center-bridge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 6px 0;
+    position: relative;
+  }
+
+  .vert-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 36px;
+    justify-content: center;
+  }
+  .vert-connector .vert-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    line-height: 1;
+  }
+  .vert-connector.idx-conn .vert-label { color: #7b5fc7; }
+  .vert-connector.qry-conn .vert-label { color: #2a9d6a; }
+
+  .vector-store-card {
+    background: linear-gradient(135deg, #e8f1fa 0%, #dce8f6 100%);
+    border: 2px solid #0078d4;
+    border-radius: 16px;
+    box-shadow:
+      0 2px 8px rgba(0,120,212,0.12),
+      0 8px 32px rgba(0,120,212,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+    padding: 20px 48px;
+    text-align: center;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    position: relative;
+  }
+  .vector-store-card:hover {
+    box-shadow:
+      0 4px 14px rgba(0,120,212,0.18),
+      0 12px 40px rgba(0,120,212,0.12);
+    transform: scale(1.015);
+  }
+  .vector-store-card .vs-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0078d4;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 12px;
+    border-radius: 10px;
+  }
+  .vector-store-card .step-icon {
+    width: 52px;
+    height: 52px;
+    margin: 6px auto 10px;
+  }
+  .vector-store-card .step-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .vector-store-card .step-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0a4a7a;
+    margin-bottom: 4px;
+  }
+  .vector-store-card .step-desc {
+    font-size: 11.5px;
+    color: #3a6a9a;
+    line-height: 1.45;
+  }
+
+  /* -- Legend ------------------------------------------------ */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #5a6a7a;
+    font-weight: 500;
+  }
+  .legend-swatch {
+    width: 28px;
+    height: 4px;
+    border-radius: 2px;
+  }
+  .legend-swatch.idx { background: #7b5fc7; }
+  .legend-swatch.qry { background: #2a9d6a; }
+  .legend-swatch.shared { background: #0078d4; }
+
+  .footer-note {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 12px;
+    color: #8a9aaa;
+    font-style: italic;
+  }
+
+  /* -- Tooltip ----------------------------------------------- */
+  .step-card[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 400;
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .step-card[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 3px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a1a1a;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* -- Responsive -------------------------------------------- */
+  @media (max-width: 1000px) {
+    .flow-row { overflow-x: auto; padding-bottom: 8px; }
+    .step-card { min-width: 140px; width: 140px; padding: 16px 10px 12px; }
+    .h-arrow { width: 24px; }
+    .vector-store-card { padding: 18px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>RAG Architecture with Azure AI Search</h1>
+    <div class="subtitle">Retrieval-Augmented Generation -- grounding LLM output with your own data</div>
+    <div class="accent-line"></div>
+  </div>
+
+  <div class="architecture">
+
+    <!-- ========================================================== -->
+    <!-- INDEXING PIPELINE (Top Row)                                 -->
+    <!-- ========================================================== -->
+    <div class="pipeline-label indexing">
+      <span class="dot"></span> Indexing Pipeline (offline)
+    </div>
+
+    <div class="flow-row">
+
+      <!-- 1 Source Documents -->
+      <div class="step-card idx" data-tooltip="Azure Blob Storage or Data Lake">
+        <span class="step-num">1</span>
+        <div class="step-icon">
+          <img src="../azure-icons/general/10780-icon-service-Blob-Block.svg" alt="Blob Storage">
+        </div>
+        <div class="step-title">Source Documents</div>
+        <div class="step-desc">PDFs, docs, reference data, .ldr metadata</div>
+      </div>
+
+      <!-- arrow -->
+      <div class="h-arrow">
+        <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+          <line x1="2" y1="9" x2="24" y2="9" stroke="#7b5fc7" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="20,4 26,9 20,14" stroke="#7b5fc7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 2 Chunking -->
+      <div class="step-card idx" data-tooltip="Semantic or fixed-size chunking with overlap">
+        <span class="step-num">2</span>
+        <div class="step-icon">
+          <img src="../azure-icons/analytics/10126-icon-service-Data-Factories.svg" alt="Data Factory">
+        </div>
+        <div class="step-title">Chunking</div>
+        <div class="step-desc">Split into semantic chunks with sliding window overlap</div>
+      </div>
+
+      <!-- arrow -->
+      <div class="h-arrow">
+        <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+          <line x1="2" y1="9" x2="24" y2="9" stroke="#7b5fc7" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="20,4 26,9 20,14" stroke="#7b5fc7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 3 Embedding Model -->
+      <div class="step-card idx" data-tooltip="Azure OpenAI text-embedding-ada-002 or text-embedding-3-small">
+        <span class="step-num">3</span>
+        <div class="step-icon">
+          <img src="../azure-icons/ai foundry/AIServices.svg" alt="AI Services">
+        </div>
+        <div class="step-title">Embedding Model</div>
+        <div class="step-desc">Generate vector embeddings for each chunk</div>
+      </div>
+
+      <!-- arrow down (to vector store) -->
+      <div class="h-arrow">
+        <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+          <line x1="2" y1="9" x2="24" y2="9" stroke="#7b5fc7" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 3"/>
+          <polyline points="20,4 26,9 20,14" stroke="#7b5fc7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 4 Visual "into store" indicator -->
+      <div class="step-card idx" style="border-top-color: #0078d4; opacity: 0.92;">
+        <span class="step-num" style="background: #0078d4;">4</span>
+        <div class="step-icon">
+          <img src="../azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="AI Search">
+        </div>
+        <div class="step-title">Index & Store</div>
+        <div class="step-desc">Write vectors + metadata to search index</div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- VERTICAL CONNECTOR: Down to Vector Store                    -->
+    <!-- ========================================================== -->
+    <div class="center-bridge">
+      <div class="vert-connector idx-conn">
+        <svg width="18" height="30" viewBox="0 0 18 30" fill="none">
+          <line x1="9" y1="2" x2="9" y2="22" stroke="#7b5fc7" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="4,18 9,24 14,18" stroke="#7b5fc7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="vert-label">Persist</div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- VECTOR STORE (Central Hub)                                -->
+      <!-- ======================================================== -->
+      <div class="vector-store-card">
+        <div class="vs-badge">Shared Index</div>
+        <div class="step-icon">
+          <img src="../azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="Azure AI Search">
+        </div>
+        <div class="step-title">Azure AI Search -- Vector Index</div>
+        <div class="step-desc">Hybrid search: vector similarity + BM25 keyword ranking<br>Stores embeddings, original text, and metadata</div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- VERTICAL CONNECTOR: Up from Vector Store                  -->
+      <!-- ======================================================== -->
+      <div class="vert-connector qry-conn">
+        <svg width="18" height="30" viewBox="0 0 18 30" fill="none">
+          <line x1="9" y1="2" x2="9" y2="22" stroke="#2a9d6a" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="4,18 9,24 14,18" stroke="#2a9d6a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="vert-label">Retrieve Top-K</div>
+      </div>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- QUERY PIPELINE (Bottom Row)                                 -->
+    <!-- ========================================================== -->
+    <div class="pipeline-label query">
+      <span class="dot"></span> Query Pipeline (real-time)
+    </div>
+
+    <div class="flow-row">
+
+      <!-- 1 User Prompt -->
+      <div class="step-card qry" data-tooltip="Natural language query from end user">
+        <span class="step-num">1</span>
+        <div class="step-icon">
+          <img src="../azure-icons/identity/10230-icon-service-Users.svg" alt="User">
+        </div>
+        <div class="step-title">User Prompt</div>
+        <div class="step-desc">"Design a 3-story Art Deco corner building"</div>
+      </div>
+
+      <div class="h-arrow">
+        <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+          <line x1="2" y1="9" x2="24" y2="9" stroke="#2a9d6a" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="20,4 26,9 20,14" stroke="#2a9d6a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 2 Embed Query -->
+      <div class="step-card qry" data-tooltip="Same embedding model used in indexing pipeline">
+        <span class="step-num">2</span>
+        <div class="step-icon">
+          <img src="../azure-icons/ai foundry/AIServices.svg" alt="AI Services">
+        </div>
+        <div class="step-title">Embed Query</div>
+        <div class="step-desc">Same embedding model converts query to vector</div>
+      </div>
+
+      <div class="h-arrow">
+        <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+          <line x1="2" y1="9" x2="24" y2="9" stroke="#2a9d6a" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 3"/>
+          <polyline points="20,4 26,9 20,14" stroke="#2a9d6a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 3 Retrieve -->
+      <div class="step-card shared" data-tooltip="Cosine similarity search returns top-K relevant chunks">
+        <span class="step-num">3</span>
+        <div class="step-icon">
+          <img src="../azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="AI Search">
+        </div>
+        <div class="step-title">Retrieve</div>
+        <div class="step-desc">Find top-K similar chunks via vector search</div>
+      </div>
+
+      <div class="h-arrow">
+        <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+          <line x1="2" y1="9" x2="24" y2="9" stroke="#2a9d6a" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="20,4 26,9 20,14" stroke="#2a9d6a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 4 Augmented Prompt -->
+      <div class="step-card qry" data-tooltip="System prompt + retrieved context + user query">
+        <span class="step-num">4</span>
+        <div class="step-icon">
+          <img src="../azure-icons/ai foundry/AIFoundry.svg" alt="AI Foundry">
+        </div>
+        <div class="step-title">Augmented Prompt</div>
+        <div class="step-desc">Combine query + retrieved context into prompt</div>
+      </div>
+
+      <div class="h-arrow">
+        <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+          <line x1="2" y1="9" x2="24" y2="9" stroke="#2a9d6a" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="20,4 26,9 20,14" stroke="#2a9d6a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 5 LLM Generation -->
+      <div class="step-card qry" data-tooltip="GPT-4o / GPT-4 Turbo via Azure OpenAI Service">
+        <span class="step-num">5</span>
+        <div class="step-icon">
+          <img src="../azure-icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg" alt="Azure OpenAI">
+        </div>
+        <div class="step-title">LLM Generation</div>
+        <div class="step-desc">Generate grounded answer with cited sources</div>
+      </div>
+
+      <div class="h-arrow">
+        <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+          <line x1="2" y1="9" x2="24" y2="9" stroke="#2a9d6a" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="20,4 26,9 20,14" stroke="#2a9d6a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 6 Response -->
+      <div class="step-card qry" data-tooltip="Structured response delivered to application">
+        <span class="step-num">6</span>
+        <div class="step-icon">
+          <img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="App Services">
+        </div>
+        <div class="step-title">Response</div>
+        <div class="step-desc">Structured spec returned to user</div>
+      </div>
+
+    </div>
+
+  </div><!-- /architecture -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch idx"></div>
+      Indexing flow (offline, batch)
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch qry"></div>
+      Query flow (real-time)
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch shared"></div>
+      Shared component
+    </div>
+  </div>
+
+  <div class="footer-note">
+    DP-100: Designing and Implementing a Data Science Solution on Azure
+  </div>
+
+</div>
+
+</body>
+</html>

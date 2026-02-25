@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude.Bricks Pipeline Flow</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a1a;
+    padding: 40px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ─────────────────────────────────────── */
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    color: #5a6a7a;
+    font-weight: 400;
+  }
+  .header .accent-line {
+    width: 60px;
+    height: 3px;
+    background: #0078d4;
+    margin: 14px auto 0;
+    border-radius: 2px;
+  }
+
+  /* ── Orchestrator Banner ────────────────────────── */
+  .orchestrator-banner {
+    position: relative;
+    border: 2px dashed #0078d4;
+    border-radius: 14px;
+    padding: 20px 24px 28px;
+    margin-bottom: 0;
+    background: rgba(0, 120, 212, 0.02);
+  }
+  .orchestrator-label {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0078d4;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 5px 20px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+  }
+  .orchestrator-subtitle {
+    text-align: center;
+    font-size: 12px;
+    color: #5a9fd4;
+    margin-top: 2px;
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+
+  /* ── Pipeline Grid ──────────────────────────────── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    justify-content: center;
+  }
+
+  /* ── Stage Card ─────────────────────────────────── */
+  .stage-wrapper {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+  .stage-wrapper:last-child .arrow-connector { display: none; }
+
+  .stage-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    padding: 22px 18px 20px;
+    flex: 1;
+    min-width: 0;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+  .stage-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.09), 0 8px 28px rgba(0,0,0,0.07);
+    transform: translateY(-3px);
+  }
+
+  .stage-number {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: #0078d4;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 120, 212, 0.35);
+  }
+
+  .stage-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+  }
+  .stage-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .stage-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+    letter-spacing: -0.2px;
+  }
+
+  .stage-bullets {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    text-align: left;
+  }
+  .stage-bullets li {
+    font-size: 12.5px;
+    color: #4a5568;
+    line-height: 1.5;
+    padding: 3px 0 3px 16px;
+    position: relative;
+  }
+  .stage-bullets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #0078d4;
+    opacity: 0.5;
+  }
+
+  /* Sub-icons row */
+  .sub-icons {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #eef0f3;
+    justify-content: center;
+    width: 100%;
+  }
+  .sub-icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .sub-icon-item img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+  .sub-icon-item span {
+    font-size: 10px;
+    color: #8a96a4;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* ── Arrow Connector ────────────────────────────── */
+  .arrow-connector {
+    flex-shrink: 0;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .arrow-connector svg {
+    width: 40px;
+    height: 36px;
+    overflow: visible;
+  }
+
+  /* ── Footer ─────────────────────────────────────── */
+  .footer {
+    text-align: center;
+    margin-top: 36px;
+    font-size: 12px;
+    color: #9aa5b0;
+  }
+
+  /* ── Responsive ─────────────────────────────────── */
+  @media (max-width: 860px) {
+    .pipeline {
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .stage-wrapper {
+      flex-direction: column;
+      width: 100%;
+      max-width: 360px;
+    }
+    .arrow-connector {
+      width: 36px;
+      height: 40px;
+      transform: rotate(90deg);
+      margin: 4px 0;
+    }
+    .stage-card { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Claude.Bricks Pipeline Flow</h1>
+    <p class="subtitle">End-to-end ML pipeline from data ingestion to deployed endpoint</p>
+    <div class="accent-line"></div>
+  </div>
+
+  <!-- Orchestrator Banner wrapping everything -->
+  <div class="orchestrator-banner">
+    <div class="orchestrator-label">Claude Agents Orchestrator</div>
+    <p class="orchestrator-subtitle">Spans all stages &mdash; coordinating ingestion, enrichment, training, and deployment</p>
+
+    <!-- Pipeline Stages -->
+    <div class="pipeline">
+
+      <!-- Stage 1: Ingest -->
+      <div class="stage-wrapper">
+        <div class="stage-card">
+          <div class="stage-number">1</div>
+          <div class="stage-icon">
+            <img src="../azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="Storage Accounts">
+          </div>
+          <div class="stage-title">Ingest</div>
+          <ul class="stage-bullets">
+            <li>Store images and .ldr files in Blob Storage</li>
+            <li>Register as Azure ML data assets</li>
+          </ul>
+        </div>
+        <div class="arrow-connector">
+          <svg viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="ag1" x1="0" y1="18" x2="40" y2="18" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#0078d4" stop-opacity="0.3"/>
+                <stop offset="1" stop-color="#0078d4"/>
+              </linearGradient>
+            </defs>
+            <path d="M0 18 H28" stroke="url(#ag1)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M24 10 L34 18 L24 26" fill="#0078d4" opacity="0.9"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Stage 2: Enrich -->
+      <div class="stage-wrapper">
+        <div class="stage-card">
+          <div class="stage-number">2</div>
+          <div class="stage-icon">
+            <img src="../azure-icons/ai + machine learning/10165-icon-service-Bot-Services.svg" alt="Bot Services">
+          </div>
+          <div class="stage-title">Enrich</div>
+          <ul class="stage-bullets">
+            <li>Claude agents extract text descriptions</li>
+            <li>Generate structured metadata features</li>
+          </ul>
+        </div>
+        <div class="arrow-connector">
+          <svg viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="ag2" x1="0" y1="18" x2="40" y2="18" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#0078d4" stop-opacity="0.3"/>
+                <stop offset="1" stop-color="#0078d4"/>
+              </linearGradient>
+            </defs>
+            <path d="M0 18 H28" stroke="url(#ag2)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M24 10 L34 18 L24 26" fill="#0078d4" opacity="0.9"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Stage 3: Train -->
+      <div class="stage-wrapper">
+        <div class="stage-card">
+          <div class="stage-number">3</div>
+          <div class="stage-icon">
+            <img src="../azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="Machine Learning">
+          </div>
+          <div class="stage-title">Train</div>
+          <ul class="stage-bullets">
+            <li>Azure ML jobs train models</li>
+            <li>MLflow logs metrics and artifacts</li>
+          </ul>
+          <div class="sub-icons">
+            <div class="sub-icon-item">
+              <img src="../azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="Compute Cluster">
+              <span>Compute<br>Cluster</span>
+            </div>
+            <div class="sub-icon-item">
+              <img src="../azure-icons/management + governance/00009-icon-service-Log-Analytics-Workspaces.svg" alt="Log Analytics">
+              <span>Log<br>Analytics</span>
+            </div>
+          </div>
+        </div>
+        <div class="arrow-connector">
+          <svg viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="ag3" x1="0" y1="18" x2="40" y2="18" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#0078d4" stop-opacity="0.3"/>
+                <stop offset="1" stop-color="#0078d4"/>
+              </linearGradient>
+            </defs>
+            <path d="M0 18 H28" stroke="url(#ag3)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M24 10 L34 18 L24 26" fill="#0078d4" opacity="0.9"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Stage 4: Deploy -->
+      <div class="stage-wrapper">
+        <div class="stage-card">
+          <div class="stage-number">4</div>
+          <div class="stage-icon">
+            <img src="../azure-icons/compute/10035-icon-service-App-Services.svg" alt="App Services">
+          </div>
+          <div class="stage-title">Deploy</div>
+          <ul class="stage-bullets">
+            <li>Register model in workspace</li>
+            <li>Deploy managed online endpoint</li>
+            <li>Agents call endpoint via HTTP</li>
+          </ul>
+        </div>
+        <!-- no arrow after last stage -->
+        <div class="arrow-connector" style="display:none;"></div>
+      </div>
+
+    </div><!-- /pipeline -->
+  </div><!-- /orchestrator-banner -->
+
+  <p class="footer">Claude.Bricks &mdash; Azure ML Pipeline Architecture</p>
+</div>
+
+</body>
+</html>
