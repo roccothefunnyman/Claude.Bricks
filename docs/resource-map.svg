@@ -1,0 +1,189 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" font-family="Segoe UI, system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="header-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#003d6b"/>
+      <stop offset="60%" stop-color="#0078d4"/>
+      <stop offset="100%" stop-color="#50a0ef"/>
+    </linearGradient>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+    <filter id="shadow-sm" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="620" rx="16" fill="#f8f9fa"/>
+
+  <!-- Title bar -->
+  <rect width="960" height="56" rx="16" fill="url(#header-grad)"/>
+  <rect y="40" width="960" height="16" fill="url(#header-grad)"/>
+  <text x="480" y="36" text-anchor="middle" fill="white" font-size="20" font-weight="700">Claude.Bricks - Complete Resource Map</text>
+
+  <!-- Resource Group boundary -->
+  <rect x="24" y="72" width="912" height="534" rx="14" fill="none" stroke="#0078d4" stroke-width="2" stroke-dasharray="8 4"/>
+
+  <!-- RG Label -->
+  <rect x="40" y="62" width="280" height="22" rx="4" fill="#f8f9fa"/>
+  <circle cx="56" cy="73" r="8" fill="#50e6ff" opacity="0.3"/>
+  <rect cx="52" cy="69" width="8" height="8" rx="1" fill="#0078d4" x="52" y="69"/>
+  <text x="70" y="77" fill="#0078d4" font-size="13" font-weight="600">rg-claudebricks-dev (East US)</text>
+
+  <!-- ==================== -->
+  <!-- CORE PLATFORM SERVICES -->
+  <!-- ==================== -->
+  <rect x="40" y="96" width="880" height="130" rx="10" fill="#fafcff" stroke="#e0e0e0" filter="url(#shadow-sm)"/>
+  <text x="56" y="116" fill="#6c757d" font-size="11" font-weight="600" letter-spacing="0.5">CORE PLATFORM SERVICES</text>
+
+  <!-- ML Workspace -->
+  <rect x="56" y="126" width="130" height="84" rx="8" fill="#f0f6ff" stroke="#c7ddf5"/>
+  <circle cx="80" cy="154" r="14" fill="#0078d4" opacity="0.15"/>
+  <text x="80" y="158" text-anchor="middle" fill="#0078d4" font-size="16" font-weight="700">ML</text>
+  <text x="100" y="150" fill="#1a1a2e" font-size="12" font-weight="700">ML Workspace</text>
+  <text x="100" y="165" fill="#6c757d" font-size="10">Central ML hub</text>
+  <rect x="60" y="176" width="120" height="16" rx="3" fill="#0078d4" opacity="0.1"/>
+  <text x="120" y="188" text-anchor="middle" fill="#0078d4" font-size="9" font-weight="600">HUB</text>
+
+  <!-- Storage Account -->
+  <rect x="200" y="126" width="130" height="84" rx="8" fill="#f0f6ff" stroke="#c7ddf5"/>
+  <circle cx="224" cy="154" r="14" fill="#37c2b1" opacity="0.15"/>
+  <rect x="216" y="146" width="16" height="16" rx="2" fill="#37c2b1"/>
+  <text x="244" y="150" fill="#1a1a2e" font-size="12" font-weight="700">Storage</text>
+  <text x="244" y="165" fill="#6c757d" font-size="10">Data, artifacts,</text>
+  <text x="244" y="177" fill="#6c757d" font-size="10">models</text>
+
+  <!-- Key Vault -->
+  <rect x="344" y="126" width="130" height="84" rx="8" fill="#f0f6ff" stroke="#c7ddf5"/>
+  <circle cx="368" cy="154" r="14" fill="#ffd70f" opacity="0.2"/>
+  <text x="368" y="158" text-anchor="middle" fill="#c89200" font-size="14">&#128273;</text>
+  <text x="388" y="150" fill="#1a1a2e" font-size="12" font-weight="700">Key Vault</text>
+  <text x="388" y="165" fill="#6c757d" font-size="10">Secrets &amp; keys</text>
+
+  <!-- Container Registry -->
+  <rect x="488" y="126" width="130" height="84" rx="8" fill="#f0f6ff" stroke="#c7ddf5"/>
+  <circle cx="512" cy="154" r="14" fill="#0078d4" opacity="0.12"/>
+  <rect x="504" y="146" width="16" height="16" rx="8" fill="#0078d4" opacity="0.4"/>
+  <text x="532" y="150" fill="#1a1a2e" font-size="12" font-weight="700">Container</text>
+  <text x="532" y="165" fill="#1a1a2e" font-size="12" font-weight="700">Registry</text>
+  <text x="532" y="180" fill="#6c757d" font-size="10">Docker images</text>
+
+  <!-- App Insights -->
+  <rect x="632" y="126" width="130" height="84" rx="8" fill="#f0f6ff" stroke="#c7ddf5"/>
+  <circle cx="656" cy="154" r="14" fill="#7b61ff" opacity="0.15"/>
+  <text x="656" y="159" text-anchor="middle" fill="#7b61ff" font-size="14" font-weight="700">AI</text>
+  <text x="676" y="150" fill="#1a1a2e" font-size="12" font-weight="700">App Insights</text>
+  <text x="676" y="165" fill="#6c757d" font-size="10">Telemetry</text>
+
+  <!-- Log Analytics -->
+  <rect x="776" y="126" width="130" height="84" rx="8" fill="#f0f6ff" stroke="#c7ddf5"/>
+  <circle cx="800" cy="154" r="14" fill="#198ab3" opacity="0.15"/>
+  <rect x="793" y="148" width="14" height="3" rx="1" fill="#198ab3"/>
+  <rect x="793" y="153" width="14" height="3" rx="1" fill="#32d4f5"/>
+  <rect x="793" y="158" width="14" height="3" rx="1" fill="#258277"/>
+  <text x="820" y="150" fill="#1a1a2e" font-size="12" font-weight="700">Log Analytics</text>
+  <text x="820" y="165" fill="#6c757d" font-size="10">Monitoring</text>
+
+  <!-- ==================== -->
+  <!-- COMPUTE RESOURCES -->
+  <!-- ==================== -->
+  <rect x="40" y="236" width="880" height="110" rx="10" fill="#fafcff" stroke="#e0e0e0" filter="url(#shadow-sm)"/>
+  <text x="56" y="256" fill="#6c757d" font-size="11" font-weight="600" letter-spacing="0.5">COMPUTE RESOURCES (ML WORKSPACE)</text>
+
+  <!-- Compute Instance -->
+  <rect x="56" y="268" width="270" height="64" rx="8" fill="#f0fff4" stroke="#86efac"/>
+  <circle cx="80" cy="300" r="14" fill="#10b981" opacity="0.15"/>
+  <rect x="72" y="294" width="16" height="12" rx="2" fill="#10b981" opacity="0.5"/>
+  <text x="102" y="293" fill="#1a1a2e" font-size="12" font-weight="700">Compute Instance</text>
+  <text x="102" y="308" fill="#6c757d" font-size="10">Standard_DS3_v2 - Dev notebooks</text>
+
+  <!-- CPU Cluster -->
+  <rect x="340" y="268" width="270" height="64" rx="8" fill="#f0fff4" stroke="#86efac"/>
+  <circle cx="364" cy="300" r="14" fill="#10b981" opacity="0.15"/>
+  <rect x="356" y="294" width="7" height="12" rx="1" fill="#10b981" opacity="0.5"/>
+  <rect x="365" y="294" width="7" height="12" rx="1" fill="#10b981" opacity="0.5"/>
+  <text x="386" y="293" fill="#1a1a2e" font-size="12" font-weight="700">CPU Cluster</text>
+  <text x="386" y="308" fill="#6c757d" font-size="10">DS3_v2 - 0-4 nodes, Low Priority - S1-S3</text>
+
+  <!-- GPU Cluster -->
+  <rect x="624" y="268" width="282" height="64" rx="8" fill="#fff7ed" stroke="#fdba74"/>
+  <circle cx="648" cy="300" r="14" fill="#f59e0b" opacity="0.15"/>
+  <rect x="640" y="294" width="7" height="12" rx="1" fill="#f59e0b" opacity="0.6"/>
+  <rect x="649" y="294" width="7" height="12" rx="1" fill="#f59e0b" opacity="0.6"/>
+  <text x="670" y="293" fill="#1a1a2e" font-size="12" font-weight="700">GPU Cluster</text>
+  <text x="670" y="308" fill="#6c757d" font-size="10">NC4as_T4_v3 - 0-2 nodes, Low Priority - S1, S4</text>
+
+  <!-- ==================== -->
+  <!-- AI & COGNITIVE SERVICES -->
+  <!-- ==================== -->
+  <rect x="40" y="358" width="880" height="110" rx="10" fill="#fafcff" stroke="#e0e0e0" filter="url(#shadow-sm)"/>
+  <text x="56" y="378" fill="#6c757d" font-size="11" font-weight="600" letter-spacing="0.5">AI &amp; COGNITIVE SERVICES</text>
+
+  <!-- Custom Vision -->
+  <rect x="56" y="390" width="270" height="64" rx="8" fill="#fef3c7" stroke="#fcd34d"/>
+  <circle cx="80" cy="422" r="14" fill="#0078d4" opacity="0.12"/>
+  <text x="80" y="426" text-anchor="middle" fill="#0078d4" font-size="13" font-weight="700">CV</text>
+  <text x="102" y="415" fill="#1a1a2e" font-size="12" font-weight="700">Custom Vision</text>
+  <text x="102" y="430" fill="#6c757d" font-size="10">Training + Prediction</text>
+  <rect x="102" y="436" width="68" height="14" rx="7" fill="#6366f1"/>
+  <text x="136" y="446" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 1</text>
+
+  <!-- Azure OpenAI -->
+  <rect x="340" y="390" width="270" height="64" rx="8" fill="#fef3c7" stroke="#fcd34d"/>
+  <circle cx="364" cy="422" r="14" fill="#0078d4" opacity="0.12"/>
+  <text x="364" y="427" text-anchor="middle" fill="#0078d4" font-size="16" font-weight="700">&#10040;</text>
+  <text x="386" y="415" fill="#1a1a2e" font-size="12" font-weight="700">Azure OpenAI</text>
+  <text x="386" y="430" fill="#6c757d" font-size="10">gpt-4o-mini deployment</text>
+  <rect x="386" y="436" width="68" height="14" rx="7" fill="#ef4444"/>
+  <text x="420" y="446" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 4</text>
+
+  <!-- AI Search -->
+  <rect x="624" y="390" width="282" height="64" rx="8" fill="#fef3c7" stroke="#fcd34d"/>
+  <circle cx="648" cy="422" r="14" fill="#0078d4" opacity="0.12"/>
+  <text x="648" y="427" text-anchor="middle" fill="#0078d4" font-size="14" font-weight="700">&#128269;</text>
+  <text x="670" y="415" fill="#1a1a2e" font-size="12" font-weight="700">AI Search</text>
+  <text x="670" y="430" fill="#6c757d" font-size="10">Vector store (RAG)</text>
+  <rect x="670" y="436" width="68" height="14" rx="7" fill="#ef4444"/>
+  <text x="704" y="446" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 4</text>
+
+  <!-- ==================== -->
+  <!-- BLOB CONTAINERS -->
+  <!-- ==================== -->
+  <rect x="40" y="480" width="880" height="110" rx="10" fill="#fafcff" stroke="#e0e0e0" filter="url(#shadow-sm)"/>
+  <text x="56" y="500" fill="#6c757d" font-size="11" font-weight="600" letter-spacing="0.5">BLOB CONTAINERS (INSIDE STORAGE ACCOUNT)</text>
+
+  <!-- facade-images -->
+  <rect x="56" y="512" width="200" height="60" rx="8" fill="#ecfdf5" stroke="#6ee7b7"/>
+  <rect x="68" y="524" width="14" height="18" rx="2" fill="#10b981" opacity="0.3"/>
+  <rect x="70" y="526" width="10" height="5" rx="1" fill="#10b981" opacity="0.5"/>
+  <text x="90" y="536" fill="#1a1a2e" font-size="12" font-weight="700">facade-images</text>
+  <rect x="90" y="542" width="68" height="14" rx="7" fill="#6366f1"/>
+  <text x="124" y="552" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 1</text>
+
+  <!-- ldr-files -->
+  <rect x="270" y="512" width="200" height="60" rx="8" fill="#ecfdf5" stroke="#6ee7b7"/>
+  <rect x="282" y="524" width="14" height="18" rx="2" fill="#10b981" opacity="0.3"/>
+  <rect x="284" y="526" width="10" height="5" rx="1" fill="#10b981" opacity="0.5"/>
+  <text x="304" y="536" fill="#1a1a2e" font-size="12" font-weight="700">ldr-files</text>
+  <rect x="304" y="542" width="68" height="14" rx="7" fill="#f59e0b"/>
+  <text x="338" y="552" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 2</text>
+
+  <!-- reference-models -->
+  <rect x="484" y="512" width="200" height="60" rx="8" fill="#ecfdf5" stroke="#6ee7b7"/>
+  <rect x="496" y="524" width="14" height="18" rx="2" fill="#10b981" opacity="0.3"/>
+  <rect x="498" y="526" width="10" height="5" rx="1" fill="#10b981" opacity="0.5"/>
+  <text x="518" y="536" fill="#1a1a2e" font-size="12" font-weight="700">reference-models</text>
+  <rect x="518" y="542" width="68" height="14" rx="7" fill="#10b981"/>
+  <text x="552" y="552" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 3</text>
+
+  <!-- training-data -->
+  <rect x="698" y="512" width="208" height="60" rx="8" fill="#ecfdf5" stroke="#6ee7b7"/>
+  <rect x="710" y="524" width="14" height="18" rx="2" fill="#10b981" opacity="0.3"/>
+  <rect x="712" y="526" width="10" height="5" rx="1" fill="#10b981" opacity="0.5"/>
+  <text x="732" y="536" fill="#1a1a2e" font-size="12" font-weight="700">training-data</text>
+  <rect x="732" y="542" width="68" height="14" rx="7" fill="#ef4444"/>
+  <text x="766" y="552" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 4</text>
+
+  <!-- Footer caption -->
+  <text x="480" y="604" text-anchor="middle" fill="#6c757d" font-size="11" font-style="italic">All resources deployed into a single Resource Group via Terraform. ML Workspace connects to Storage, Key Vault, ACR, and App Insights as linked services.</text>
+</svg>

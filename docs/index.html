@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude.Bricks - Azure ML Infrastructure As-Built Document</title>
+<style>
+:root {
+  --azure-blue: #0078d4;
+  --azure-dark: #003d6b;
+  --azure-light: #50e6ff;
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #6c757d;
+  --border: #dee2e6;
+  --accent-green: #37c2b1;
+  --accent-purple: #7b61ff;
+  --accent-orange: #fea11b;
+  --accent-red: #e74c3c;
+  --scenario1: #6366f1;
+  --scenario2: #f59e0b;
+  --scenario3: #10b981;
+  --scenario4: #ef4444;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+h1 { font-size: 2.5rem; font-weight: 700; color: var(--azure-dark); }
+h2 { font-size: 1.8rem; font-weight: 600; color: var(--azure-blue); margin: 48px 0 24px; border-bottom: 3px solid var(--azure-blue); padding-bottom: 8px; }
+h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin: 24px 0 12px; }
+p { margin-bottom: 12px; }
+code { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+.header { background: linear-gradient(135deg, var(--azure-dark) 0%, var(--azure-blue) 60%, #50a0ef 100%); color: white; padding: 48px 0; text-align: center; }
+.header h1 { color: white; }
+.header p { color: rgba(255,255,255,0.85); font-size: 1.1rem; margin-top: 8px; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-phase { background: var(--azure-blue); color: white; }
+.badge-terraform { background: #7b42bc; color: white; }
+.badge-sdk { background: var(--accent-green); color: white; }
+.badge-manual { background: var(--accent-orange); color: #333; }
+
+/* Cards */
+.card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 24px; margin-bottom: 24px; border: 1px solid var(--border); }
+.card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.card-header img { width: 32px; height: 32px; }
+
+/* TOC */
+.toc { columns: 2; column-gap: 40px; }
+.toc a { display: block; padding: 6px 0; color: var(--azure-blue); text-decoration: none; border-bottom: 1px solid #eee; }
+.toc a:hover { color: var(--azure-dark); }
+
+/* Diagram containers */
+.diagram-container { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; overflow-x: auto; }
+.diagram-title { text-align: center; font-weight: 600; font-size: 1.1rem; color: var(--azure-dark); margin-bottom: 16px; }
+.diagram-caption { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; font-style: italic; }
+
+/* Resource grid */
+.resource-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+.resource-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0f6ff; border-radius: 8px; border: 1px solid #c7ddf5; }
+.resource-item img { width: 28px; height: 28px; flex-shrink: 0; }
+.resource-item .info { font-size: 0.85rem; }
+.resource-item .info strong { display: block; font-size: 0.9rem; }
+
+/* Flow diagrams */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.flow-box { display: flex; flex-direction: column; align-items: center; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border); background: white; min-width: 120px; text-align: center; font-size: 0.85rem; position: relative; }
+.flow-box img { width: 36px; height: 36px; margin-bottom: 6px; }
+.flow-box strong { font-size: 0.8rem; }
+.flow-box .sub { font-size: 0.7rem; color: var(--text-muted); }
+.flow-arrow { font-size: 1.5rem; color: var(--azure-blue); font-weight: bold; flex-shrink: 0; }
+.flow-arrow-down { text-align: center; font-size: 1.5rem; color: var(--azure-blue); margin: 4px 0; }
+
+/* Scenario colors */
+.s1 { border-color: var(--scenario1); }
+.s1 .flow-box { border-color: var(--scenario1); }
+.s2 { border-color: var(--scenario2); }
+.s2 .flow-box { border-color: var(--scenario2); }
+.s3 { border-color: var(--scenario3); }
+.s3 .flow-box { border-color: var(--scenario3); }
+.s4 { border-color: var(--scenario4); }
+.s4 .flow-box { border-color: var(--scenario4); }
+
+.scenario-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.scenario-num { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.2rem; flex-shrink: 0; }
+
+/* Phase timeline */
+.timeline { position: relative; padding-left: 40px; margin: 24px 0; }
+.timeline::before { content: ''; position: absolute; left: 16px; top: 0; bottom: 0; width: 3px; background: var(--azure-blue); }
+.timeline-item { position: relative; margin-bottom: 32px; }
+.timeline-item::before { content: ''; position: absolute; left: -30px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--azure-blue); border: 3px solid white; box-shadow: 0 0 0 2px var(--azure-blue); }
+.timeline-item h3 { margin-top: 0; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f0f6ff; font-weight: 600; color: var(--azure-dark); }
+tr:hover { background: #fafbfc; }
+
+/* Cost bars */
+.cost-bar-container { margin: 8px 0; }
+.cost-bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+.cost-bar { height: 24px; border-radius: 4px; background: #e9ecef; overflow: hidden; }
+.cost-bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; color: white; font-size: 0.75rem; font-weight: 600; }
+
+/* RG boundary box for arch diagram */
+.rg-boundary { border: 2px dashed var(--azure-blue); border-radius: 16px; padding: 24px; margin: 16px 0; position: relative; }
+.rg-label { position: absolute; top: -12px; left: 24px; background: white; padding: 0 8px; color: var(--azure-blue); font-weight: 600; font-size: 0.9rem; }
+
+/* Grouped sections inside RG */
+.service-group { border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px; margin: 8px 0; background: #fafcff; }
+.service-group-title { font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+
+/* Connection line (CSS-only) */
+.connector { display: flex; align-items: center; justify-content: center; }
+.conn-line { width: 40px; height: 2px; background: var(--azure-blue); }
+.conn-line-v { width: 2px; height: 24px; background: var(--azure-blue); margin: 0 auto; }
+
+/* Print styles */
+@media print {
+  .header { padding: 24px 0; }
+  .card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+  .diagram-container { break-inside: avoid; }
+  h2 { break-before: page; }
+}
+@media (max-width: 768px) {
+  .toc { columns: 1; }
+  .resource-grid { grid-template-columns: 1fr; }
+  .flow-row { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  h1 { font-size: 1.8rem; }
+}
+
+/* Icon helper - inline data URIs */
+.icon { width: 36px; height: 36px; display: inline-block; vertical-align: middle; }
+.icon-sm { width: 24px; height: 24px; }
+.icon-lg { width: 48px; height: 48px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- HEADER -->
+<!-- ============================================ -->
+<div class="header">
+  <div class="container">
+    <h1>Claude.Bricks</h1>
+    <p>Azure ML Infrastructure &mdash; As-Built Document</p>
+    <p style="font-size:0.85rem; margin-top:16px; opacity:0.7;">DP-100 Lab Deployment &bull; 4 ML Scenarios &bull; Terraform + Azure ML SDK v2</p>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ============================================ -->
+<div class="container">
+<h2 id="toc">Table of Contents</h2>
+<div class="card">
+<div class="toc">
+  <a href="#arch-overview">1. Architecture Overview</a>
+  <a href="#deployment-phases">2. Deployment Phases</a>
+  <a href="#phase1-terraform">3. Phase 1: Shared Infrastructure (Terraform)</a>
+  <a href="#phase2-bootstrap">4. Phase 2: Post-Terraform Bootstrap</a>
+  <a href="#scenario1">5. Scenario 1: Facade Style Classification</a>
+  <a href="#scenario2">6. Scenario 2: Structural Validation</a>
+  <a href="#scenario3">7. Scenario 3: Pattern Extraction</a>
+  <a href="#scenario4">8. Scenario 4: Fine-Tuned LLM Spec Generator</a>
+  <a href="#data-flow">9. Data Flow Overview</a>
+  <a href="#cost-breakdown">10. Cost Breakdown</a>
+  <a href="#teardown">11. Teardown Procedure</a>
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- ICON DEFINITIONS (hidden, referenced via CSS) -->
+<!-- ============================================ -->
+<!-- We use inline data:image/svg+xml for Azure icons throughout -->
+
+<!-- ============================================ -->
+<!-- SECTION 1: ARCHITECTURE OVERVIEW -->
+<!-- ============================================ -->
+<h2 id="arch-overview">1. Architecture Overview</h2>
+<p>All resources live in a single Azure Resource Group deployed via Terraform. The ML Workspace is the central hub, with dependent services for storage, security, monitoring, compute, and AI.</p>
+
+<div class="diagram-container">
+<div class="diagram-title">Claude.Bricks &mdash; Complete Resource Map</div>
+
+<div class="rg-boundary">
+<div class="rg-label"><img src="data:image/svg+xml;base64,PHN2ZyBpZD0iYTY4NWNjOGMtMzJiYS00ZDU0LTkxZGEtM2ExMjVjYjU4ZGVkIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48dGl0bGU+SWNvbi1nZW5lcmFsLTc8L3RpdGxlPjxnPjxnPjxwYXRoIGQ9Ik0uNSwxNS4wOGEuMTYuMTYsMCwwLDAsLjA4LjE0bDEuMTYuNjVMMy43LDE3YS4xNy4xNywwLDAsMCwuMjMtLjA2bC42Ni0xLjEyYS4xNi4xNiwwLDAsMC0uMDYtLjIxbC0yLjMtMS4zYS4xNy4xNywwLDAsMSwuMDgtLjE0VjMuODVhLjE2LjE2LDAsMCwxLC4wOC0uMTRsMi4zLTEuM2EuMTYuMTYsMCwwLDAsLjA2LS4yMUwzLjkzLDEuMDhBLjE3LjE3LDAsMCwwLDMuNywxTDEuNzgsMi4xMWwtMS4yLjY3YS4xNi4xNiwwLDAsMC0uMDguMTRWMTUuMDhaIiBmaWxsPSIjOTQ5NDk0IiAvPjxwYXRoIGQ9Ik0yLjE0LDMuNzdsLjA2LS4wNiwyLjMtMS4zYS4xNC4xNCwwLDAsMCwuMDYtLjIxTDMuOSwxLjA4QS4xNS4xNSwwLDAsMCwzLjY4LDFMMS43NSwyLjExLjU2LDIuNzhzLS4wNSwwLS4wNi4wNmwuOS41MVoiIGZpbGw9IiNhM2EzYTMiIC8+PHBhdGggZD0iTTQuNSwxNS41OWwtMi4zLTEuM2EuMjIuMjIsMCwwLDEtLjA3LS4wOWwtMS42MiwxLC4wNSwwLDEuMTUuNjUsMiwxLjExYS4xNS4xNSwwLDAsMCwuMjItLjA2bC42Ni0xLjEyQS4xNC4xNCwwLDAsMCw0LjUsMTUuNTlaIiBmaWxsPSIjYTNhM2EzIiAvPjwvZz48cGF0aCBkPSJNMTcuNSwxNS4wOGEuMTYuMTYsMCwwLDEtLjA4LjE0bC0xLjE2LjY1TDE0LjMsMTdhLjE3LjE3LDAsMCwxLS4yMy0uMDZsLS42Ni0xLjEyYS4xNi4xNiwwLDAsMSwuMDYtLjIxbDIuMy0xLjNhLjE3LjE3LDAsMCwwLC4wOC0uMTRWMy44NWEuMTYuMTYsMCwwLDAtLjA4LS4xNGwtMi4zLTEuM2EuMTYuMTYsMCwwLDEtLjA2LS4yMWwuNjYtMS4xMkEuMTcuMTcsMCwwLDEsMTQuMywxbDEuOTIsMS4wOSwxLjIuNjdhLjE2LjE2LDAsMCwxLC4wOC4xNFYxNS4wOFoiIGZpbGw9IiM5NDk0OTQiIC8+PHBhdGggZD0iTTE1Ljg2LDMuNzdsLS4wNi0uMDYtMi4zLTEuM2EuMTQuMTQsMCwwLDEtLjA2LS4yMWwuNjYtMS4xMkEuMTUuMTUsMCwwLDEsMTQuMzIsMWwxLjkzLDEuMDksMS4xOS42N3MwLDAsLjA2LjA2bC0uOS41MVoiIGZpbGw9IiNhM2EzYTMiIC8+PHBhdGggZD0iTTEzLjUsMTUuNTlsMi4zLTEuM2EuMjIuMjIsMCwwLDAsLjA3LS4wOWwxLjYyLDEsMCwwLTEuMTUuNjUtMiwxLjExYS4xNS4xNSwwLDAsMS0uMjItLjA2bC0uNjYtMS4xMkEuMTQuMTQsMCwwLDEsMTMuNSwxNS41OVoiIGZpbGw9IiNhM2EzYTMiIC8+PHBvbHlnb24gcG9pbnRzPSIxNC4zMSA1LjkzIDE0LjMxIDEyLjA3IDguOTkgMTUuMTYgOC45OSA5LjAxIDE0LjMxIDUuOTMiIGZpbGw9IiMzMmJlZGQiIC8+PHBvbHlnb24gcG9pbnRzPSIxNC4zMSA1LjkzIDkgOS4wMiAzLjY4IDUuOTMgOSAyLjg0IDE0LjMxIDUuOTMiIGZpbGw9IiM5Y2ViZmYiIC8+PHBvbHlnb24gcG9pbnRzPSI4Ljk5IDkuMDIgOC45OSAxNS4xNiAzLjY4IDEyLjA3IDMuNjggNS45MyA4Ljk5IDkuMDIiIGZpbGw9IiM1MGU2ZmYiIC8+PHBvbHlnb24gcG9pbnRzPSIzLjY4IDEyLjA3IDguOTkgOS4wMSA4Ljk5IDE1LjE2IDMuNjggMTIuMDciIGZpbGw9IiM5Y2ViZmYiIC8+PHBvbHlnb24gcG9pbnRzPSIxNC4zMSAxMi4wNyA4Ljk5IDkuMDEgOC45OSAxNS4xNiAxNC4zMSAxMi4wNyIgZmlsbD0iIzUwZTZmZiIgLz48L2c+PC9zdmc+" class="icon-sm" style="vertical-align:middle"> rg-claudebricks-dev (East US)</div>
+
+<!-- Core Services Row -->
+<div class="service-group">
+<div class="service-group-title">Core Platform Services</div>
+<div class="resource-grid">
+  <div class="resource-item">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0iYmM0NmZlMjAtZjM2Yy00OWYyLWIzNGUtYjUxODViOWE1ZTdkIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImUxYmNmZDBmLTY4YjUtNGY2Ni05NTAxLWU2YTcyNDVhMThlNyIgeDE9IjEuMSIgeTE9IjE2OSIgeDI9IjExLjEyIiB5Mj0iMTY5IiBncmFkaWVudFRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTE2MCkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM1MGM3ZTgiIC8+PHN0b3Agb2Zmc2V0PSIwLjI1IiBzdG9wLWNvbG9yPSIjNGNjM2U0IiAvPjxzdG9wIG9mZnNldD0iMC41MSIgc3RvcC1jb2xvcj0iIzQxYjZkYSIgLz48c3RvcCBvZmZzZXQ9IjAuNzciIHN0b3AtY29sb3I9IiMyZmEyYzgiIC8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTk4OWIyIiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjx0aXRsZT5JY29uLTE2NkFydGJvYXJkIDE8L3RpdGxlPjxwYXRoIGlkPSJiYzg5Mjg5MS05ODlkLTRjNDMtODBkMy1kMmI0NTQ2YTk3NGYiIGQ9Ik0xNS44LDE3LjVIMi4yTDEuMSwxMy40SDE2LjlaIiBmaWxsPSIjMTk4YWIzIiAvPjxwb2x5Z29uIHBvaW50cz0iNi45IDAuNSA2LjkgNi45IDEuMSAxMy40IDIuMiAxNy41IDExLjEgNi45IDExLjEgMC41IDYuOSAwLjUiIGZpbGw9InVybCgjZTFiY2ZkMGYtNjhiNS00ZjY2LTk1MDEtZTZhNzI0NWExOGU3KSIgLz48cGF0aCBpZD0iZTZiZTAxZDYtMzQ1ZC00ZGY0LWJiZGItMTUxYWE4ZWRhYTFmIiBkPSJNMTUuOCwxNy41LDkuNiwxMS4xbDIuNi0zLDQuNyw1LjNaIiBmaWxsPSIjMzJiZWRkIiAvPjwvc3ZnPg==" alt="ML">
+    <div class="info"><strong>ML Workspace</strong>Central ML hub</div>
+  </div>
+  <div class="resource-item">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0iZjJmMDQzNDktOGFlZS00NDEzLTg0YzktYTkwNTM2MTFiMzE5IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImFkNGM0Zjk2LTA5YWEtNGY5MS1iYTEwLTVjYjhhZDUzMGY3NCIgeDE9IjkiIHkxPSIxNS44MyIgeDI9IjkiIHkyPSI1Ljc5IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjYjNiM2IzIiAvPjxzdG9wIG9mZnNldD0iMC4yNiIgc3RvcC1jb2xvcj0iI2MxYzFjMSIgLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNlNmU2ZTYiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHRpdGxlPkljb24tc3RvcmFnZS04NjwvdGl0bGU+PHBhdGggZD0iTS41LDUuNzloMTdhMCwwLDAsMCwxLDAsMHY5LjQ4YS41Ny41NywwLDAsMS0uNTcuNTdIMS4wN2EuNTcuNTcsMCwwLDEtLjU3LS41N1Y1Ljc5QTAsMCwwLDAsMSwuNSw1Ljc5WiIgZmlsbD0idXJsKCNhZDRjNGY5Ni0wOWFhLTRmOTEtYmExMC01Y2I4YWQ1MzBmNzQpIiAvPjxwYXRoIGQ9Ik0xLjA3LDIuMTdIMTYuOTNhLjU3LjU3LDAsMCwxLC41Ny41N1Y1Ljc5YTAsMCwwLDAsMSwwLDBILjVhMCwwLDAsMCwxLDAsMFYyLjczQS41Ny41NywwLDAsMSwxLjA3LDIuMTdaIiBmaWxsPSIjMzdjMmIxIiAvPjxwYXRoIGQ9Ik0yLjgxLDYuODlIMTUuMThhLjI3LjI3LDAsMCwxLC4yNi4yN3YxLjRhLjI3LjI3LDAsMCwxLS4yNi4yN0gyLjgxYS4yNy4yNywwLDAsMS0uMjYtLjI3VjcuMTZBLjI3LjI3LDAsMCwxLDIuODEsNi44OVoiIGZpbGw9IiNmZmYiIC8+PHBhdGggZD0iTTIuODIsOS42OEgxNS4xOWEuMjcuMjcsMCwwLDEsLjI2LjI3djEuNDFhLjI3LjI3LDAsMCwxLS4yNi4yN0gyLjgyYS4yNy4yNywwLDAsMS0uMjYtLjI3VjEwQS4yNy4yNywwLDAsMSwyLjgyLDkuNjhaIiBmaWxsPSIjMzdjMmIxIiAvPjxwYXRoIGQ9Ik0yLjgyLDEyLjVIMTUuMTlhLjI3LjI3LDAsMCwxLC4yNi4yN3YxLjQxYS4yNy4yNywwLDAsMS0uMjYuMjdIMi44MmEuMjcuMjcsMCwwLDEtLjI2LS4yN1YxMi43N0EuMjcuMjcsMCwwLDEsMi44MiwxMi41WiIgZmlsbD0iIzI1ODI3NyIgLz48L3N2Zz4=" alt="Storage">
+    <div class="info"><strong>Storage Account</strong>Data, artifacts, models</div>
+  </div>
+  <div class="resource-item">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0iYmM5MzE2OWEtMjRjNC00Njg2LTlmMzctYzdlNGY1M2IzZDM0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImZiMTE0YzkzLTdjMTYtNDU0MC04OTlhLTA3OTYwNDE2MjllNiIgY3g9IjkiIGN5PSI5IiByPSI4LjUiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9IjAuMTgiIHN0b3AtY29sb3I9IiM1ZWEwZWYiIC8+PHN0b3Agb2Zmc2V0PSIwLjU2IiBzdG9wLWNvbG9yPSIjNWM5ZmVlIiAvPjxzdG9wIG9mZnNldD0iMC42OSIgc3RvcC1jb2xvcj0iIzU1OWNlZCIgLz48c3RvcCBvZmZzZXQ9IjAuNzgiIHN0b3AtY29sb3I9IiM0YTk3ZTkiIC8+PHN0b3Agb2Zmc2V0PSIwLjg2IiBzdG9wLWNvbG9yPSIjMzk5MGU0IiAvPjxzdG9wIG9mZnNldD0iMC45MyIgc3RvcC1jb2xvcj0iIzIzODdkZSIgLz48c3RvcCBvZmZzZXQ9IjAuOTkiIHN0b3AtY29sb3I9IiMwODdiZDYiIC8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDA3OGQ0IiAvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJlYzQ3OGJkMy01YjM4LTRlN2YtYjY2MS0xMWYzNTU1NzhiZmYiIGN4PSIzOC45NSIgY3k9IjE4Mi4wNyIgcj0iOS44OCIgZ3JhZGllbnRUcmFuc2Zvcm09InRyYW5zbGF0ZSgtMjguNzEgLTE2My4yNCkgc2NhbGUoMC45NCAwLjk0KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMC4yNyIgc3RvcC1jb2xvcj0iI2ZmZDcwZiIgLz48c3RvcCBvZmZzZXQ9IjAuNDkiIHN0b3AtY29sb3I9IiNmZmNiMTIiIC8+PHN0b3Agb2Zmc2V0PSIwLjg4IiBzdG9wLWNvbG9yPSIjZmVhYzE5IiAvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZlYTExYiIgLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48dGl0bGU+SWNvbi1zZWN1cml0eS0yNDU8L3RpdGxlPjxwYXRoIGlkPSJhYWNmODMxMS1hMzE3LTQwMGYtYjYxMy03NGJkMDBkYTVjZTMiIGQ9Ik05LC41QTguNSw4LjUsMCwxLDAsMTcuNSw5LDguNTEsOC41MSwwLDAsMCw5LC41Wk05LDE2LjM0QTcuMzQsNy4zNCwwLDEsMSwxNi4zNCw5LDcuMzQsNy4zNCwwLDAsMSw5LDE2LjM0WiIgZmlsbD0idXJsKCNmYjExNGM5My03YzE2LTQ1NDAtODk5YS0wNzk2MDQxNjI5ZTYpIiAvPjxjaXJjbGUgY3g9IjkiIGN5PSI5IiByPSI3LjM0IiBmaWxsPSIjZmZmIiAvPjxnPjxwYXRoIGlkPSJiZDk4M2M0MS1kYjczLTQwZWMtYTRmNC1kYTEyMTNmYzk5MjQiIGQ9Ik0xMy40NCw3LjMzYTEuODQsMS44NCwwLDAsMCwwLTIuNTloMEwxMC4yOSwxLjU4YTEuODMsMS44MywwLDAsMC0yLjU4LDBoMEw0LjU2LDQuNzRhMS44NCwxLjg0LDAsMCwwLDAsMi41OUw3LjE4LDEwYS41MS41MSwwLDAsMSwuMTUuMzZ2NC44OGEuNjMuNjMsMCwwLDAsLjE4LjQ0bDEuMiwxLjJhLjQxLjQxLDAsMCwwLC41OCwwbDEuMTYtMS4xNmgwbC42OC0uNjhhLjI1LjI1LDAsMCwwLDAtLjM0bC0uNDktLjQ5YS4yNy4yNywwLDAsMSwwLS4zN2wuNDktLjQ5YS4yNS4yNSwwLDAsMCwwLS4zNGwtLjQ5LS40OWEuMjcuMjcsMCwwLDEsMC0uMzdsLjQ5LS40OWEuMjUuMjUsMCwwLDAsMC0uMzRsLS42OC0uNjl2LS4yNVpNOSwyLjM1QTEsMSwwLDAsMSw5LDQuNDIsMSwxLDAsMSwxLDksMi4zNVoiIGZpbGw9InVybCgjZWM0NzhiZDMtNWIzOC00ZTdmLWI2NjEtMTFmMzU1NTc4YmZmKSIgLz48cGF0aCBpZD0iYWQyZTdlNDQtOWJmZC00Nzc1LThiZjQtOGVmMjZhNTQ0OTIxIiBkPSJNOC4xOCwxNS4zaDBhLjIzLjIzLDAsMCwwLC4zOC0uMTd2LTRhLjI0LjI0LDAsMCwwLS4xMS0uMmgwYS4yMi4yMiwwLDAsMC0uMzQuMnY0QS4yOC4yOCwwLDAsMCw4LjE4LDE1LjNaIiBmaWxsPSIjZmY5MzAwIiBvcGFjaXR5PSIwLjc1IiAvPjxyZWN0IGlkPSJhOTk2ZmJmZi0zOTM2LTRiMjQtYjQwNy0zNjkzMzZjMTQzYmEiIHg9IjYuNDgiIHk9IjUuNzkiIHdpZHRoPSI1LjE3IiBoZWlnaHQ9IjAuNjEiIHJ4PSIwLjI4IiBmaWxsPSIjZmY5MzAwIiBvcGFjaXR5PSIwLjc1IiAvPjxyZWN0IGlkPSJiYjEyZDMxYy0zMzUyLTRhMTgtODdkZC1hMTY5YTRhODcyMWQiIHg9IjYuNDgiIHk9IjYuNzgiIHdpZHRoPSI1LjE3IiBoZWlnaHQ9IjAuNjEiIHJ4PSIwLjI4IiBmaWxsPSIjZmY5MzAwIiBvcGFjaXR5PSIwLjc1IiAvPjwvZz48L3N2Zz4=" alt="KV">
+    <div class="info"><strong>Key Vault</strong>Secrets &amp; keys</div>
+  </div>
+  <div class="resource-item">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0iZTlmN2JhNzMtNTZiOC00ODY0LTk2ZmYtZGNlODBiZWY3MjlhIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImJkZjI3ZGM2LTAyNWMtNDgwNS04YmZkLTNhMDVkZWZkM2ZiZCIgeDE9IjguNjM3IiB5MT0iLTEuOTkxIiB4Mj0iOC42MzciIHkyPSIxNi43MzkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM1ZWEwZWYiIC8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDA3OGQ0IiAvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJmY2Q2YzZjNy1lMmViLTRhMzItYjkxNC0zYTg0ODU1ODVhMWIiIHgxPSIxMi45NiIgeTE9IjguNTYxIiB4Mj0iMTIuOTYiIHkyPSI2LjE0MSIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAtMSwgMCwgMjApIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMzMzMTMyIiAvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzViNWE1YyIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJNNy40Myw4LjE3OGwyLjU4OS0xLjU3Myw3LjI1NSwyLjczMUEzLjY2NCwzLjY2NCwwLDAsMCwxNi4yMyw3LjQ5bC0uMDEtLjA1QTQuMTk0LDQuMTk0LDAsMCwwLDE0LDYuMzJhNC45MSw0LjkxLDAsMCwwLTUuMS00LjdBNS4wNzEsNS4wNzEsMCwwLDAsNC4wNiw0LjkxLDQuNjIxLDQuNjIxLDAsMCwwLDAsOS4zOWE0LjczLDQuNzMsMCwwLDAsNC44OSw0LjU0SDcuNDNaIiBmaWxsPSJ1cmwoI2JkZjI3ZGM2LTAyNWMtNDgwNS04YmZkLTNhMDVkZWZkM2ZiZCkiIC8+PHBvbHlnb24gcG9pbnRzPSIxMC4wNyA3LjE1OSAxMC4wOCAxMS40MzkgMTcuOTkgMTMuMTE5IDE3Ljk5IDEwLjEzOSAxMC4wNyA3LjE1OSIgZmlsbD0iIzc2NzY3NiIgLz48cG9seWxpbmUgcG9pbnRzPSIxMC4wNyA3LjE1OSA3LjkzIDguNDU5IDcuOTMgMTIuNDM5IDEwLjA4IDExLjQzOSIgZmlsbD0iIzk5OSIgLz48cG9seWdvbiBwb2ludHM9IjEzLjY4IDExLjQ5OSAxNC40IDExLjY5OSAxNC40IDkuMzY5IDEzLjY4IDkuMTE5IDEzLjY4IDExLjQ5OSIgZmlsbD0iI2EzYTNhMyIgLz48cG9seWdvbiBwb2ludHM9IjEyLjk2IDguODg5IDEyLjI0IDguNjI5IDEyLjI0IDExLjExOSAxMi45NiAxMS4zMTkgMTIuOTYgOC44ODkiIGZpbGw9IiNhM2EzYTMiIC8+PHBvbHlnb24gcG9pbnRzPSIxNS4xMiAxMS44ODkgMTUuODIgMTIuMDc5IDE1Ljg0IDkuODU5IDE1LjEyIDkuNjE5IDE1LjEyIDExLjg4OSIgZmlsbD0iI2EzYTNhMyIgLz48cG9seWdvbiBwb2ludHM9IjEwLjgxIDEwLjc0OSAxMS41MyAxMC45MjkgMTEuNTMgOC4zOTkgMTAuODEgOC4xNTkgMTAuODEgMTAuNzQ5IiBmaWxsPSIjYTNhM2EzIiAvPjxwb2x5Z29uIHBvaW50cz0iMTcuMjcgMTAuMzQ5IDE2LjU1IDEwLjA5OSAxNi41NSAxMi4yNjkgMTcuMjcgMTIuNDY5IDE3LjI3IDEwLjM0OSIgZmlsbD0iI2EzYTNhMyIgLz48cGF0aCBpZD0iZWYwZDFiNTQtYTFlNy00Y2I5LWE0ZTUtOGE4NTE4ZTdjMTI3IiBkPSJNOC42NiwxMS4zNjlsLS4zNi4yMVY4Ljc0OWwuMzYtLjE5Wm0uNzEtMy4yMkw5LDguMzg5djIuNzVsLjM3LS4yWiIgZmlsbD0iI2IzYjNiMyIgLz48cG9seWdvbiBwb2ludHM9IjE3Ljk5IDEzLjExOSAxNS44MyAxMy44NTkgNy45MyAxMi40MzkgMTAuMDggMTEuNDM5IDE3Ljk5IDEzLjExOSIgZmlsbD0idXJsKCNmY2Q2YzZjNy1lMmViLTRhMzItYjkxNC0zYTg0ODU1ODVhMWIpIiAvPjxwb2x5Z29uIHBvaW50cz0iMTcuOTkgMTYuMTY5IDEwLjA0IDE3LjY3OSAxMC4wOCAxMi4wODkgMTcuOTkgMTMuNTU5IDE3Ljk5IDE2LjE2OSIgZmlsbD0iIzc2NzY3NiIgLz48cG9seWdvbiBwb2ludHM9IjEwLjgxIDE2Ljc1OSAxMC44MSAxMy4yMDkgMTEuNTMgMTMuMjk5IDExLjUzIDE2LjYzOSAxMC44MSAxNi43NTkiIGZpbGw9IiNhM2EzYTMiIC8+PHBvbHlnb24gcG9pbnRzPSIxMi45NiAxNi4zOTkgMTIuMjQgMTYuNTI5IDEyLjI0IDEzLjM4OSAxMi45NiAxMy40OTkgMTIuOTYgMTYuMzk5IDEyLjk2IDE2LjM5OSIgZmlsbD0iI2EzYTNhMyIgLz48cG9seWdvbiBwb2ludHM9IjEzLjY4IDE2LjI4OSAxMy42OCAxMy41NjkgMTQuNCAxMy42NTkgMTQuNCAxNi4xNTkgMTMuNjggMTYuMjg5IiBmaWxsPSIjYTNhM2EzIiAvPjxwb2x5Z29uIHBvaW50cz0iMTUuODMgMTUuOTA5IDE1LjEyIDE2LjAzOSAxNS4xMiAxMy43NDkgMTUuODMgMTMuODU5IDE1LjgzIDE1LjkwOSIgZmlsbD0iI2EzYTNhMyIgLz48cG9seWdvbiBwb2ludHM9IjE3LjI5IDE1LjY3OSAxNi41NSAxNS44MDkgMTYuNTUgMTMuOTI5IDE3LjI0IDE0LjAxOSAxNy4yOSAxNS42NzkiIGZpbGw9IiNhM2EzYTMiIC8+PHBhdGggaWQ9ImI5ZjI1ZWI0LTRjODgtNDVjMi1iYzRkLWY5OTI3NTdkN2UwZSIgZD0iTTcuOTMsMTYuNHYtMy4yNmwyLjE2LTF2NS42WiIgZmlsbD0iIzk5OSIgLz48cGF0aCBpZD0iZWI5MjAwYTctNDY5My00NDI3LWJkYWUtYjMzY2U5MGZmN2YyIiBkPSJNOC42MSwxNi4zODlsLS4zMi0uMTZ2LTIuNzZsLjMyLS4xNVptLjc3LTMuNDUtLjM4LjE5djMuNDhsLjM3LjE5di0zLjg2WiIgZmlsbD0iI2IzYjNiMyIgLz48L3N2Zz4=" alt="ACR">
+    <div class="info"><strong>Container Registry</strong>Docker images</div>
+  </div>
+  <div class="resource-item">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0iYjZmNmQ5OWUtZjMzMC00ODFkLTgzNmYtZWE1OGNjNDIyMTdmIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImE3YTFjNDMxLTZjNmQtNGE4Zi05YTY5LThkYTQzN2U1YjBjNSIgY3g9IjkiIGN5PSI3LjM1IiByPSI2LjQyIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjYjc3YWY0IiAvPjxzdG9wIG9mZnNldD0iMC4yMSIgc3RvcC1jb2xvcj0iI2IzNzhmMiIgLz48c3RvcCBvZmZzZXQ9IjAuNDMiIHN0b3AtY29sb3I9IiNhNjcyZWQiIC8+PHN0b3Agb2Zmc2V0PSIwLjY1IiBzdG9wLWNvbG9yPSIjOTI2N2U0IiAvPjxzdG9wIG9mZnNldD0iMC44OCIgc3RvcC1jb2xvcj0iIzc1NTlkOCIgLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM2MjRmZDAiIC8+PC9yYWRpYWxHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImVjMGM0ZjBkLTVjOGUtNDg4Mi05NmExLTg5ZDYxODA4ZWI0OSIgeDE9IjkuMDIiIHkxPSIzLjkxIiB4Mj0iOS4wOCIgeTI9IjExLjQ5IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZjJmMmYyIiAvPjxzdG9wIG9mZnNldD0iMC4yMyIgc3RvcC1jb2xvcj0iI2YxZjFmMiIgc3RvcC1vcGFjaXR5PSIwLjk5IiAvPjxzdG9wIG9mZnNldD0iMC4zNyIgc3RvcC1jb2xvcj0iI2VkZWRmMSIgc3RvcC1vcGFjaXR5PSIwLjk1IiAvPjxzdG9wIG9mZnNldD0iMC40OCIgc3RvcC1jb2xvcj0iI2U3ZTVmMCIgc3RvcC1vcGFjaXR5PSIwLjg5IiAvPjxzdG9wIG9mZnNldD0iMC41OCIgc3RvcC1jb2xvcj0iI2RlZGJlZSIgc3RvcC1vcGFjaXR5PSIwLjgxIiAvPjxzdG9wIG9mZnNldD0iMC42NyIgc3RvcC1jb2xvcj0iI2QzY2VlYiIgc3RvcC1vcGFjaXR5PSIwLjciIC8+PHN0b3Agb2Zmc2V0PSIwLjc2IiBzdG9wLWNvbG9yPSIjYzRiZWU4IiBzdG9wLW9wYWNpdHk9IjAuNTciIC8+PHN0b3Agb2Zmc2V0PSIwLjg0IiBzdG9wLWNvbG9yPSIjYjRhYmU1IiBzdG9wLW9wYWNpdHk9IjAuNDEiIC8+PHN0b3Agb2Zmc2V0PSIwLjkyIiBzdG9wLWNvbG9yPSIjYTA5NWUxIiBzdG9wLW9wYWNpdHk9IjAuMjIiIC8+PHN0b3Agb2Zmc2V0PSIwLjk5IiBzdG9wLWNvbG9yPSIjOGI3ZGRjIiBzdG9wLW9wYWNpdHk9IjAuMDIiIC8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODk3YmRjIiBzdG9wLW9wYWNpdHk9IjAiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHRpdGxlPkljb24tbWFuYWdlLTMxMDwvdGl0bGU+PHBhdGggZD0iTTEwLjIzLDE3LjM5bC44MS0uODdWMTQuMkg3djIuMzJsLjgxLjg3QS4zMi4zMiwwLDAsMCw4LDE3LjVoMkEuMzIuMzIsMCwwLDAsMTAuMjMsMTcuMzlaIiBmaWxsPSIjY2VjZWNlIiAvPjxwYXRoIGQ9Ik05LC41QTUuODksNS44OSwwLDAsMCwzLjA5LDcuMDdjLjI3LDIuNDcsMi42MiwzLjYyLDMuMjksNi43NWEuNDkuNDksMCwwLDAsLjQ3LjM4aDQuM2EuNDkuNDksMCwwLDAsLjQ3LS4zOGMuNjctMy4xMywzLTQuMjgsMy4yOS02Ljc1QTUuODksNS44OSwwLDAsMCw5LC41Wk03LDE0LjIiIGZpbGw9InVybCgjYTdhMWM0MzEtNmM2ZC00YThmLTlhNjktOGRhNDM3ZTViMGM1KSIgLz48cGF0aCBkPSJNMTEuNDYsMy43OWExLjQsMS40LDAsMCwwLTEuMzUsMS40NFY2SDhWNS4yM0ExLjQxLDEuNDEsMCwwLDAsNi41OSwzLjc5LDEuNCwxLjQsMCwwLDAsNS4yNCw1LjIzLDEuNDEsMS40MSwwLDAsMCw2LjU5LDYuNjhoLjY0djZhLjM2LjM2LDAsMCwwLC43Miwwdi02aDIuMTZ2NmEuMzYuMzYsMCwxLDAsLjcyLDB2LTZoLjYzYTEuNCwxLjQsMCwwLDAsMS4zNS0xLjQ1QTEuNCwxLjQsMCwwLDAsMTEuNDYsMy43OVpNNy4yMyw2SDYuNTVhLjc0Ljc0LDAsMCwxLS42OC0uNzcuNzQuNzQsMCwwLDEsLjY4LS43Ny43NC43NCwwLDAsMSwuNjguNzdabTQuMjgsMGgtLjY4VjUuMTlhLjY4LjY4LDAsMSwxLDEuMzUsMEEuNzMuNzMsMCwwLDEsMTEuNTEsNloiIGZpbGw9InVybCgjZWMwYzRmMGQtNWM4ZS00ODgyLTk2YTEtODlkNjE4MDhlYjQ5KSIgLz48cG9seWdvbiBwb2ludHM9IjYuOTYgMTUuOCAxMS4wNCAxNS4wMSAxMS4wNCAxNC41NiA2Ljk2IDE1LjM2IDYuOTYgMTUuOCIgZmlsbD0iIzk5OSIgLz48cG9seWdvbiBwb2ludHM9IjExLjA0IDE2LjExIDExLjA0IDE1LjY3IDYuOTYgMTYuNDggNi45NiAxNi41MiA3LjI3IDE2Ljg2IDExLjA0IDE2LjExIiBmaWxsPSIjOTk5IiAvPjwvc3ZnPg==" alt="AppInsights">
+    <div class="info"><strong>Application Insights</strong>Telemetry</div>
+  </div>
+  <div class="resource-item">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0iYjM4OGU5NDQtNTUwOS00OWM5LTg0ZDctZjM4YmZmYTk5NWIyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImE5OTdlMjAzLTFkN2QtNGNiOS1iMTMxLTVkYzQ0ZTAyOWI0NiIgeDE9IjUuMjMiIHkxPSIxNy40NSIgeDI9IjUuMjMiIHkyPSI4LjA5IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMTk4OGQ5IiAvPjxzdG9wIG9mZnNldD0iMC45IiBzdG9wLWNvbG9yPSIjNTRhZWYwIiAvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJlMTIyZTlkOC1hZWU1LTRmMWEtYTYwZS1iMWVhZTM1NWRhYTUiIHgxPSIxMS41IiB5MT0iMTIuNDUiIHgyPSIxMS41IiB5Mj0iMC41NSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzE5OGFiMyIgLz48c3RvcCBvZmZzZXQ9IjAuMDEiIHN0b3AtY29sb3I9IiMxOThiYjQiIC8+PHN0b3Agb2Zmc2V0PSIwLjQ0IiBzdG9wLWNvbG9yPSIjMjdiMmQ3IiAvPjxzdG9wIG9mZnNldD0iMC43OSIgc3RvcC1jb2xvcj0iIzJmY2JlZCIgLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzMmQ0ZjUiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHRpdGxlPkljb24tbWFuYWdlLTMwNzwvdGl0bGU+PHBhdGggZD0iTTUuNTksMTMuMTNIOS45MXY0LjMySDUuNTlaTTEuMTUsMTcuNDVINC44N1YxMy4xM0guNTV2My43MkEuNi42LDAsMCwwLDEuMTUsMTcuNDVabS0uNi01SDQuODdWOC4wOUguNTVaIiBmaWxsPSJ1cmwoI2E5OTdlMjAzLTFkN2QtNGNiOS1iMTMxLTVkYzQ0ZTAyOWI0NikiIC8+PHBhdGggZD0iTTExLjUuNTVhNS44OSw1Ljg5LDAsMCwxLDUuOTUsNiw1Ljg5LDUuODksMCwwLDEtNS45NSw1Ljk1SDUuNTVWNi41QTUuODksNS44OSwwLDAsMSwxMS41LjU1WiIgZmlsbC1ydWxlPSJldmVub2RkIiBmaWxsPSJ1cmwoI2UxMjJlOWQ4LWFlZTUtNGYxYS1hNjBlLWIxZWFlMzU1ZGFhNSkiIC8+PHJlY3QgeD0iNy41OSIgeT0iNS42NSIgd2lkdGg9IjEuMzYiIGhlaWdodD0iNC4wOCIgZmlsbD0iI2ZmZiIgLz48cmVjdCB4PSIxMC4zMSIgeT0iNy4wMSIgd2lkdGg9IjEuMzYiIGhlaWdodD0iMi43MiIgZmlsbD0iI2ZmZiIgLz48cmVjdCB4PSIxMy4wMyIgeT0iNC4yOSIgd2lkdGg9IjEuMzYiIGhlaWdodD0iNS40NCIgZmlsbD0iI2ZmZiIgLz48L3N2Zz4=" alt="LogAnalytics">
+    <div class="info"><strong>Log Analytics</strong>Monitoring backend</div>
+  </div>
+</div>
+</div>
+
+<!-- Compute Group -->
+<div class="service-group">
+<div class="service-group-title">Compute Resources (ML Workspace)</div>
+<div class="resource-grid" style="grid-template-columns: repeat(3, 1fr);">
+  <div class="resource-item" style="background:#f0fff4; border-color:#86efac;">
+    <div class="info"><strong>Compute Instance</strong><code>Standard_DS3_v2</code><br>Dev notebooks</div>
+  </div>
+  <div class="resource-item" style="background:#f0fff4; border-color:#86efac;">
+    <div class="info"><strong>CPU Cluster</strong><code>Standard_DS3_v2</code><br>0-4 nodes, Low Priority<br>Scenarios 1-3</div>
+  </div>
+  <div class="resource-item" style="background:#fff7ed; border-color:#fdba74;">
+    <div class="info"><strong>GPU Cluster</strong><code>Standard_NC4as_T4_v3</code><br>0-2 nodes, Low Priority<br>Scenarios 1, 4</div>
+  </div>
+</div>
+</div>
+
+<!-- AI Services Group -->
+<div class="service-group">
+<div class="service-group-title">AI &amp; Cognitive Services</div>
+<div class="resource-grid">
+  <div class="resource-item" style="background:#fef3c7; border-color:#fcd34d;">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0iZjc4ZjUxMTUtYmU4OC00ZDQ0LWIzNGUtM2Y2ZWE3NDMxMjVjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImI2YzQzYmQ5LWUzN2YtNDE5MS05M2MyLWQzYTdhODRjNTA1ZSIgeDE9IjkiIHkxPSIxOS4xMyIgeDI9IjkiIHkyPSItMC4yOSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzAwNzhkNCIgLz48c3RvcCBvZmZzZXQ9IjAuMTYiIHN0b3AtY29sb3I9IiMxMzgwZGEiIC8+PHN0b3Agb2Zmc2V0PSIwLjUzIiBzdG9wLWNvbG9yPSIjM2M5MWU1IiAvPjxzdG9wIG9mZnNldD0iMC44MiIgc3RvcC1jb2xvcj0iIzU1OWNlYyIgLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM1ZWEwZWYiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHRpdGxlPkljb24tbWFjaGluZWxlYXJuaW5nLTE2MjwvdGl0bGU+PHBhdGggZD0iTTE4LDExLjM4QTQsNCwwLDAsMCwxNC40OSw3LjUsNS4xLDUuMSwwLDAsMCw5LjI0LDIuNjIsNS4yNSw1LjI1LDAsMCwwLDQuMjIsNiw0LjgsNC44LDAsMCwwLDAsMTAuNjdhNC45LDQuOSwwLDAsMCw1LjA3LDQuNzFsLjQ0LDBoOC4yMWEuNzguNzgsMCwwLDAsLjIyLDBBNC4xLDQuMSwwLDAsMCwxOCwxMS4zOFoiIGZpbGw9InVybCgjYjZjNDNiZDktZTM3Zi00MTkxLTkzYzItZDNhN2E4NGM1MDVlKSIgLz48cGF0aCBkPSJNNS40MiwxMC4zOUg0LjU0YTEuMDksMS4wOSwwLDEsMCwwLC40OWguODhhLjIuMiwwLDAsMSwuMi4ydjQuM2guNDl2LTQuM0EuNjkuNjksMCwwLDAsNS40MiwxMC4zOVptLTEuOTUuODhhLjY0LjY0LDAsMSwxLC42NC0uNjRBLjY0LjY0LDAsMCwxLDMuNDcsMTEuMjdaIiBmaWxsPSIjOWNlYmZmIiAvPjxwYXRoIGQ9Ik04Ljk0LDEwLjYxdi0xYS43LjcsMCwwLDAtLjctLjdINi42OWEuMi4yLDAsMCwxLS4yLS4yVjMuNGwtLjIzLjEyTDYsMy42NnY1YS42OS42OSwwLDAsMCwuNjkuNjlIOC4yNGEuMjEuMjEsMCwwLDEsLjIxLjIxdjFhMS4wOCwxLjA4LDAsMCwwLS44NSwxLjA2LDEuMDksMS4wOSwwLDEsMCwxLjM0LTEuMDZabS0uMjUsMS43aDBhLjY0LjY0LDAsMSwxLC42NC0uNjRBLjY0LjY0LDAsMCwxLDguNjksMTIuMzFaIiBmaWxsPSIjZjJmMmYyIiAvPjxwYXRoIGQ9Ik0xNC41Myw4LjVhMS4wOSwxLjA5LDAsMCwwLS4yNSwyLjE1di4yYS4yMS4yMSwwLDAsMS0uMjEuMjFoLTJWNy41NGEuNjkuNjksMCwwLDAtLjY5LS42OUgxMC4zNUExLjA4LDEuMDgsMCwwLDAsOS4yOSw2YTEuMDksMS4wOSwwLDEsMCwxLjA2LDEuMzRoMS4wN2EuMi4yLDAsMCwxLC4yLjJ2Ny44NGguNDlWMTEuNTVoMmEuNy43LDAsMCwwLC43LS43di0uMmExLjA5LDEuMDksMCwwLDAsLjg1LTEuMDZoMEExLjA5LDEuMDksMCwwLDAsMTQuNTMsOC41Wk05LjI5LDcuNzNoMGEuNjQuNjQsMCwxLDEsLjY0LS42NEEuNjQuNjQsMCwwLDEsOS4yOSw3LjczWm01LjI0LDIuNWgwYS42NC42NCwwLDEsMSwuNjMtLjY0QS42NC42NCwwLDAsMSwxNC41MywxMC4yM1oiIGZpbGw9IiM5Y2ViZmYiIC8+PC9zdmc+" alt="CV">
+    <div class="info"><strong>Custom Vision</strong>Training + Prediction<br><span class="badge badge-phase">Scenario 1</span></div>
+  </div>
+  <div class="resource-item" style="background:#fef3c7; border-color:#fcd34d;">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0idXVpZC1hZGJkYWU4ZS01YTQxLTQ2ZDEtOGMxOC1hYTczY2RiZmVlMzIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMTggMTgiPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0idXVpZC0yYTc0MDdhYS1iNzg3LTQ4ZGQtYTk2YS0wZDgxYWI2ZTkzYmIiIGN4PSItNjcuOTgxIiBjeT0iNzkzLjE5OSIgcj0iLjQ1IiBncmFkaWVudFRyYW5zZm9ybT0idHJhbnNsYXRlKC0xNzkzOS4wMyAyMDM2OC4wMjkpIHJvdGF0ZSg0NSkgc2NhbGUoMjUuMDkxIC0zNC4xNDkpIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjODNiOWY5IiAvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzAwNzhkNCIgLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJtMCwyLjd2MTIuNmMwLDEuNDkxLDEuMjA5LDIuNywyLjcsMi43aDEyLjZjMS40OTEsMCwyLjctMS4yMDksMi43LTIuN1YyLjdjMC0xLjQ5MS0xLjIwOS0yLjctMi43LTIuN0gyLjdDMS4yMDksMCwwLDEuMjA5LDAsMi43Wk0xMC44LDB2My42YzAsMy45NzYsMy4yMjQsNy4yLDcuMiw3LjJoLTMuNmMtMy45NzYsMC03LjE5OSwzLjIyMi03LjIsNy4xOTh2LTMuNTk4YzAtMy45NzYtMy4yMjQtNy4yLTcuMi03LjJoMy42YzMuOTc2LDAsNy4yLTMuMjI0LDcuMi03LjJaIiBmaWxsPSJ1cmwoI3V1aWQtMmE3NDA3YWEtYjc4Ny00OGRkLWE5NmEtMGQ4MWFiNmU5M2JiKSIgc3Ryb2tlLXdpZHRoPSIwIiAvPjwvc3ZnPg==" alt="OpenAI">
+    <div class="info"><strong>Azure OpenAI</strong>gpt-4o-mini deployment<br><span class="badge" style="background:var(--scenario4);color:white;">Scenario 4</span></div>
+  </div>
+  <div class="resource-item" style="background:#fef3c7; border-color:#fcd34d;">
+    <img src="data:image/svg+xml;base64,PHN2ZyBpZD0iZjQ3MGUxMTItZjFkOC00YzE4LWEzODEtOWI1NGUxMWE5Y2EzIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImIxOThmOWFkLTIyNGUtNGYzNy05OWJiLWYxYzVhMjBkMzkxNiIgeDE9IjkiIHkxPSIwLjM2IiB4Mj0iOSIgeTI9IjE4LjMxIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwLjE4IiBzdG9wLWNvbG9yPSIjNWVhMGVmIiAvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzAwNzhkNCIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48dGl0bGU+SWNvbi13ZWItNDQ8L3RpdGxlPjxwYXRoIGQ9Ik0xOCwxMS4zMmE0LjEyLDQuMTIsMCwwLDAtMy41MS00LDUuMTUsNS4xNSwwLDAsMC01LjI1LTUsNS4yNSw1LjI1LDAsMCwwLTUsMy40OUE0Ljg2LDQuODYsMCwwLDAsMCwxMC41OWE1LDUsMCwwLDAsNS4wNyw0LjgybC40NCwwaDguMjFhLjc4Ljc4LDAsMCwwLC4yMiwwQTQuMTMsNC4xMywwLDAsMCwxOCwxMS4zMloiIGZpbGw9InVybCgjYjE5OGY5YWQtMjI0ZS00ZjM3LTk5YmItZjFjNWEyMGQzOTE2KSIgLz48cGF0aCBkPSJNMTIuMzMsNi41OWEzLjA3LDMuMDcsMCwwLDAtNS42MS44NSwzLjE2LDMuMTYsMCwwLDAsLjMzLDIuMjdMNC43MSwxMi4wOGEuNzkuNzksMCwwLDAsMCwxLjEyLjc4Ljc4LDAsMCwwLC41Ni4yMy43Ni43NiwwLDAsMCwuNTYtLjIzbDIuMzMtMi4zNmEzLjE0LDMuMTQsMCwwLDAsLjgxLjMzLDMuMDgsMy4wOCwwLDAsMCwzLjM2LTQuNThabS0uNTQsMi4xQTIuMTYsMi4xNiwwLDAsMSw5LjcsMTAuMzRhMS43OSwxLjc5LDAsMCwxLS41MS0uMDcsMS44NywxLjg3LDAsMCwxLS43LS4zMiwyLjEzLDIuMTMsMCwwLDEtLjU2LS41NiwyLjE3LDIuMTcsMCwwLDEtLjMxLTEuNzNBMi4xNCwyLjE0LDAsMCwxLDkuNyw2YTIuMzEsMi4zMSwwLDAsMSwuNTIuMDYsMi4xOCwyLjE4LDAsMCwxLDEuMzIsMUEyLjEzLDIuMTMsMCwwLDEsMTEuNzksOC42OVoiIGZpbGw9IiNmMmYyZjIiIC8+PGVsbGlwc2UgY3g9IjkuNjkiIGN5PSI4LjE4IiByeD0iMi4xNSIgcnk9IjIuMTYiIGZpbGw9IiM4M2I5ZjkiIC8+PC9zdmc+" alt="AI Search">
+    <div class="info"><strong>AI Search</strong>Vector store (RAG)<br><span class="badge" style="background:var(--scenario4);color:white;">Scenario 4</span></div>
+  </div>
+</div>
+</div>
+
+<!-- Storage containers -->
+<div class="service-group">
+<div class="service-group-title">Blob Containers (inside Storage Account)</div>
+<div class="resource-grid" style="grid-template-columns: repeat(4, 1fr);">
+  <div class="resource-item" style="background:#ecfdf5; border-color:#6ee7b7;">
+    <div class="info"><strong>facade-images</strong>Scenario 1</div>
+  </div>
+  <div class="resource-item" style="background:#ecfdf5; border-color:#6ee7b7;">
+    <div class="info"><strong>ldr-files</strong>Scenario 2</div>
+  </div>
+  <div class="resource-item" style="background:#ecfdf5; border-color:#6ee7b7;">
+    <div class="info"><strong>reference-models</strong>Scenario 3</div>
+  </div>
+  <div class="resource-item" style="background:#ecfdf5; border-color:#6ee7b7;">
+    <div class="info"><strong>training-data</strong>Scenario 4</div>
+  </div>
+</div>
+</div>
+
+</div><!-- end rg-boundary -->
+
+<div class="diagram-caption">All resources are deployed into a single Resource Group via Terraform. The ML Workspace connects to Storage, Key Vault, ACR, and Application Insights as linked services.</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 2: DEPLOYMENT PHASES -->
+<!-- ============================================ -->
+<h2 id="deployment-phases">2. Deployment Phases</h2>
+<p>The deployment follows six sequential phases, from infrastructure provisioning through scenario-specific ML workflows.</p>
+
+<div class="diagram-container">
+<div class="diagram-title">Deployment Phase Timeline</div>
+<svg viewBox="0 0 1100 120" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:1100px;display:block;margin:0 auto;">
+  <!-- Phase boxes -->
+  <rect x="0" y="30" width="150" height="60" rx="8" fill="#7b42bc" />
+  <text x="75" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 1</text>
+  <text x="75" y="72" text-anchor="middle" fill="white" font-size="9">Terraform Infra</text>
+
+  <polygon points="160,60 175,45 175,75" fill="#0078d4"/>
+  <rect x="180" y="30" width="140" height="60" rx="8" fill="#0078d4" />
+  <text x="250" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 2</text>
+  <text x="250" y="72" text-anchor="middle" fill="white" font-size="9">Bootstrap (SDK)</text>
+
+  <polygon points="330,60 345,45 345,75" fill="#6366f1"/>
+  <rect x="350" y="30" width="150" height="60" rx="8" fill="#6366f1" />
+  <text x="425" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 3</text>
+  <text x="425" y="72" text-anchor="middle" fill="white" font-size="9">Scenario 1: Classification</text>
+
+  <polygon points="510,60 525,45 525,75" fill="#f59e0b"/>
+  <rect x="530" y="30" width="150" height="60" rx="8" fill="#f59e0b" />
+  <text x="605" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 4</text>
+  <text x="605" y="72" text-anchor="middle" fill="white" font-size="9">Scenario 2: Anomaly Det.</text>
+
+  <polygon points="690,60 705,45 705,75" fill="#10b981"/>
+  <rect x="710" y="30" width="150" height="60" rx="8" fill="#10b981" />
+  <text x="785" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 5</text>
+  <text x="785" y="72" text-anchor="middle" fill="white" font-size="9">Scenario 3: Clustering</text>
+
+  <polygon points="870,60 885,45 885,75" fill="#ef4444"/>
+  <rect x="890" y="30" width="160" height="60" rx="8" fill="#ef4444" />
+  <text x="970" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 6</text>
+  <text x="970" y="72" text-anchor="middle" fill="white" font-size="9">Scenario 4: LLM + RAG</text>
+
+  <!-- Labels -->
+  <text x="75" y="110" text-anchor="middle" fill="#666" font-size="9">5-15 min</text>
+  <text x="250" y="110" text-anchor="middle" fill="#666" font-size="9">~2 min</text>
+  <text x="425" y="110" text-anchor="middle" fill="#666" font-size="9">~30 min</text>
+  <text x="605" y="110" text-anchor="middle" fill="#666" font-size="9">~20 min</text>
+  <text x="785" y="110" text-anchor="middle" fill="#666" font-size="9">~25 min</text>
+  <text x="970" y="110" text-anchor="middle" fill="#666" font-size="9">~45 min</text>
+
+  <!-- Top labels -->
+  <text x="75" y="20" text-anchor="middle" fill="#7b42bc" font-size="9" font-weight="600">TERRAFORM</text>
+  <text x="250" y="20" text-anchor="middle" fill="#0078d4" font-size="9" font-weight="600">PYTHON SDK</text>
+  <text x="605" y="20" text-anchor="middle" fill="#666" font-size="9" font-weight="600">ML SCENARIOS (independent, any order)</text>
+</svg>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 3: PHASE 1 - TERRAFORM -->
+<!-- ============================================ -->
+<h2 id="phase1-terraform">3. Phase 1: Shared Infrastructure (Terraform)</h2>
+
+<div class="card">
+<h3>What Terraform Creates</h3>
+<p>A single <code>terraform apply</code> provisions 15 Azure resources. The ML Workspace is the hub; Storage, Key Vault, ACR, and App Insights are required linked services.</p>
+
+<table>
+<thead><tr><th>Resource</th><th>Terraform Type</th><th>Purpose</th><th>Used By</th></tr></thead>
+<tbody>
+<tr><td>Resource Group</td><td><code>azurerm_resource_group</code></td><td>Container for all resources</td><td>All</td></tr>
+<tr><td>Storage Account</td><td><code>azurerm_storage_account</code></td><td>Data, artifacts, models</td><td>All</td></tr>
+<tr><td>4x Blob Containers</td><td><code>azurerm_storage_container</code></td><td>Per-scenario data</td><td>S1-S4</td></tr>
+<tr><td>Key Vault</td><td><code>azurerm_key_vault</code></td><td>Secrets &amp; connection strings</td><td>All</td></tr>
+<tr><td>Container Registry</td><td><code>azurerm_container_registry</code></td><td>Training environment images</td><td>All</td></tr>
+<tr><td>Log Analytics</td><td><code>azurerm_log_analytics_workspace</code></td><td>Monitoring backend</td><td>All</td></tr>
+<tr><td>Application Insights</td><td><code>azurerm_application_insights</code></td><td>ML telemetry</td><td>All</td></tr>
+<tr><td>ML Workspace</td><td><code>azurerm_machine_learning_workspace</code></td><td>Central ML hub</td><td>All</td></tr>
+<tr><td>Compute Instance</td><td><code>azurerm_machine_learning_compute_instance</code></td><td>Dev notebooks</td><td>Dev</td></tr>
+<tr><td>CPU Cluster</td><td><code>azurerm_machine_learning_compute_cluster</code></td><td>Training (CPU)</td><td>S1-S3</td></tr>
+<tr><td>GPU Cluster</td><td><code>azurerm_machine_learning_compute_cluster</code></td><td>Training (GPU)</td><td>S1, S4</td></tr>
+<tr><td>Custom Vision (Training)</td><td><code>azurerm_cognitive_account</code></td><td>Image classification</td><td>S1</td></tr>
+<tr><td>Custom Vision (Prediction)</td><td><code>azurerm_cognitive_account</code></td><td>Inference</td><td>S1</td></tr>
+<tr><td>Azure OpenAI</td><td><code>azurerm_cognitive_account</code></td><td>LLM base model</td><td>S4</td></tr>
+<tr><td>OpenAI Deployment</td><td><code>azurerm_cognitive_deployment</code></td><td>gpt-4o-mini</td><td>S4</td></tr>
+<tr><td>AI Search</td><td><code>azurerm_search_service</code></td><td>RAG vector store</td><td>S4</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="diagram-container">
+<div class="diagram-title">Terraform Resource Dependency Graph</div>
+<svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;display:block;margin:0 auto;">
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0078d4"/></marker>
+    <marker id="arrowgray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#999"/></marker>
+  </defs>
+
+  <!-- Resource Group (top) -->
+  <rect x="350" y="10" width="200" height="40" rx="6" fill="#0078d4"/>
+  <text x="450" y="35" text-anchor="middle" fill="white" font-size="12" font-weight="600">Resource Group</text>
+
+  <!-- Lines from RG down -->
+  <line x1="350" y1="50" x2="100" y2="90" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="400" y1="50" x2="280" y2="90" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="450" y1="50" x2="450" y2="90" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="500" y1="50" x2="620" y2="90" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="550" y1="50" x2="800" y2="90" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <!-- Row 2: Foundation services -->
+  <rect x="20" y="90" width="160" height="40" rx="6" fill="#37c2b1"/>
+  <text x="100" y="115" text-anchor="middle" fill="white" font-size="11">Storage Account</text>
+
+  <rect x="200" y="90" width="160" height="40" rx="6" fill="#5ea0ef"/>
+  <text x="280" y="115" text-anchor="middle" fill="white" font-size="11">Key Vault</text>
+
+  <rect x="380" y="90" width="160" height="40" rx="6" fill="#624fd0"/>
+  <text x="460" y="115" text-anchor="middle" fill="white" font-size="11">App Insights</text>
+
+  <rect x="560" y="90" width="120" height="40" rx="6" fill="#0078d4"/>
+  <text x="620" y="115" text-anchor="middle" fill="white" font-size="11">ACR</text>
+
+  <rect x="700" y="90" width="180" height="40" rx="6" fill="#1988d9"/>
+  <text x="790" y="115" text-anchor="middle" fill="white" font-size="11">Log Analytics</text>
+
+  <!-- App Insights depends on Log Analytics -->
+  <line x1="540" y1="110" x2="700" y2="110" stroke="#999" stroke-width="1" stroke-dasharray="4" marker-end="url(#arrowgray)"/>
+  <text x="620" y="104" text-anchor="middle" fill="#999" font-size="8">workspace_id</text>
+
+  <!-- ML Workspace (Row 3) -->
+  <line x1="100" y1="130" x2="420" y2="190" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="280" y1="130" x2="430" y2="190" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="460" y1="130" x2="450" y2="190" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="620" y1="130" x2="470" y2="190" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <rect x="350" y="190" width="200" height="45" rx="8" fill="#198ab3" stroke="#0078d4" stroke-width="2"/>
+  <text x="450" y="210" text-anchor="middle" fill="white" font-size="13" font-weight="700">ML Workspace</text>
+  <text x="450" y="225" text-anchor="middle" fill="#c3e8f5" font-size="9">Central Hub</text>
+
+  <!-- Row 4: Compute + Containers -->
+  <line x1="390" y1="235" x2="120" y2="290" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="430" y1="235" x2="350" y2="290" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="470" y1="235" x2="560" y2="290" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <rect x="30" y="290" width="170" height="40" rx="6" fill="#86efac" stroke="#22c55e"/>
+  <text x="115" y="315" text-anchor="middle" fill="#166534" font-size="11">Compute Instance</text>
+
+  <rect x="260" y="290" width="170" height="40" rx="6" fill="#86efac" stroke="#22c55e"/>
+  <text x="345" y="315" text-anchor="middle" fill="#166534" font-size="11">CPU Cluster (0-4)</text>
+
+  <rect x="480" y="290" width="170" height="40" rx="6" fill="#fdba74" stroke="#f97316"/>
+  <text x="565" y="315" text-anchor="middle" fill="#9a3412" font-size="11">GPU Cluster (0-2)</text>
+
+  <!-- Row 4b: Storage Containers -->
+  <line x1="100" y1="130" x2="100" y2="185" stroke="#999" stroke-width="1" stroke-dasharray="4"/>
+  <rect x="5" y="185" width="190" height="35" rx="6" fill="#ecfdf5" stroke="#6ee7b7"/>
+  <text x="100" y="207" text-anchor="middle" fill="#065f46" font-size="9">4x Blob Containers</text>
+
+  <!-- Row 5: Cognitive + AI Search -->
+  <line x1="450" y1="50" x2="200" y2="365" stroke="#999" stroke-width="1" stroke-dasharray="3"/>
+  <line x1="450" y1="50" x2="450" y2="365" stroke="#999" stroke-width="1" stroke-dasharray="3"/>
+  <line x1="450" y1="50" x2="700" y2="365" stroke="#999" stroke-width="1" stroke-dasharray="3"/>
+
+  <rect x="90" y="365" width="200" height="45" rx="6" fill="#fcd34d" stroke="#f59e0b"/>
+  <text x="190" y="385" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">Custom Vision</text>
+  <text x="190" y="400" text-anchor="middle" fill="#92400e" font-size="9">Training + Prediction</text>
+
+  <rect x="340" y="365" width="200" height="45" rx="6" fill="#fcd34d" stroke="#f59e0b"/>
+  <text x="440" y="385" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">Azure OpenAI</text>
+  <text x="440" y="400" text-anchor="middle" fill="#92400e" font-size="9">gpt-4o-mini deployment</text>
+
+  <rect x="590" y="365" width="200" height="45" rx="6" fill="#fcd34d" stroke="#f59e0b"/>
+  <text x="690" y="385" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">AI Search</text>
+  <text x="690" y="400" text-anchor="middle" fill="#92400e" font-size="9">Basic SKU, vector index</text>
+</svg>
+<div class="diagram-caption">Arrows show Terraform dependency direction. ML Workspace requires Storage, Key Vault, ACR, and App Insights. Compute targets are children of the workspace. Cognitive Services are standalone but in the same Resource Group.</div>
+</div>
+
+<div class="card">
+<h3>Deployment Commands</h3>
+<pre style="background:#1e1e2e;color:#cdd6f4;padding:16px;border-radius:8px;overflow-x:auto;font-size:0.85rem;">
+<span style="color:#a6e3a1;">cd</span> deploymentcode/terraform
+<span style="color:#a6e3a1;">cp</span> terraform.tfvars.example terraform.tfvars   <span style="color:#6c7086;"># Edit with your subscription_id, tenant_id</span>
+<span style="color:#a6e3a1;">terraform</span> init                                  <span style="color:#6c7086;"># Download providers</span>
+<span style="color:#a6e3a1;">terraform</span> plan -out=tfplan                       <span style="color:#6c7086;"># Preview changes</span>
+<span style="color:#a6e3a1;">terraform</span> apply tfplan                           <span style="color:#6c7086;"># Create all resources (5-15 min)</span>
+<span style="color:#a6e3a1;">terraform</span> output -json > ../scripts/tf_outputs.json
+</pre>
+</div>
+
+<div class="card">
+<h3>Prerequisites (Manual Portal Steps)</h3>
+<div class="resource-grid" style="grid-template-columns: repeat(3, 1fr);">
+  <div class="resource-item" style="background:#fef2f2; border-color:#fca5a5;">
+    <div class="info"><strong>GPU Quota Request</strong>Required for GPU training. Portal &rarr; Subscriptions &rarr; Usage + quotas. Can take minutes to days.</div>
+  </div>
+  <div class="resource-item" style="background:#fef2f2; border-color:#fca5a5;">
+    <div class="info"><strong>Azure OpenAI Access</strong>Required for Scenario 4. Apply at aka.ms/oai/access. Usually auto-approved for enterprise.</div>
+  </div>
+  <div class="resource-item" style="background:#fef2f2; border-color:#fca5a5;">
+    <div class="info"><strong>Custom Vision Region</strong>Not all regions support it. Supported: East US, West US 2, West Europe, etc.</div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 4: PHASE 2 - BOOTSTRAP -->
+<!-- ============================================ -->
+<h2 id="phase2-bootstrap">4. Phase 2: Post-Terraform Bootstrap</h2>
+<p>After Terraform completes, a Python script creates resources the ML SDK manages: datastores, custom environments, and verifies compute. This bridges Terraform infrastructure to ML-ready workspace.</p>
+
+<div class="diagram-container">
+<div class="diagram-title">Bootstrap Flow (<code>00_bootstrap.py</code>)</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#7b42bc;">
+    <strong>Terraform Outputs</strong>
+    <div class="sub">tf_outputs.json</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#37c2b1;">
+    <strong>config.sh</strong>
+    <div class="sub">Export env vars</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#0078d4;">
+    <strong>MLClient</strong>
+    <div class="sub">DefaultAzureCredential</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#37c2b1; background:#ecfdf5;">
+    <strong>Create Datastores</strong>
+    <div class="sub">4 blob datastores</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#624fd0; background:#f5f3ff;">
+    <strong>Register Envs</strong>
+    <div class="sub">sklearn, clustering</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#22c55e; background:#f0fdf4;">
+    <strong>Verify Compute</strong>
+    <div class="sub">List targets</div>
+  </div>
+</div>
+<div class="diagram-caption">Bootstrap reads Terraform outputs, creates ML-specific resources via the Azure ML SDK v2, then verifies everything is ready for scenario scripts.</div>
+</div>
+
+<div class="card">
+<h3>What Bootstrap Creates</h3>
+<table>
+<thead><tr><th>Resource Type</th><th>Name</th><th>Details</th></tr></thead>
+<tbody>
+<tr><td>Datastore</td><td><code>facade_images</code></td><td>Points to <code>facade-images</code> blob container</td></tr>
+<tr><td>Datastore</td><td><code>ldr_files</code></td><td>Points to <code>ldr-files</code> blob container</td></tr>
+<tr><td>Datastore</td><td><code>reference_models</code></td><td>Points to <code>reference-models</code> blob container</td></tr>
+<tr><td>Datastore</td><td><code>training_data</code></td><td>Points to <code>training-data</code> blob container</td></tr>
+<tr><td>Environment</td><td><code>claudebricks-sklearn:1</code></td><td>scikit-learn, Pillow, MLflow on Ubuntu 22.04</td></tr>
+<tr><td>Environment</td><td><code>claudebricks-clustering:1</code></td><td>scikit-learn, UMAP, HDBSCAN, MLflow</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 5: SCENARIO 1 -->
+<!-- ============================================ -->
+<h2 id="scenario1">5. Scenario 1: Facade Style Classification</h2>
+
+<div class="card">
+<div class="scenario-header">
+  <div class="scenario-num" style="background:var(--scenario1);">1</div>
+  <div>
+    <h3 style="margin:0;">Image Classification Pipeline</h3>
+    <p style="margin:0;color:var(--text-muted);">Train a Random Forest classifier on facade images to categorize architectural styles (historic, modern, industrial, commercial, residential).</p>
+  </div>
+</div>
+</div>
+
+<div class="diagram-container">
+<div class="diagram-title">Scenario 1: End-to-End ML Pipeline</div>
+<svg viewBox="0 0 1000 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:1000px;display:block;margin:0 auto;">
+  <defs>
+    <marker id="a1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#6366f1"/></marker>
+  </defs>
+
+  <!-- Step 1: Data Prep -->
+  <rect x="10" y="30" width="150" height="80" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="85" y="55" text-anchor="middle" fill="#4338ca" font-size="11" font-weight="700">1. Data Prep</text>
+  <text x="85" y="72" text-anchor="middle" fill="#6366f1" font-size="9">prepare_data.py</text>
+  <text x="85" y="88" text-anchor="middle" fill="#888" font-size="8">Upload images</text>
+  <text x="85" y="100" text-anchor="middle" fill="#888" font-size="8">Create data asset</text>
+
+  <line x1="160" y1="70" x2="210" y2="70" stroke="#6366f1" stroke-width="2" marker-end="url(#a1)"/>
+
+  <!-- Step 2: Submit Job -->
+  <rect x="210" y="30" width="150" height="80" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="285" y="55" text-anchor="middle" fill="#4338ca" font-size="11" font-weight="700">2. Train</text>
+  <text x="285" y="72" text-anchor="middle" fill="#6366f1" font-size="9">train_job.py</text>
+  <text x="285" y="88" text-anchor="middle" fill="#888" font-size="8">Command job on</text>
+  <text x="285" y="100" text-anchor="middle" fill="#888" font-size="8">cpu-cluster</text>
+
+  <line x1="360" y1="70" x2="410" y2="70" stroke="#6366f1" stroke-width="2" marker-end="url(#a1)"/>
+
+  <!-- Step 3: train.py on cluster -->
+  <rect x="410" y="20" width="170" height="100" rx="10" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="495" y="42" text-anchor="middle" fill="#312e81" font-size="10" font-weight="700">ON CLUSTER</text>
+  <text x="495" y="60" text-anchor="middle" fill="#4338ca" font-size="11" font-weight="600">train.py</text>
+  <text x="495" y="78" text-anchor="middle" fill="#555" font-size="8">Load images (64x64 RGB)</text>
+  <text x="495" y="90" text-anchor="middle" fill="#555" font-size="8">RandomForestClassifier</text>
+  <text x="495" y="102" text-anchor="middle" fill="#555" font-size="8">MLflow autolog metrics</text>
+
+  <line x1="580" y1="70" x2="630" y2="70" stroke="#6366f1" stroke-width="2" marker-end="url(#a1)"/>
+
+  <!-- Step 4: Register -->
+  <rect x="630" y="30" width="150" height="80" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="705" y="55" text-anchor="middle" fill="#4338ca" font-size="11" font-weight="700">3. Register</text>
+  <text x="705" y="72" text-anchor="middle" fill="#6366f1" font-size="9">register_model.py</text>
+  <text x="705" y="88" text-anchor="middle" fill="#888" font-size="8">facade-classifier:1</text>
+  <text x="705" y="100" text-anchor="middle" fill="#888" font-size="8">MLflow model type</text>
+
+  <line x1="780" y1="70" x2="830" y2="70" stroke="#6366f1" stroke-width="2" marker-end="url(#a1)"/>
+
+  <!-- Step 5: Deploy -->
+  <rect x="830" y="30" width="160" height="80" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="910" y="55" text-anchor="middle" fill="#4338ca" font-size="11" font-weight="700">4. Deploy</text>
+  <text x="910" y="72" text-anchor="middle" fill="#6366f1" font-size="9">deploy_endpoint.py</text>
+  <text x="910" y="88" text-anchor="middle" fill="#888" font-size="8">Managed Online Endpoint</text>
+  <text x="910" y="100" text-anchor="middle" fill="#888" font-size="8">DS3_v2, key auth</text>
+
+  <!-- Data flow below -->
+  <rect x="10" y="160" width="150" height="50" rx="8" fill="#ecfdf5" stroke="#6ee7b7"/>
+  <text x="85" y="182" text-anchor="middle" fill="#065f46" font-size="10" font-weight="600">Blob: facade-images</text>
+  <text x="85" y="198" text-anchor="middle" fill="#065f46" font-size="8">historic/, modern/, ...</text>
+
+  <line x1="160" y1="185" x2="210" y2="185" stroke="#6ee7b7" stroke-width="1.5" marker-end="url(#a1)"/>
+
+  <rect x="210" y="160" width="150" height="50" rx="8" fill="#f0f6ff" stroke="#93c5fd"/>
+  <text x="285" y="182" text-anchor="middle" fill="#1e40af" font-size="10" font-weight="600">Data Asset</text>
+  <text x="285" y="198" text-anchor="middle" fill="#1e40af" font-size="8">facade-images:1 (uri_folder)</text>
+
+  <line x1="285" y1="160" x2="285" y2="115" stroke="#93c5fd" stroke-width="1" stroke-dasharray="4" marker-end="url(#a1)"/>
+
+  <rect x="410" y="160" width="170" height="50" rx="8" fill="#fef3c7" stroke="#fbbf24"/>
+  <text x="495" y="182" text-anchor="middle" fill="#92400e" font-size="10" font-weight="600">MLflow Experiment</text>
+  <text x="495" y="198" text-anchor="middle" fill="#92400e" font-size="8">scenario1-facade-classification</text>
+
+  <line x1="495" y1="160" x2="495" y2="125" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4"/>
+
+  <rect x="630" y="160" width="150" height="50" rx="8" fill="#f0f6ff" stroke="#93c5fd"/>
+  <text x="705" y="182" text-anchor="middle" fill="#1e40af" font-size="10" font-weight="600">Model Registry</text>
+  <text x="705" y="198" text-anchor="middle" fill="#1e40af" font-size="8">facade-classifier:1</text>
+
+  <line x1="705" y1="160" x2="705" y2="115" stroke="#93c5fd" stroke-width="1" stroke-dasharray="4"/>
+
+  <rect x="830" y="160" width="160" height="50" rx="8" fill="#fce7f3" stroke="#f9a8d4"/>
+  <text x="910" y="178" text-anchor="middle" fill="#9d174d" font-size="10" font-weight="600">Online Endpoint</text>
+  <text x="910" y="194" text-anchor="middle" fill="#9d174d" font-size="8">facade-classifier-endpoint</text>
+  <text x="910" y="206" text-anchor="middle" fill="#9d174d" font-size="7">100% traffic &rarr; "blue"</text>
+
+  <line x1="910" y1="160" x2="910" y2="115" stroke="#f9a8d4" stroke-width="1" stroke-dasharray="4"/>
+
+  <!-- Bottom: Inference call -->
+  <rect x="830" y="250" width="160" height="60" rx="8" fill="#f5f3ff" stroke="#a78bfa"/>
+  <text x="910" y="272" text-anchor="middle" fill="#5b21b6" font-size="10" font-weight="600">Client Request</text>
+  <text x="910" y="290" text-anchor="middle" fill="#5b21b6" font-size="8">POST image &rarr; style label</text>
+  <text x="910" y="302" text-anchor="middle" fill="#5b21b6" font-size="7">"historic" | "modern" | ...</text>
+
+  <line x1="910" y1="250" x2="910" y2="215" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#a1)"/>
+</svg>
+<div class="diagram-caption">Images flow from Blob Storage through a data asset to the training cluster. The trained model is registered in MLflow, then deployed to a managed online endpoint for real-time inference.</div>
+</div>
+
+<div class="card">
+<h3>Azure Resources Consumed by Scenario 1</h3>
+<table>
+<thead><tr><th>Resource</th><th>Created By</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>Blob container <code>facade-images</code></td><td>Terraform</td><td>Training image storage</td></tr>
+<tr><td>Datastore <code>facade_images</code></td><td>Bootstrap</td><td>ML workspace pointer to blob</td></tr>
+<tr><td>Data asset <code>facade-images:1</code></td><td>prepare_data.py</td><td>Versioned uri_folder reference</td></tr>
+<tr><td>Environment <code>claudebricks-sklearn:1</code></td><td>Bootstrap</td><td>Training runtime</td></tr>
+<tr><td>CPU/GPU Cluster</td><td>Terraform</td><td>Training compute</td></tr>
+<tr><td>MLflow experiment</td><td>Auto-created</td><td>Metric &amp; artifact tracking</td></tr>
+<tr><td>Registered model <code>facade-classifier:1</code></td><td>register_model.py</td><td>Best trained model</td></tr>
+<tr><td>Managed endpoint <code>facade-classifier-endpoint</code></td><td>deploy_endpoint.py</td><td>Real-time inference (DS3_v2)</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 6: SCENARIO 2 -->
+<!-- ============================================ -->
+<h2 id="scenario2">6. Scenario 2: Structural Validation (Anomaly Detection)</h2>
+
+<div class="card">
+<div class="scenario-header">
+  <div class="scenario-num" style="background:var(--scenario2);">2</div>
+  <div>
+    <h3 style="margin:0;">Anomaly Detection on LDraw Files</h3>
+    <p style="margin:0;color:var(--text-muted);">Parse .ldr files into numeric features, then use Isolation Forest or Random Forest to flag structurally unsafe LEGO builds.</p>
+  </div>
+</div>
+</div>
+
+<div class="diagram-container">
+<div class="diagram-title">Scenario 2: Feature Engineering + Anomaly Detection Pipeline</div>
+<svg viewBox="0 0 1000 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:1000px;display:block;margin:0 auto;">
+  <defs><marker id="a2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/></marker></defs>
+
+  <!-- Step 1: LDR files -->
+  <rect x="10" y="40" width="140" height="70" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="80" y="65" text-anchor="middle" fill="#92400e" font-size="11" font-weight="700">.ldr Files</text>
+  <text x="80" y="82" text-anchor="middle" fill="#b45309" font-size="8">Raw LEGO models</text>
+  <text x="80" y="95" text-anchor="middle" fill="#b45309" font-size="8">pass/fail labeled</text>
+
+  <line x1="150" y1="75" x2="190" y2="75" stroke="#f59e0b" stroke-width="2" marker-end="url(#a2)"/>
+
+  <!-- Step 2: Feature Engineering -->
+  <rect x="190" y="30" width="170" height="90" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="275" y="52" text-anchor="middle" fill="#92400e" font-size="11" font-weight="700">Feature Engineering</text>
+  <text x="275" y="68" text-anchor="middle" fill="#b45309" font-size="9">feature_engineering.py</text>
+  <line x1="200" y1="78" x2="350" y2="78" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="275" y="92" text-anchor="middle" fill="#555" font-size="8">Overhang Ratio</text>
+  <text x="275" y="104" text-anchor="middle" fill="#555" font-size="8">Collision Count</text>
+  <text x="275" y="116" text-anchor="middle" fill="#555" font-size="8">Height-to-Base &bull; Layer Density</text>
+
+  <line x1="360" y1="75" x2="400" y2="75" stroke="#f59e0b" stroke-width="2" marker-end="url(#a2)"/>
+
+  <!-- Step 3: CSV / Data Asset -->
+  <rect x="400" y="40" width="140" height="70" rx="10" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="2"/>
+  <text x="470" y="65" text-anchor="middle" fill="#065f46" font-size="11" font-weight="700">features.csv</text>
+  <text x="470" y="82" text-anchor="middle" fill="#065f46" font-size="8">Data Asset (uri_file)</text>
+  <text x="470" y="95" text-anchor="middle" fill="#065f46" font-size="8">ldr-validation-features:1</text>
+
+  <line x1="540" y1="75" x2="580" y2="75" stroke="#f59e0b" stroke-width="2" marker-end="url(#a2)"/>
+
+  <!-- Step 4: Train -->
+  <rect x="580" y="30" width="160" height="90" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="660" y="48" text-anchor="middle" fill="#92400e" font-size="10" font-weight="700">ON CPU CLUSTER</text>
+  <text x="660" y="66" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">train.py</text>
+  <text x="660" y="84" text-anchor="middle" fill="#555" font-size="8">IsolationForest (unsupervised)</text>
+  <text x="660" y="96" text-anchor="middle" fill="#555" font-size="8">or RandomForest (supervised)</text>
+  <text x="660" y="108" text-anchor="middle" fill="#555" font-size="8">MLflow autolog</text>
+
+  <line x1="740" y1="75" x2="780" y2="75" stroke="#f59e0b" stroke-width="2" marker-end="url(#a2)"/>
+
+  <!-- Step 5: Deploy -->
+  <rect x="780" y="40" width="200" height="70" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="880" y="62" text-anchor="middle" fill="#92400e" font-size="11" font-weight="700">Register &amp; Deploy</text>
+  <text x="880" y="80" text-anchor="middle" fill="#b45309" font-size="9">ldr-validator-endpoint</text>
+  <text x="880" y="95" text-anchor="middle" fill="#b45309" font-size="8">JSON in &rarr; pass/fail out</text>
+
+  <!-- Bottom: what the scoring input looks like -->
+  <rect x="580" y="170" width="400" height="90" rx="8" fill="#f9fafb" stroke="#d1d5db"/>
+  <text x="780" y="192" text-anchor="middle" fill="#374151" font-size="10" font-weight="600">Scoring Input / Output</text>
+  <text x="780" y="212" text-anchor="middle" fill="#555" font-size="9" font-family="monospace">POST { "overhang_ratio": 0.3,</text>
+  <text x="780" y="226" text-anchor="middle" fill="#555" font-size="9" font-family="monospace">  "collision_count": 2, "height_to_base_ratio": 4.5,</text>
+  <text x="780" y="240" text-anchor="middle" fill="#555" font-size="9" font-family="monospace">  "layer_density": 0.8 }</text>
+  <text x="780" y="256" text-anchor="middle" fill="#16a34a" font-size="9" font-family="monospace">&rarr; { "prediction": "pass" }</text>
+
+  <line x1="880" y1="115" x2="880" y2="170" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4"/>
+</svg>
+<div class="diagram-caption">Raw .ldr files are parsed into 4 numeric features. An anomaly detection model (Isolation Forest or Random Forest) classifies structures as pass/fail. Deployed as a managed endpoint consumed by the Claude.Bricks validator agent.</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 7: SCENARIO 3 -->
+<!-- ============================================ -->
+<h2 id="scenario3">7. Scenario 3: Pattern Extraction (Clustering)</h2>
+
+<div class="card">
+<div class="scenario-header">
+  <div class="scenario-num" style="background:var(--scenario3);">3</div>
+  <div>
+    <h3 style="margin:0;">Multi-Step Pipeline: Extract &rarr; Cluster</h3>
+    <p style="margin:0;color:var(--text-muted);">Discover common building patterns across reference .ldr models using part-usage statistics and clustering (KMeans/HDBSCAN). This is a batch/offline analysis -- no real-time endpoint required.</p>
+  </div>
+</div>
+</div>
+
+<div class="diagram-container">
+<div class="diagram-title">Scenario 3: Azure ML Pipeline (2-Step)</div>
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;display:block;margin:0 auto;">
+  <defs><marker id="a3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#10b981"/></marker></defs>
+
+  <!-- Pipeline boundary -->
+  <rect x="120" y="10" width="660" height="180" rx="12" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="8"/>
+  <text x="450" y="30" text-anchor="middle" fill="#10b981" font-size="12" font-weight="700">Azure ML Pipeline: scenario3-pattern-extraction</text>
+
+  <!-- Input -->
+  <rect x="10" y="70" width="100" height="60" rx="8" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="2"/>
+  <text x="60" y="95" text-anchor="middle" fill="#065f46" font-size="9" font-weight="600">reference-</text>
+  <text x="60" y="108" text-anchor="middle" fill="#065f46" font-size="9" font-weight="600">models</text>
+  <text x="60" y="122" text-anchor="middle" fill="#065f46" font-size="7">(uri_folder)</text>
+
+  <line x1="110" y1="100" x2="150" y2="100" stroke="#10b981" stroke-width="2" marker-end="url(#a3)"/>
+
+  <!-- Step 1 -->
+  <rect x="150" y="50" width="240" height="100" rx="10" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+  <text x="270" y="75" text-anchor="middle" fill="#064e3b" font-size="11" font-weight="700">Step 1: extract_features</text>
+  <text x="270" y="95" text-anchor="middle" fill="#065f46" font-size="9">extract_stats.py</text>
+  <line x1="160" y1="105" x2="380" y2="105" stroke="#a7f3d0" stroke-width="1"/>
+  <text x="270" y="120" text-anchor="middle" fill="#555" font-size="8">Part counts by category</text>
+  <text x="270" y="132" text-anchor="middle" fill="#555" font-size="8">Dimensions, roof type, window ratio</text>
+  <text x="270" y="144" text-anchor="middle" fill="#555" font-size="8">Output: stats CSV</text>
+
+  <line x1="390" y1="100" x2="430" y2="100" stroke="#10b981" stroke-width="2" marker-end="url(#a3)"/>
+  <text x="410" y="92" text-anchor="middle" fill="#10b981" font-size="8" font-weight="600">features</text>
+
+  <!-- Step 2 -->
+  <rect x="430" y="50" width="240" height="100" rx="10" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+  <text x="550" y="75" text-anchor="middle" fill="#064e3b" font-size="11" font-weight="700">Step 2: run_clustering</text>
+  <text x="550" y="95" text-anchor="middle" fill="#065f46" font-size="9">train.py --n-clusters 5</text>
+  <line x1="440" y1="105" x2="660" y2="105" stroke="#a7f3d0" stroke-width="1"/>
+  <text x="550" y="120" text-anchor="middle" fill="#555" font-size="8">Standardize features</text>
+  <text x="550" y="132" text-anchor="middle" fill="#555" font-size="8">KMeans or HDBSCAN</text>
+  <text x="550" y="144" text-anchor="middle" fill="#555" font-size="8">MLflow log cluster labels</text>
+
+  <line x1="670" y1="100" x2="710" y2="100" stroke="#10b981" stroke-width="2" marker-end="url(#a3)"/>
+
+  <!-- Output -->
+  <rect x="710" y="60" width="160" height="80" rx="8" fill="#f0f6ff" stroke="#93c5fd"/>
+  <text x="790" y="88" text-anchor="middle" fill="#1e40af" font-size="10" font-weight="600">Registered Model</text>
+  <text x="790" y="106" text-anchor="middle" fill="#1e40af" font-size="8">clustering-model:1</text>
+  <text x="790" y="122" text-anchor="middle" fill="#1e40af" font-size="8">Cluster labels + centroids</text>
+
+  <!-- Compute label -->
+  <rect x="250" y="198" width="300" height="30" rx="6" fill="#86efac" stroke="#22c55e"/>
+  <text x="400" y="218" text-anchor="middle" fill="#166534" font-size="10" font-weight="600">Compute: cpu-cluster (Standard_DS3_v2)</text>
+
+  <!-- Environment label -->
+  <rect x="250" y="240" width="300" height="30" rx="6" fill="#f5f3ff" stroke="#a78bfa"/>
+  <text x="400" y="260" text-anchor="middle" fill="#5b21b6" font-size="10" font-weight="600">Environment: claudebricks-clustering:1</text>
+
+  <!-- Difference callout -->
+  <rect x="10" y="200" width="200" height="80" rx="8" fill="#fef3c7" stroke="#fbbf24"/>
+  <text x="110" y="222" text-anchor="middle" fill="#92400e" font-size="10" font-weight="600">Key Difference</text>
+  <text x="110" y="240" text-anchor="middle" fill="#555" font-size="8">This is a PIPELINE job, not</text>
+  <text x="110" y="252" text-anchor="middle" fill="#555" font-size="8">a single command job.</text>
+  <text x="110" y="264" text-anchor="middle" fill="#555" font-size="8">No endpoint needed (batch).</text>
+</svg>
+<div class="diagram-caption">A two-step Azure ML Pipeline: Step 1 extracts part-usage features from .ldr files, Step 2 runs clustering. The @dsl.pipeline decorator chains steps, passing the features output from Step 1 into Step 2.</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 8: SCENARIO 4 -->
+<!-- ============================================ -->
+<h2 id="scenario4">8. Scenario 4: Fine-Tuned LLM Spec Generator</h2>
+
+<div class="card">
+<div class="scenario-header">
+  <div class="scenario-num" style="background:var(--scenario4);">4</div>
+  <div>
+    <h3 style="margin:0;">RAG + Fine-Tuning with Azure OpenAI</h3>
+    <p style="margin:0;color:var(--text-muted);">Generate detailed LEGO building specs from natural language prompts. Uses Retrieval-Augmented Generation (AI Search) and optionally fine-tunes gpt-4o-mini on domain-specific spec examples.</p>
+  </div>
+</div>
+</div>
+
+<div class="diagram-container">
+<div class="diagram-title">Scenario 4: RAG + Fine-Tuning Architecture</div>
+<svg viewBox="0 0 960 450" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;display:block;margin:0 auto;">
+  <defs>
+    <marker id="a4" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ef4444"/></marker>
+    <marker id="a4b" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0078d4"/></marker>
+  </defs>
+
+  <!-- Title: RAG Pipeline -->
+  <text x="480" y="25" text-anchor="middle" fill="#ef4444" font-size="14" font-weight="700">Retrieval-Augmented Generation (RAG) Pipeline</text>
+
+  <!-- User prompt -->
+  <rect x="10" y="60" width="160" height="60" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="90" y="85" text-anchor="middle" fill="#991b1b" font-size="11" font-weight="700">User Prompt</text>
+  <text x="90" y="102" text-anchor="middle" fill="#991b1b" font-size="8">"3-story historic townhouse"</text>
+
+  <line x1="170" y1="90" x2="220" y2="90" stroke="#ef4444" stroke-width="2" marker-end="url(#a4)"/>
+
+  <!-- Prompt Flow boundary -->
+  <rect x="220" y="40" width="520" height="100" rx="12" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="8"/>
+  <text x="480" y="58" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="700">Prompt Flow (flow.dag.yaml)</text>
+
+  <!-- Retrieve node -->
+  <rect x="240" y="65" width="180" height="60" rx="8" fill="#fee2e2" stroke="#fca5a5"/>
+  <text x="330" y="86" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="600">retrieve.py</text>
+  <text x="330" y="102" text-anchor="middle" fill="#7f1d1d" font-size="8">Query AI Search (top 3)</text>
+  <text x="330" y="114" text-anchor="middle" fill="#7f1d1d" font-size="8">Vector + semantic hybrid</text>
+
+  <line x1="420" y1="95" x2="460" y2="95" stroke="#ef4444" stroke-width="1.5" marker-end="url(#a4)"/>
+  <text x="440" y="88" text-anchor="middle" fill="#ef4444" font-size="7">context</text>
+
+  <!-- Generate node -->
+  <rect x="460" y="65" width="180" height="60" rx="8" fill="#fee2e2" stroke="#fca5a5"/>
+  <text x="550" y="86" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="600">generate.py</text>
+  <text x="550" y="102" text-anchor="middle" fill="#7f1d1d" font-size="8">Call OpenAI with context</text>
+  <text x="550" y="114" text-anchor="middle" fill="#7f1d1d" font-size="8">System + user + retrieved docs</text>
+
+  <!-- Output -->
+  <line x1="740" y1="90" x2="790" y2="90" stroke="#ef4444" stroke-width="2" marker-end="url(#a4)"/>
+  <rect x="790" y="60" width="160" height="60" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="870" y="82" text-anchor="middle" fill="#991b1b" font-size="11" font-weight="700">Building Spec</text>
+  <text x="870" y="100" text-anchor="middle" fill="#991b1b" font-size="8">JSON: style, dimensions,</text>
+  <text x="870" y="112" text-anchor="middle" fill="#991b1b" font-size="8">facade, roof, features...</text>
+
+  <!-- AI Search -->
+  <rect x="230" y="180" width="200" height="70" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="330" y="200" text-anchor="middle" fill="#1e3a8a" font-size="11" font-weight="700">Azure AI Search</text>
+  <text x="330" y="218" text-anchor="middle" fill="#1e40af" font-size="8">Index: building-specs</text>
+  <text x="330" y="232" text-anchor="middle" fill="#1e40af" font-size="8">HNSW vector (1536 dims)</text>
+  <text x="330" y="244" text-anchor="middle" fill="#1e40af" font-size="8">Semantic search enabled</text>
+
+  <line x1="330" y1="180" x2="330" y2="130" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#a4b)"/>
+
+  <!-- Azure OpenAI -->
+  <rect x="530" y="180" width="200" height="70" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="630" y="200" text-anchor="middle" fill="#1e3a8a" font-size="11" font-weight="700">Azure OpenAI</text>
+  <text x="630" y="218" text-anchor="middle" fill="#1e40af" font-size="8">gpt-4o-mini (base)</text>
+  <text x="630" y="232" text-anchor="middle" fill="#1e40af" font-size="8">or ft-spec-generator</text>
+  <text x="630" y="244" text-anchor="middle" fill="#1e40af" font-size="8">(fine-tuned)</text>
+
+  <line x1="630" y1="180" x2="570" y2="130" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#a4b)"/>
+
+  <!-- Fine-tuning path (below) -->
+  <text x="480" y="295" text-anchor="middle" fill="#7f1d1d" font-size="13" font-weight="700">Fine-Tuning Path (Optional)</text>
+
+  <rect x="30" y="310" width="160" height="55" rx="8" fill="#fef3c7" stroke="#fbbf24"/>
+  <text x="110" y="332" text-anchor="middle" fill="#92400e" font-size="9" font-weight="600">Prepare JSONL</text>
+  <text x="110" y="348" text-anchor="middle" fill="#92400e" font-size="7">prepare_training_data.py</text>
+  <text x="110" y="360" text-anchor="middle" fill="#92400e" font-size="7">system/user/assistant msgs</text>
+
+  <line x1="190" y1="337" x2="230" y2="337" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#a4)"/>
+
+  <rect x="230" y="310" width="160" height="55" rx="8" fill="#fef3c7" stroke="#fbbf24"/>
+  <text x="310" y="332" text-anchor="middle" fill="#92400e" font-size="9" font-weight="600">Upload to OpenAI</text>
+  <text x="310" y="348" text-anchor="middle" fill="#92400e" font-size="7">upload_training_data.py</text>
+  <text x="310" y="360" text-anchor="middle" fill="#92400e" font-size="7">client.files.create()</text>
+
+  <line x1="390" y1="337" x2="430" y2="337" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#a4)"/>
+
+  <rect x="430" y="310" width="160" height="55" rx="8" fill="#fef3c7" stroke="#fbbf24"/>
+  <text x="510" y="332" text-anchor="middle" fill="#92400e" font-size="9" font-weight="600">Fine-Tune Job</text>
+  <text x="510" y="348" text-anchor="middle" fill="#92400e" font-size="7">fine_tune_job.py</text>
+  <text x="510" y="360" text-anchor="middle" fill="#92400e" font-size="7">gpt-4o-mini base model</text>
+
+  <line x1="590" y1="337" x2="630" y2="337" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#a4)"/>
+
+  <rect x="630" y="310" width="160" height="55" rx="8" fill="#fef3c7" stroke="#fbbf24"/>
+  <text x="710" y="332" text-anchor="middle" fill="#92400e" font-size="9" font-weight="600">Deploy Fine-Tuned</text>
+  <text x="710" y="348" text-anchor="middle" fill="#92400e" font-size="7">deploy_model.py</text>
+  <text x="710" y="360" text-anchor="middle" fill="#92400e" font-size="7">ft-spec-generator</text>
+
+  <line x1="710" y1="310" x2="660" y2="255" stroke="#999" stroke-width="1" stroke-dasharray="4"/>
+  <text x="700" y="282" text-anchor="middle" fill="#999" font-size="7">replaces base model</text>
+
+  <!-- Index setup -->
+  <rect x="30" y="400" width="280" height="40" rx="8" fill="#dbeafe" stroke="#93c5fd"/>
+  <text x="170" y="420" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="600">rag_index_setup.py: Create search index + upload spec embeddings</text>
+  <line x1="170" y1="400" x2="300" y2="255" stroke="#93c5fd" stroke-width="1" stroke-dasharray="4"/>
+
+  <!-- Cost warning -->
+  <rect x="830" y="310" width="120" height="55" rx="8" fill="#fef2f2" stroke="#fca5a5"/>
+  <text x="890" y="330" text-anchor="middle" fill="#991b1b" font-size="9" font-weight="700">Cost Alert</text>
+  <text x="890" y="346" text-anchor="middle" fill="#991b1b" font-size="8">Fine-tuned hosting:</text>
+  <text x="890" y="358" text-anchor="middle" fill="#991b1b" font-size="8">~$1.70/hour</text>
+</svg>
+<div class="diagram-caption">The RAG pipeline uses Prompt Flow to chain retrieval (AI Search vector query) with generation (Azure OpenAI). Fine-tuning is optional and replaces the base gpt-4o-mini deployment with a domain-specialized model.</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 9: DATA FLOW -->
+<!-- ============================================ -->
+<h2 id="data-flow">9. Data Flow Overview</h2>
+
+<div class="diagram-container">
+<div class="diagram-title">How Data Flows Across All Scenarios</div>
+<svg viewBox="0 0 900 350" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;display:block;margin:0 auto;">
+  <defs><marker id="af" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0078d4"/></marker></defs>
+
+  <!-- Storage Account (left) -->
+  <rect x="10" y="50" width="160" height="250" rx="12" fill="#ecfdf5" stroke="#37c2b1" stroke-width="2"/>
+  <text x="90" y="75" text-anchor="middle" fill="#065f46" font-size="12" font-weight="700">Storage Account</text>
+  <text x="90" y="92" text-anchor="middle" fill="#065f46" font-size="8">Blob Containers</text>
+
+  <rect x="25" y="105" width="130" height="30" rx="4" fill="white" stroke="#6ee7b7"/>
+  <text x="90" y="125" text-anchor="middle" fill="#6366f1" font-size="9" font-weight="600">facade-images</text>
+
+  <rect x="25" y="145" width="130" height="30" rx="4" fill="white" stroke="#6ee7b7"/>
+  <text x="90" y="165" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">ldr-files</text>
+
+  <rect x="25" y="185" width="130" height="30" rx="4" fill="white" stroke="#6ee7b7"/>
+  <text x="90" y="205" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">reference-models</text>
+
+  <rect x="25" y="225" width="130" height="30" rx="4" fill="white" stroke="#6ee7b7"/>
+  <text x="90" y="245" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">training-data</text>
+
+  <!-- Datastores (middle-left) -->
+  <rect x="220" y="60" width="140" height="230" rx="12" fill="#f0f6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="290" y="82" text-anchor="middle" fill="#1e40af" font-size="11" font-weight="700">Datastores</text>
+  <text x="290" y="96" text-anchor="middle" fill="#1e40af" font-size="8">(ML Workspace)</text>
+
+  <text x="290" y="125" text-anchor="middle" fill="#6366f1" font-size="8">facade_images</text>
+  <text x="290" y="165" text-anchor="middle" fill="#f59e0b" font-size="8">ldr_files</text>
+  <text x="290" y="205" text-anchor="middle" fill="#10b981" font-size="8">reference_models</text>
+  <text x="290" y="245" text-anchor="middle" fill="#ef4444" font-size="8">training_data</text>
+
+  <!-- Lines: blob -> datastore -->
+  <line x1="155" y1="120" x2="230" y2="120" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#af)"/>
+  <line x1="155" y1="160" x2="230" y2="160" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#af)"/>
+  <line x1="155" y1="200" x2="230" y2="200" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#af)"/>
+  <line x1="155" y1="240" x2="230" y2="240" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#af)"/>
+
+  <!-- Compute (middle) -->
+  <rect x="420" y="60" width="160" height="230" rx="12" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+  <text x="500" y="82" text-anchor="middle" fill="#166534" font-size="11" font-weight="700">Compute</text>
+
+  <rect x="435" y="95" width="130" height="35" rx="6" fill="#86efac" stroke="#22c55e"/>
+  <text x="500" y="118" text-anchor="middle" fill="#166534" font-size="9">CPU Cluster</text>
+
+  <rect x="435" y="145" width="130" height="35" rx="6" fill="#fdba74" stroke="#f97316"/>
+  <text x="500" y="168" text-anchor="middle" fill="#9a3412" font-size="9">GPU Cluster</text>
+
+  <text x="500" y="210" text-anchor="middle" fill="#166534" font-size="8">S1: CPU or GPU</text>
+  <text x="500" y="225" text-anchor="middle" fill="#166534" font-size="8">S2: CPU</text>
+  <text x="500" y="240" text-anchor="middle" fill="#166534" font-size="8">S3: CPU</text>
+  <text x="500" y="255" text-anchor="middle" fill="#166534" font-size="8">S4: Azure OpenAI (external)</text>
+
+  <!-- Lines: datastore -> compute -->
+  <line x1="360" y1="120" x2="435" y2="112" stroke="#6366f1" stroke-width="1.5" marker-end="url(#af)"/>
+  <line x1="360" y1="160" x2="435" y2="112" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#af)"/>
+  <line x1="360" y1="200" x2="435" y2="112" stroke="#10b981" stroke-width="1.5" marker-end="url(#af)"/>
+
+  <!-- Model Registry + Endpoints (right) -->
+  <rect x="640" y="60" width="120" height="100" rx="10" fill="#f5f3ff" stroke="#a78bfa" stroke-width="2"/>
+  <text x="700" y="82" text-anchor="middle" fill="#5b21b6" font-size="10" font-weight="700">Model</text>
+  <text x="700" y="96" text-anchor="middle" fill="#5b21b6" font-size="10" font-weight="700">Registry</text>
+  <text x="700" y="118" text-anchor="middle" fill="#7c3aed" font-size="7">facade-classifier</text>
+  <text x="700" y="132" text-anchor="middle" fill="#7c3aed" font-size="7">ldr-validator</text>
+  <text x="700" y="146" text-anchor="middle" fill="#7c3aed" font-size="7">clustering-model</text>
+
+  <line x1="580" y1="112" x2="640" y2="112" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#af)"/>
+
+  <rect x="640" y="190" width="120" height="100" rx="10" fill="#fce7f3" stroke="#f9a8d4" stroke-width="2"/>
+  <text x="700" y="212" text-anchor="middle" fill="#9d174d" font-size="10" font-weight="700">Online</text>
+  <text x="700" y="226" text-anchor="middle" fill="#9d174d" font-size="10" font-weight="700">Endpoints</text>
+  <text x="700" y="248" text-anchor="middle" fill="#be185d" font-size="7">facade-classifier-ep</text>
+  <text x="700" y="262" text-anchor="middle" fill="#be185d" font-size="7">ldr-validator-ep</text>
+  <text x="700" y="276" text-anchor="middle" fill="#be185d" font-size="7">(prompt flow ep)</text>
+
+  <line x1="700" y1="160" x2="700" y2="190" stroke="#d946ef" stroke-width="1.5" marker-end="url(#af)"/>
+
+  <!-- Clients (far right) -->
+  <rect x="810" y="190" width="80" height="100" rx="10" fill="#f9fafb" stroke="#d1d5db"/>
+  <text x="850" y="230" text-anchor="middle" fill="#374151" font-size="10" font-weight="600">Clients</text>
+  <text x="850" y="250" text-anchor="middle" fill="#666" font-size="7">REST API</text>
+  <text x="850" y="264" text-anchor="middle" fill="#666" font-size="7">CLI invoke</text>
+  <text x="850" y="278" text-anchor="middle" fill="#666" font-size="7">Python SDK</text>
+
+  <line x1="760" y1="240" x2="810" y2="240" stroke="#d1d5db" stroke-width="1.5" marker-end="url(#af)"/>
+
+  <!-- MLflow -->
+  <rect x="810" y="60" width="80" height="60" rx="8" fill="#fef3c7" stroke="#fbbf24"/>
+  <text x="850" y="85" text-anchor="middle" fill="#92400e" font-size="10" font-weight="600">MLflow</text>
+  <text x="850" y="102" text-anchor="middle" fill="#92400e" font-size="7">Experiments</text>
+  <text x="850" y="114" text-anchor="middle" fill="#92400e" font-size="7">Metrics + Runs</text>
+  <line x1="580" y1="100" x2="810" y2="90" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4"/>
+</svg>
+<div class="diagram-caption">Data flows left-to-right: Blob Storage &rarr; Datastores &rarr; Compute clusters &rarr; Model Registry &rarr; Online Endpoints &rarr; Clients. MLflow tracks all experiments. Each scenario uses its own blob container and produces its own registered model.</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 10: COST BREAKDOWN -->
+<!-- ============================================ -->
+<h2 id="cost-breakdown">10. Cost Breakdown</h2>
+
+<div class="card">
+<h3>Fixed Monthly Costs (always-on)</h3>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>AI Search (Basic)</span><span>~$75/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:80%;background:var(--azure-blue);">$75</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>Log Analytics (~5 GB)</span><span>~$12/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:13%;background:#1988d9;">$12</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>Container Registry (Basic)</span><span>~$5/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:5%;background:#37c2b1;">$5</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>Storage Account (~50 GB)</span><span>~$1/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:1%;background:#37c2b1;min-width:30px;">$1</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>Key Vault</span><span>~$0.10/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:1%;background:#5ea0ef;min-width:30px;">$0</div></div>
+</div>
+<p style="text-align:right;font-weight:600;color:var(--azure-dark);">Fixed subtotal: ~$93/month</p>
+</div>
+
+<div class="card">
+<h3>Variable Costs (usage-based)</h3>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>Online Endpoints (2x DS3_v2, ~100 hrs each)</span><span>~$58/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:64%;background:var(--accent-red);">$58</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>Fine-tuned model hosting (10 hrs/mo)</span><span>~$17/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:19%;background:var(--accent-orange);">$17</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>Compute Instance (DS3_v2, 40 hrs)</span><span>~$12/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:13%;background:#86efac;">$12</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>CPU Cluster (Low Priority, 20 hrs)</span><span>~$1.20/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:1%;background:#86efac;min-width:30px;">$1</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>GPU Cluster (Low Priority, 10 hrs)</span><span>~$1.10/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:1%;background:#fdba74;min-width:30px;">$1</div></div>
+</div>
+<div class="cost-bar-container">
+  <div class="cost-bar-label"><span>Azure OpenAI (~500K tokens)</span><span>~$0.25/mo</span></div>
+  <div class="cost-bar"><div class="cost-bar-fill" style="width:1%;background:#83b9f9;min-width:30px;">$0</div></div>
+</div>
+<p style="text-align:right;font-weight:600;color:var(--azure-dark);">Variable subtotal: ~$90/month</p>
+</div>
+
+<div class="card" style="background:linear-gradient(135deg, #f0f6ff, #ecfdf5); border-color:var(--azure-blue);">
+<h3 style="text-align:center;color:var(--azure-dark);">Total Estimated: ~$183/month for full lab usage</h3>
+<div class="resource-grid" style="grid-template-columns: repeat(4, 1fr); margin-top:16px;">
+  <div class="resource-item" style="background:white;">
+    <div class="info"><strong>Skip AI Search</strong>Saves ~$75/mo<br>If not doing Scenario 4</div>
+  </div>
+  <div class="resource-item" style="background:white;">
+    <div class="info"><strong>Delete Endpoints</strong>Saves ~$58/mo<br>After testing</div>
+  </div>
+  <div class="resource-item" style="background:white;">
+    <div class="info"><strong>Stop Compute</strong>Saves ~$12/mo<br>When not in use</div>
+  </div>
+  <div class="resource-item" style="background:white;">
+    <div class="info"><strong>Delete FT Model</strong>Saves ~$17/mo<br>When not testing</div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 11: TEARDOWN -->
+<!-- ============================================ -->
+<h2 id="teardown">11. Teardown Procedure</h2>
+
+<div class="card">
+<p>Tear down in order of cost priority: endpoints first, then compute, then full destroy.</p>
+
+<div class="diagram-container" style="border:none;box-shadow:none;padding:0;">
+<div class="flow-row">
+  <div class="flow-box" style="border-color:var(--accent-red); background:#fef2f2;">
+    <strong style="color:#991b1b;">Step 1</strong>
+    <div class="sub">Delete Online Endpoints</div>
+    <div class="sub" style="font-family:monospace;font-size:0.65rem;">az ml online-endpoint delete</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:var(--accent-orange); background:#fffbeb;">
+    <strong style="color:#92400e;">Step 2</strong>
+    <div class="sub">Delete FT Deployment</div>
+    <div class="sub" style="font-family:monospace;font-size:0.65rem;">az cognitiveservices ... delete</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#86efac; background:#f0fdf4;">
+    <strong style="color:#166534;">Step 3</strong>
+    <div class="sub">Stop Compute Instance</div>
+    <div class="sub" style="font-family:monospace;font-size:0.65rem;">az ml compute stop</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#7b42bc; background:#f5f3ff;">
+    <strong style="color:#5b21b6;">Step 4</strong>
+    <div class="sub">Terraform Destroy</div>
+    <div class="sub" style="font-family:monospace;font-size:0.65rem;">terraform destroy</div>
+  </div>
+</div>
+</div>
+
+<pre style="background:#1e1e2e;color:#cdd6f4;padding:16px;border-radius:8px;overflow-x:auto;font-size:0.85rem;">
+<span style="color:#6c7086;"># 1. Delete endpoints (highest hourly cost)</span>
+<span style="color:#a6e3a1;">az ml online-endpoint delete</span> --name facade-classifier-endpoint --yes
+<span style="color:#a6e3a1;">az ml online-endpoint delete</span> --name ldr-validator-endpoint --yes
+
+<span style="color:#6c7086;"># 2. Delete fine-tuned model deployment (~$1.70/hr)</span>
+<span style="color:#a6e3a1;">az cognitiveservices account deployment delete</span> \
+  --name &lt;openai-resource&gt; --resource-group $RESOURCE_GROUP \
+  --deployment-name ft-spec-generator
+
+<span style="color:#6c7086;"># 3. Stop compute instance</span>
+<span style="color:#a6e3a1;">az ml compute stop</span> --name ci-dev-dev \
+  --resource-group $RESOURCE_GROUP --workspace-name $ML_WORKSPACE
+
+<span style="color:#6c7086;"># 4. Full destroy (deletes ALL resources including RG)</span>
+<span style="color:#a6e3a1;">cd</span> deploymentcode/terraform
+<span style="color:#a6e3a1;">terraform</span> destroy
+</pre>
+</div>
+
+<!-- Footer -->
+<div style="text-align:center; padding:40px 0; color:var(--text-muted); font-size:0.85rem;">
+  <p>Claude.Bricks As-Built Document &bull; Generated March 2026</p>
+  <p>Azure ML Infrastructure for DP-100 Lab Scenarios</p>
+</div>
+
+</div>
+</body>
+</html>

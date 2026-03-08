@@ -1,0 +1,10 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
+name: blue
+endpoint_name: facade-classifier-endpoint
+model: azureml:facade-classifier:1
+code_configuration:
+  code: ./
+  scoring_script: score.py
+environment: azureml:claudebricks-sklearn:1
+instance_type: Standard_DS3_v2
+instance_count: 1

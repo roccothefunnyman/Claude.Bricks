@@ -1,0 +1,37 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
+
+inputs:
+  user_prompt:
+    type: string
+    default: "3-story historic European townhouse with a shop on the ground floor"
+
+outputs:
+  building_spec:
+    type: string
+    reference: ${generate.output}
+
+nodes:
+  - name: retrieve
+    type: python
+    source:
+      type: code
+      path: retrieve.py
+    inputs:
+      query: ${inputs.user_prompt}
+      search_endpoint: "${env:SEARCH_ENDPOINT}"
+      index_name: "building-specs"
+      top_k: 3
+
+  - name: generate
+    type: python
+    source:
+      type: code
+      path: generate.py
+    inputs:
+      user_prompt: ${inputs.user_prompt}
+      context: ${retrieve.output}
+      openai_endpoint: "${env:OPENAI_ENDPOINT}"
+      deployment_name: "gpt-4o-mini"
+
+environment:
+  python_requirements_txt: requirements.txt
