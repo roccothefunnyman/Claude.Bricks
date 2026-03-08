@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" font-family="Segoe UI, system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="hdr" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b1f7b"/>
+      <stop offset="60%" stop-color="#7b42bc"/>
+      <stop offset="100%" stop-color="#a77be0"/>
+    </linearGradient>
+    <filter id="sh" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7b42bc"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="280" rx="16" fill="#f8f9fa"/>
+
+  <!-- Title bar -->
+  <rect width="960" height="48" rx="16" fill="url(#hdr)"/>
+  <rect y="32" width="960" height="16" fill="url(#hdr)"/>
+  <text x="480" y="32" text-anchor="middle" fill="white" font-size="17" font-weight="700">Deployment Phases</text>
+
+  <!-- Phase 1: Terraform -->
+  <rect x="32" y="66" width="260" height="140" rx="12" fill="white" stroke="#7b42bc" stroke-width="2.5" filter="url(#sh)"/>
+  <rect x="40" y="74" width="72" height="20" rx="10" fill="#7b42bc"/>
+  <text x="76" y="88" text-anchor="middle" fill="white" font-size="10" font-weight="600">PHASE 1</text>
+  <text x="120" y="88" fill="#1a1a2e" font-size="14" font-weight="700">Terraform</text>
+  <text x="48" y="112" fill="#6c757d" font-size="11">Provisions 15+ Azure resources</text>
+  <text x="48" y="128" fill="#6c757d" font-size="11">into one Resource Group.</text>
+  <text x="48" y="148" fill="#6c757d" font-size="11">Storage, Key Vault, ACR,</text>
+  <text x="48" y="164" fill="#6c757d" font-size="11">ML Workspace, AI services</text>
+  <rect x="48" y="176" width="80" height="18" rx="9" fill="#f5f0ff" stroke="#c4b5fd"/>
+  <text x="88" y="189" text-anchor="middle" fill="#7b42bc" font-size="10" font-weight="600">5-15 min</text>
+
+  <!-- Arrow 1->2 -->
+  <line x1="292" y1="136" x2="346" y2="136" stroke="#7b42bc" stroke-width="2.5" marker-end="url(#arr)"/>
+
+  <!-- Phase 2: Bootstrap -->
+  <rect x="352" y="66" width="240" height="140" rx="12" fill="white" stroke="#0078d4" stroke-width="2.5" filter="url(#sh)"/>
+  <rect x="360" y="74" width="72" height="20" rx="10" fill="#0078d4"/>
+  <text x="396" y="88" text-anchor="middle" fill="white" font-size="10" font-weight="600">PHASE 2</text>
+  <text x="440" y="88" fill="#1a1a2e" font-size="14" font-weight="700">Bootstrap</text>
+  <text x="368" y="112" fill="#6c757d" font-size="11">Post-Terraform setup via</text>
+  <text x="368" y="128" fill="#6c757d" font-size="11">Azure ML SDK v2.</text>
+  <text x="368" y="148" fill="#6c757d" font-size="11">Compute targets, datastores,</text>
+  <text x="368" y="164" fill="#6c757d" font-size="11">environments</text>
+  <rect x="368" y="176" width="64" height="18" rx="9" fill="#f0f6ff" stroke="#c7ddf5"/>
+  <text x="400" y="189" text-anchor="middle" fill="#0078d4" font-size="10" font-weight="600">~2 min</text>
+
+  <!-- Arrow 2->3 -->
+  <line x1="592" y1="136" x2="646" y2="136" stroke="#7b42bc" stroke-width="2.5" marker-end="url(#arr)"/>
+
+  <!-- Phase 3-6: ML Scenarios -->
+  <rect x="652" y="66" width="276" height="140" rx="12" fill="white" stroke="#10b981" stroke-width="2.5" filter="url(#sh)"/>
+  <rect x="660" y="74" width="80" height="20" rx="10" fill="#10b981"/>
+  <text x="700" y="88" text-anchor="middle" fill="white" font-size="10" font-weight="600">PHASE 3-6</text>
+  <text x="748" y="88" fill="#1a1a2e" font-size="14" font-weight="700">ML Scenarios</text>
+  <text x="668" y="112" fill="#6c757d" font-size="11">Four independent scenarios,</text>
+  <text x="668" y="128" fill="#6c757d" font-size="11">run in any order.</text>
+  <text x="668" y="148" fill="#6c757d" font-size="11">Train, evaluate, deploy,</text>
+  <text x="668" y="164" fill="#6c757d" font-size="11">and score per scenario</text>
+  <rect x="668" y="176" width="100" height="18" rx="9" fill="#ecfdf5" stroke="#6ee7b7"/>
+  <text x="718" y="189" text-anchor="middle" fill="#10b981" font-size="10" font-weight="600">~30-45 min each</text>
+
+  <!-- Scenario badges -->
+  <rect x="668" y="218" width="40" height="16" rx="8" fill="#6366f1"/>
+  <text x="688" y="230" text-anchor="middle" fill="white" font-size="8" font-weight="600">S1</text>
+  <rect x="716" y="218" width="40" height="16" rx="8" fill="#f59e0b"/>
+  <text x="736" y="230" text-anchor="middle" fill="white" font-size="8" font-weight="600">S2</text>
+  <rect x="764" y="218" width="40" height="16" rx="8" fill="#10b981"/>
+  <text x="784" y="230" text-anchor="middle" fill="white" font-size="8" font-weight="600">S3</text>
+  <rect x="812" y="218" width="40" height="16" rx="8" fill="#ef4444"/>
+  <text x="832" y="230" text-anchor="middle" fill="white" font-size="8" font-weight="600">S4</text>
+  <text x="788" y="250" text-anchor="middle" fill="#6c757d" font-size="9" font-style="italic">Independent, any order</text>
+
+  <!-- Footer -->
+  <text x="480" y="268" text-anchor="middle" fill="#6c757d" font-size="10" font-style="italic">Total time from zero to trained models: roughly 2-4 hours. Scenarios are independent and can run in parallel.</text>
+</svg>

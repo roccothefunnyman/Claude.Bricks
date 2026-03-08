@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" font-family="Segoe UI, system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="hdr" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7b2d00"/>
+      <stop offset="60%" stop-color="#c0392b"/>
+      <stop offset="100%" stop-color="#e74c3c"/>
+    </linearGradient>
+    <filter id="sh" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+    <filter id="sh-sm" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+    </marker>
+    <marker id="arr-blue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0078d4"/>
+    </marker>
+    <marker id="arr-grn" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+    <marker id="arr-down" markerWidth="7" markerHeight="10" refX="3.5" refY="10" orient="auto">
+      <polygon points="0 0, 3.5 10, 7 0" fill="#0078d4"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="520" rx="16" fill="#f8f9fa"/>
+
+  <!-- Title bar -->
+  <rect width="960" height="52" rx="16" fill="url(#hdr)"/>
+  <rect y="36" width="960" height="16" fill="url(#hdr)"/>
+  <text x="480" y="34" text-anchor="middle" fill="white" font-size="18" font-weight="700">LEGO Design Workflow: From Text to Bricks</text>
+
+  <!-- ======================== -->
+  <!-- MAIN PIPELINE FLOW       -->
+  <!-- ======================== -->
+
+  <!-- Step 1: Your Prompt -->
+  <rect x="32" y="76" width="150" height="100" rx="12" fill="white" stroke="#c7ddf5" stroke-width="2" filter="url(#sh)"/>
+  <circle cx="66" cy="104" r="16" fill="#0078d4" opacity="0.12"/>
+  <text x="66" y="109" text-anchor="middle" fill="#0078d4" font-size="18">&#128172;</text>
+  <text x="90" y="106" fill="#1a1a2e" font-size="12" font-weight="700">You Describe</text>
+  <text x="46" y="126" fill="#6c757d" font-size="10">"2-story Victorian,</text>
+  <text x="46" y="139" fill="#6c757d" font-size="10">dark red and tan,</text>
+  <text x="46" y="152" fill="#6c757d" font-size="10">32x16 studs"</text>
+  <rect x="36" y="160" width="52" height="12" rx="6" fill="#0078d4" opacity="0.08"/>
+  <text x="62" y="170" text-anchor="middle" fill="#0078d4" font-size="8" font-weight="600">STEP 1</text>
+
+  <!-- Arrow 1->2 -->
+  <line x1="182" y1="126" x2="218" y2="126" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr)"/>
+
+  <!-- Step 2: Claude Code -->
+  <rect x="224" y="76" width="170" height="100" rx="12" fill="#f0f6ff" stroke="#0078d4" stroke-width="3" filter="url(#sh)"/>
+  <circle cx="264" cy="104" r="16" fill="#0078d4" opacity="0.15"/>
+  <text x="264" y="109" text-anchor="middle" fill="#0078d4" font-size="16" font-weight="700">CC</text>
+  <text x="288" y="106" fill="#1a1a2e" font-size="12" font-weight="700">Claude Code</text>
+  <text x="238" y="126" fill="#6c757d" font-size="10">Interprets your request,</text>
+  <text x="238" y="139" fill="#6c757d" font-size="10">designs the building,</text>
+  <text x="238" y="152" fill="#6c757d" font-size="10">writes a PowerShell script</text>
+  <rect x="228" y="160" width="52" height="12" rx="6" fill="#0078d4" opacity="0.08"/>
+  <text x="254" y="170" text-anchor="middle" fill="#0078d4" font-size="8" font-weight="600">STEP 2</text>
+
+  <!-- Arrow 2->3 -->
+  <line x1="394" y1="126" x2="430" y2="126" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr)"/>
+
+  <!-- Step 3: PowerShell Script -->
+  <rect x="436" y="76" width="160" height="100" rx="12" fill="white" stroke="#7b42bc" stroke-width="2" filter="url(#sh)"/>
+  <circle cx="470" cy="104" r="16" fill="#7b42bc" opacity="0.12"/>
+  <text x="470" y="109" text-anchor="middle" fill="#7b42bc" font-size="13" font-weight="700">PS</text>
+  <text x="494" y="106" fill="#1a1a2e" font-size="12" font-weight="700">PowerShell</text>
+  <text x="450" y="126" fill="#6c757d" font-size="10">~300-600 lines of</text>
+  <text x="450" y="139" fill="#6c757d" font-size="10">procedural generation</text>
+  <text x="450" y="152" fill="#6c757d" font-size="10">with helper functions</text>
+  <rect x="440" y="160" width="52" height="12" rx="6" fill="#7b42bc" opacity="0.08"/>
+  <text x="466" y="170" text-anchor="middle" fill="#7b42bc" font-size="8" font-weight="600">STEP 3</text>
+
+  <!-- Arrow 3->4 -->
+  <line x1="596" y1="126" x2="632" y2="126" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr)"/>
+
+  <!-- Step 4: .ldr Output -->
+  <rect x="638" y="76" width="130" height="100" rx="12" fill="white" stroke="#10b981" stroke-width="2" filter="url(#sh)"/>
+  <circle cx="672" cy="104" r="16" fill="#10b981" opacity="0.12"/>
+  <text x="672" y="109" text-anchor="middle" fill="#10b981" font-size="12" font-weight="700">.ldr</text>
+  <text x="696" y="106" fill="#1a1a2e" font-size="12" font-weight="700">LDraw File</text>
+  <text x="652" y="126" fill="#6c757d" font-size="10">1,000-3,000+ lines</text>
+  <text x="652" y="139" fill="#6c757d" font-size="10">of valid LDraw</text>
+  <text x="652" y="152" fill="#6c757d" font-size="10">geometry</text>
+  <rect x="642" y="160" width="52" height="12" rx="6" fill="#10b981" opacity="0.08"/>
+  <text x="668" y="170" text-anchor="middle" fill="#10b981" font-size="8" font-weight="600">STEP 4</text>
+
+  <!-- Arrow 4->5 -->
+  <line x1="768" y1="126" x2="804" y2="126" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr)"/>
+
+  <!-- Step 5: BrickLink Studio -->
+  <rect x="810" y="76" width="120" height="100" rx="12" fill="#fef3c7" stroke="#fcd34d" stroke-width="2" filter="url(#sh)"/>
+  <circle cx="844" cy="104" r="16" fill="#f59e0b" opacity="0.15"/>
+  <text x="844" y="109" text-anchor="middle" fill="#f59e0b" font-size="16">&#127912;</text>
+  <text x="824" y="126" fill="#1a1a2e" font-size="11" font-weight="700">BrickLink</text>
+  <text x="824" y="139" fill="#1a1a2e" font-size="11" font-weight="700">Studio</text>
+  <text x="824" y="156" fill="#6c757d" font-size="10">View, render,</text>
+  <text x="824" y="169" fill="#6c757d" font-size="10">refine</text>
+
+  <!-- Why PowerShell callout -->
+  <rect x="436" y="192" width="160" height="42" rx="8" fill="#f5f0ff" stroke="#7b42bc" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="444" y="208" fill="#7b42bc" font-size="9" font-weight="600">Why not raw .ldr?</text>
+  <text x="444" y="222" fill="#6c757d" font-size="9">32K token limit. Scripts</text>
+  <text x="444" y="232" fill="#6c757d" font-size="9">compress 10:1.</text>
+  <line x1="516" y1="176" x2="516" y2="192" stroke="#7b42bc" stroke-width="1" stroke-dasharray="3 2"/>
+
+  <!-- ======================== -->
+  <!-- MULTI-AGENT WORKFLOW     -->
+  <!-- ======================== -->
+  <rect x="32" y="252" width="896" height="248" rx="12" fill="white" stroke="#e0e0e0" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="48" y="274" fill="#6c757d" font-size="11" font-weight="600" letter-spacing="0.5">MULTI-AGENT WORKFLOW (COMPLEX BUILDS)</text>
+
+  <!-- Orchestrator hub -->
+  <rect x="368" y="286" width="224" height="56" rx="10" fill="#f0f6ff" stroke="#0078d4" stroke-width="2.5" filter="url(#sh-sm)"/>
+  <circle cx="400" cy="314" r="16" fill="#0078d4" opacity="0.15"/>
+  <text x="400" y="319" text-anchor="middle" fill="#0078d4" font-size="14" font-weight="700">CC</text>
+  <text x="424" y="308" fill="#1a1a2e" font-size="13" font-weight="700">Claude Code</text>
+  <text x="424" y="324" fill="#0078d4" font-size="11" font-weight="600">Orchestrator</text>
+
+  <!-- Agent 1: Reference Analyzer -->
+  <rect x="48" y="362" width="196" height="70" rx="10" fill="white" stroke="#6366f1" stroke-width="2" filter="url(#sh-sm)"/>
+  <rect x="56" y="368" width="78" height="16" rx="8" fill="#6366f1"/>
+  <text x="95" y="380" text-anchor="middle" fill="white" font-size="8" font-weight="600">EXPLORE AGENT</text>
+  <text x="56" y="400" fill="#1a1a2e" font-size="11" font-weight="700">Reference Analyzer</text>
+  <text x="56" y="416" fill="#6c757d" font-size="9">Reads .ldr files in chunks,</text>
+  <text x="56" y="428" fill="#6c757d" font-size="9">extracts patterns (parallel)</text>
+
+  <!-- Agent 2: Architect -->
+  <rect x="258" y="362" width="196" height="70" rx="10" fill="white" stroke="#f59e0b" stroke-width="2" filter="url(#sh-sm)"/>
+  <rect x="266" y="368" width="76" height="16" rx="8" fill="#f59e0b"/>
+  <text x="304" y="380" text-anchor="middle" fill="white" font-size="8" font-weight="600">PLAN AGENT</text>
+  <text x="266" y="400" fill="#1a1a2e" font-size="11" font-weight="700">Architect</text>
+  <text x="266" y="416" fill="#6c757d" font-size="9">Designs layout, dimensions,</text>
+  <text x="266" y="428" fill="#6c757d" font-size="9">colors, window placements</text>
+
+  <!-- Agent 3: Script Writer -->
+  <rect x="468" y="362" width="196" height="70" rx="10" fill="white" stroke="#10b981" stroke-width="2" filter="url(#sh-sm)"/>
+  <rect x="476" y="368" width="96" height="16" rx="8" fill="#10b981"/>
+  <text x="524" y="380" text-anchor="middle" fill="white" font-size="8" font-weight="600">GENERAL AGENT</text>
+  <text x="476" y="400" fill="#1a1a2e" font-size="11" font-weight="700">Script Writer</text>
+  <text x="476" y="416" fill="#6c757d" font-size="9">Writes PowerShell generation</text>
+  <text x="476" y="428" fill="#6c757d" font-size="9">script with helper functions</text>
+
+  <!-- Agent 4: Validator -->
+  <rect x="678" y="362" width="196" height="70" rx="10" fill="white" stroke="#ef4444" stroke-width="2" filter="url(#sh-sm)"/>
+  <rect x="686" y="368" width="76" height="16" rx="8" fill="#ef4444"/>
+  <text x="724" y="380" text-anchor="middle" fill="white" font-size="8" font-weight="600">BASH AGENT</text>
+  <text x="686" y="400" fill="#1a1a2e" font-size="11" font-weight="700">Validator</text>
+  <text x="686" y="416" fill="#6c757d" font-size="9">Checks .ldr for valid parts,</text>
+  <text x="686" y="428" fill="#6c757d" font-size="9">coords, colors, structure</text>
+
+  <!-- Lines from orchestrator to agents -->
+  <line x1="420" y1="342" x2="146" y2="362" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="460" y1="342" x2="356" y2="362" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="520" y1="342" x2="566" y2="362" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="540" y1="342" x2="776" y2="362" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+  <!-- Flow labels -->
+  <text x="228" y="352" fill="#6366f1" font-size="8" font-style="italic">if ref files</text>
+  <text x="388" y="352" fill="#f59e0b" font-size="8" font-style="italic">design</text>
+  <text x="536" y="352" fill="#10b981" font-size="8" font-style="italic">build</text>
+  <text x="660" y="352" fill="#ef4444" font-size="8" font-style="italic">verify</text>
+
+  <!-- Sequential flow arrows between agents -->
+  <line x1="244" y1="448" x2="258" y2="448" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <line x1="454" y1="448" x2="468" y2="448" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <line x1="664" y1="448" x2="678" y2="448" stroke="#0078d4" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+
+  <!-- Feedback loop from validator -->
+  <path d="M 776 432 C 800 460, 800 480, 566 486 C 400 490, 340 486, 320 470" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <text x="560" y="482" fill="#ef4444" font-size="8" font-style="italic">fix issues, regenerate</text>
+
+  <!-- Footer -->
+  <text x="480" y="510" text-anchor="middle" fill="#6c757d" font-size="10" font-style="italic">Claude Code orchestrates specialized agents for complex builds. Each agent type runs autonomously with focused context.</text>
+</svg>

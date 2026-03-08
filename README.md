@@ -58,21 +58,23 @@ A single `terraform apply` provisions 15+ Azure resources into one Resource Grou
 
 ### 📦 Deployment Phases
 
-```
-Phase 1              Phase 2             Phase 3-6
-Terraform       -->  Bootstrap      -->  ML Scenarios (independent, any order)
-5-15 min             ~2 min              ~30-45 min each
+<div align="center">
 
-15 Azure             Compute,            Train, evaluate, deploy,
-resources            datastores,         score per scenario
-provisioned          environments
-```
+![Deployment Phases](docs/deployment-phases.svg)
+
+</div>
 
 ---
 
 ## 🧱 LEGO Design Workflow
 
 You describe what you want, Claude generates a PowerShell script, the script outputs an LDraw (.ldr) file, and you open it in BrickLink Studio to view, render, and refine.
+
+<div align="center">
+
+![LEGO Design Workflow](docs/design-workflow.svg)
+
+</div>
 
 ### Prerequisites
 
@@ -113,29 +115,11 @@ For complex buildings, Claude spawns a team of specialized agents:
 
 ## 📁 Repository Structure
 
-```
-Claude.Bricks/
-├── CLAUDE.md                 # Claude Code session context
-├── README.md                 # This file
-├── docs/
-│   └── index.html            # As-Built document (GitHub Pages)
-├── deploymentcode/           # Azure ML deployment scripts
-│   ├── infrastructure/       # Terraform configs
-│   ├── bootstrap/            # Post-Terraform setup (SDK v2)
-│   ├── scenarios/            # ML scenario implementations (1-4)
-│   └── data/                 # Training data per scenario
-├── standards/                # LDraw format and building conventions
-│   ├── ldraw-format.md
-│   ├── modular-building-spec.md
-│   ├── parts-catalog.md
-│   ├── color-palette.md
-│   └── architectural-patterns.md
-├── scripts/                  # PowerShell LEGO generation scripts
-├── output/                   # Generated .ldr files
-├── reference/                # Reference .ldr files for analysis
-├── modules/                  # Shared PowerShell module (LDraw.psm1)
-└── azure-icons/              # Azure SVG icons for documentation
-```
+<div align="center">
+
+![Repository Structure](docs/repo-structure.svg)
+
+</div>
 
 ## 📎 Adding Reference Files
 
