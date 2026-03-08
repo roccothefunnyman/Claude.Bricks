@@ -2,7 +2,10 @@
 
 ## Project Overview
 
-This repo designs **modular LEGO buildings** using the **LDraw (.ldr) file format**, rendered in **BrickLink Studio (stud.io)**. Claude Code generates buildings via PowerShell scripts that output .ldr files.
+This repo has two halves:
+
+1. **LEGO Design** - Claude Code agents design modular LEGO buildings using the LDraw (.ldr) file format, rendered in BrickLink Studio (stud.io). Buildings are generated via PowerShell scripts.
+2. **Azure ML Platform** - Bicep IaC provisions 15+ Azure resources. Four ML scenarios (facade classification, structural validation, pattern extraction, RAG spec generation) run on Azure ML with GitHub Actions CI/CD. The project covers all five AI-300 exam domains.
 
 ## Critical Rules
 
@@ -367,16 +370,86 @@ User Request
 
 ## File Conventions
 
+### LEGO Files
 - **Scripts**: `scripts/<BuildingName>.ps1` (PascalCase)
-- **Output**: `output/<BuildingName>.ldr` (PascalCase)
-- **Reference files**: `reference/<descriptive-name>.ldr`
+- **Output**: `output/<BuildingName>.ldr` (PascalCase, gitignored)
+- **Reference files**: `reference/<descriptive-name>.ldr` (gitignored)
 - **Standards**: `standards/<topic>.md` (kebab-case)
+- **Shared module**: `modules/LDraw.psm1`
+
+### Bicep IaC
+- **Orchestrator**: `deploymentcode/bicep/main.bicep` (calls all child modules)
+- **Modules**: `deploymentcode/bicep/modules/<resource>.bicep` (kebab-case, 15 modules)
+- **Parameters**: `deploymentcode/bicep/parameters/<env>.bicepparam` (dev, test)
+- **Deploy scripts**: `deploymentcode/bicep/scripts/` (deploy.sh, deploy.ps1, whatif.sh, teardown.sh, validate.sh)
+- **ARM output**: `deploymentcode/bicep/*.json` (gitignored except bicepconfig.json)
+- **Naming convention**: All resources use `${prefix}-${resourceType}-${environment}` pattern defined in main.bicep
+
+### GitHub Actions
+- **Workflows**: `.github/workflows/<name>.yml` (5 workflows: infra, train, deploy-model, eval-rag, drift-check)
+- **Auth**: OIDC federated credentials, no stored secrets
+- **Environment protection**: `test` environment requires approval gate
+
+### Python Scripts (Azure ML SDK v2)
+- **Shared utilities**: `deploymentcode/scripts/common/` (ml_client.py, telemetry.py)
+- **Scenario scripts**: `deploymentcode/scripts/scenario[1-4]/`
+- **Asset registration**: `deploymentcode/scripts/register_*.py`, `publish_to_registry.py`, `promote_model.py`
+- **Foundry scripts**: `deploymentcode/scripts/scenario4/foundry/` (create_project.py, deploy_model.py, configure_index.py, run_evaluation.py, configure_monitoring.py, trace_analysis.py)
+- **All scripts** import `common.ml_client.get_ml_client()` for workspace connection
+
+### Prompts (versioned)
+- **System prompts**: `prompts/system/v<N>.txt`
+- **RAG templates**: `prompts/rag/v<N>.jinja2`
+- **Few-shot examples**: `prompts/few-shot/`
+- **Changelog**: `prompts/CHANGELOG.md` (records what changed between versions)
+- Prompt files are plain text/Jinja2. No code in prompt files.
+
+### Evaluation
+- **Test dataset**: `eval/datasets/lego-spec-generator.jsonl` (15 rows, ground truth + expected output)
+- **Threshold config**: `eval/configs/thresholds.json` (min scores for 6 metrics)
+- **Custom evaluators**: `eval/evaluators/` (e.g., buildability.py)
+- **Runners**: `eval/run_evaluation.py`, `eval/run_prompt_experiment.py`, `eval/run_rag_tuning.py`
+- **Results**: `eval/results/` (gitignored)
+
+### Monitoring
+- **Drift detection**: `monitoring/drift/` (create_baseline.py, detect_drift.py, alert_config.py)
+- **Feedback analysis**: `monitoring/feedback/trend_failures.py`
+- **KQL dashboards**: `monitoring/dashboards/*.kql`
+
+### Runbooks
+- **Operational docs**: `runbooks/` (endpoint-deployment.md, asset-lifecycle.md)
 
 ## Standards Documentation
 
 Detailed references are in the `standards/` directory:
-- `ldraw-format.md` — Full LDraw file format specification
-- `modular-building-spec.md` — Modular building dimensions and conventions
-- `parts-catalog.md` — Comprehensive parts list with dimensions
-- `color-palette.md` — Color codes and themed palettes
-- `architectural-patterns.md` — Proven facade and detail patterns
+- `ldraw-format.md` -- Full LDraw file format specification
+- `modular-building-spec.md` -- Modular building dimensions and conventions
+- `parts-catalog.md` -- Comprehensive parts list with dimensions
+- `color-palette.md` -- Color codes and themed palettes
+- `architectural-patterns.md` -- Proven facade and detail patterns
+
+## Azure Infrastructure Notes
+
+### Bicep Compilation
+Run `az bicep build -f deploymentcode/bicep/main.bicep` to compile to ARM JSON. The output is gitignored. Use `deploymentcode/bicep/scripts/validate.sh` to lint and compile without deploying.
+
+### Key Architecture Decisions
+- **AI Foundry** uses `kind: Hub` and `kind: Project` on `Microsoft.MachineLearningServices/workspaces` (not separate resource types)
+- **AML Registry** enables cross-workspace asset sharing for dev-to-test promotion
+- **Cognitive Services** deploys GPT-4o and text-embedding-3-large with TPM quotas
+- **AI Search** uses semantic + vector hybrid configuration
+- **RBAC** assignments grant the workspace managed identity access to storage, key vault, ACR, and cognitive services
+- **Private endpoints** are conditional (controlled by `enablePrivateEndpoints` parameter)
+
+### Endpoint Deployment Pattern
+Scenario 1 uses blue/green canary deployment:
+1. `deploy_canary.py` creates a new deployment with 0% traffic
+2. `smoke_test.py` validates the canary with test requests
+3. `promote_deployment.py` shifts traffic (10% -> 50% -> 100%)
+4. `rollback_deployment.py` reverts if smoke tests fail
+
+### Writing Style (for docs and as-built)
+- No em-dashes. Use commas, periods, or parentheses instead.
+- No buzzwords (seamlessly, robust, leverage, comprehensive, cutting-edge).
+- Direct practitioner voice. Say what things do, not how impressive they are.
+- Include limits and caveats where they exist.
