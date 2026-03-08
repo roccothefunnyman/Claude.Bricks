@@ -2095,84 +2095,241 @@ prompts/<br>
     Five distinct data paths move through the platform. Each path has different latency expectations and storage targets.
   </p>
 
-  <!-- Flow 1: Training -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="font-size:16px;font-weight:600;margin-bottom:12px;">1. Training Data Flow</h3>
-    <div class="flow-row">
-      <div class="flow-box">Raw Data<br><span style="font-size:11px;color:#6c757d;">images, .ldr files, stats</span></div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Storage Containers<br><span style="font-size:11px;color:#6c757d;">Blob Storage</span></div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">AML Data Assets<br><span style="font-size:11px;color:#6c757d;">versioned references</span></div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Training Jobs<br><span style="font-size:11px;color:#6c757d;">compute cluster</span></div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">MLflow Metrics<br><span style="font-size:11px;color:#6c757d;">experiment tracking</span></div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Model Registry<br><span style="font-size:11px;color:#6c757d;">versioned models</span></div>
+  <!-- Flow 1: Training Data Flow - Journey Style -->
+  <div class="card" style="margin-bottom:20px;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#0078d4;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">1</div>
+      <h3 style="font-size:17px;font-weight:600;margin:0;color:#0078d4;">Training Data Flow</h3>
     </div>
+    <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #0078d4;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,120,212,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/general/10780-icon-service-Blob-Block.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Raw Data</div>
+        <div style="font-size:11px;color:#797775;text-align:center;">images, .ldr, stats</div>
+      </div>
+      <div style="color:#0078d4;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #0078d4;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,120,212,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Storage</div>
+        <div style="font-size:11px;color:#797775;text-align:center;">Blob containers</div>
+      </div>
+      <div style="color:#0078d4;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #5c2d91;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(92,45,145,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Data Assets</div>
+        <div style="font-size:11px;color:#797775;text-align:center;">versioned refs</div>
+      </div>
+      <div style="color:#5c2d91;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #008575;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,133,117,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Training Jobs</div>
+        <div style="font-size:11px;color:#797775;text-align:center;">compute cluster</div>
+      </div>
+      <div style="color:#008575;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #f7630c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(247,99,12,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/monitor/00020-icon-service-Metrics.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">MLflow</div>
+        <div style="font-size:11px;color:#797775;text-align:center;">experiment tracking</div>
+      </div>
+      <div style="color:#f7630c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #28a745;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(40,167,69,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/containers/10105-icon-service-Container-Registries.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Model Registry</div>
+        <div style="font-size:11px;color:#797775;text-align:center;">versioned models</div>
+      </div>
+    </div>
+    <div style="height:4px;background:linear-gradient(90deg,#0078d4 0%,#5c2d91 33%,#008575 50%,#f7630c 75%,#28a745 100%);border-radius:2px;margin-top:8px;opacity:0.4;"></div>
   </div>
 
-  <!-- Flow 2: Inference -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="font-size:16px;font-weight:600;margin-bottom:12px;">2. Inference Data Flow</h3>
-    <div class="flow-row">
-      <div class="flow-box">Client Request</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Managed Endpoint</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Model Prediction</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Response + Inference Log</div>
+  <!-- Flow 2: Inference Data Flow -->
+  <div class="card" style="margin-bottom:20px;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#5c2d91;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">2</div>
+      <h3 style="font-size:17px;font-weight:600;margin:0;color:#5c2d91;">Inference Data Flow</h3>
     </div>
+    <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #5c2d91;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(92,45,145,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#5c2d91"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Client Request</div>
+      </div>
+      <div style="color:#5c2d91;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #5c2d91;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(92,45,145,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Managed Endpoint</div>
+      </div>
+      <div style="color:#5c2d91;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #5c2d91;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(92,45,145,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Model Prediction</div>
+      </div>
+      <div style="color:#5c2d91;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #5c2d91;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(92,45,145,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/devops/00012-icon-service-Application-Insights.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Response + Log</div>
+      </div>
+    </div>
+    <div style="height:4px;background:linear-gradient(90deg,#5c2d91,#9b6dd7);border-radius:2px;margin-top:8px;opacity:0.4;"></div>
   </div>
 
-  <!-- Flow 3: Evaluation -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="font-size:16px;font-weight:600;margin-bottom:12px;">3. Evaluation Data Flow</h3>
-    <div class="flow-row">
-      <div class="flow-box">Test Dataset<br><span style="font-size:11px;color:#6c757d;">eval/datasets/</span></div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Evaluation Runner</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Quality Metrics</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Results</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">GitHub Actions Gate<br><span style="font-size:11px;color:#6c757d;">pass/fail</span></div>
+  <!-- Flow 3: Evaluation Data Flow -->
+  <div class="card" style="margin-bottom:20px;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#008575;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">3</div>
+      <h3 style="font-size:17px;font-weight:600;margin:0;color:#008575;">Evaluation Data Flow</h3>
     </div>
+    <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:105px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #008575;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,133,117,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Test Dataset</div>
+        <div style="font-size:11px;color:#797775;">eval/datasets/</div>
+      </div>
+      <div style="color:#008575;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:105px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #008575;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,133,117,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/ai foundry/AIFoundry.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Eval Runner</div>
+        <div style="font-size:11px;color:#797775;">run_evaluation.py</div>
+      </div>
+      <div style="color:#008575;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:105px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #008575;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,133,117,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/monitor/00020-icon-service-Metrics.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Quality Metrics</div>
+        <div style="font-size:11px;color:#797775;">6 scores</div>
+      </div>
+      <div style="color:#008575;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:105px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #008575;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,133,117,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/general/10015-icon-service-Dashboard.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Results</div>
+        <div style="font-size:11px;color:#797775;">eval/results/</div>
+      </div>
+      <div style="color:#008575;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:105px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #28a745;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(40,167,69,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/devops/10261-icon-service-Azure-DevOps.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Actions Gate</div>
+        <div style="font-size:11px;color:#28a745;font-weight:600;">pass / fail</div>
+      </div>
+    </div>
+    <div style="height:4px;background:linear-gradient(90deg,#008575,#28a745);border-radius:2px;margin-top:8px;opacity:0.4;"></div>
   </div>
 
-  <!-- Flow 4: Prompt -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="font-size:16px;font-weight:600;margin-bottom:12px;">4. Prompt Data Flow</h3>
-    <div class="flow-row">
-      <div class="flow-box">Prompt Files<br><span style="font-size:11px;color:#6c757d;">prompts/</span></div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Git Version Control</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Evaluation Runner</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Experiment Results</div>
+  <!-- Flow 4: Prompt Data Flow -->
+  <div class="card" style="margin-bottom:20px;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#f7630c;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">4</div>
+      <h3 style="font-size:17px;font-weight:600;margin:0;color:#f7630c;">Prompt Data Flow</h3>
     </div>
+    <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #f7630c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(247,99,12,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#f7630c"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Prompt Files</div>
+        <div style="font-size:11px;color:#797775;">prompts/</div>
+      </div>
+      <div style="color:#f7630c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #f7630c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(247,99,12,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/devops/10261-icon-service-Azure-DevOps.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Git Version Control</div>
+      </div>
+      <div style="color:#f7630c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #f7630c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(247,99,12,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/ai foundry/AIFoundry.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Eval Runner</div>
+      </div>
+      <div style="color:#f7630c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:120px;padding:8px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #f7630c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(247,99,12,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/general/10015-icon-service-Dashboard.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Experiment Results</div>
+      </div>
+    </div>
+    <div style="height:4px;background:linear-gradient(90deg,#f7630c,#fea11b);border-radius:2px;margin-top:8px;opacity:0.4;"></div>
   </div>
 
-  <!-- Flow 5: Monitoring -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="font-size:16px;font-weight:600;margin-bottom:12px;">5. Monitoring Data Flow</h3>
-    <div class="flow-row">
-      <div class="flow-box">Inference Logs</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Drift Detection Job</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">PSI / KS Metrics</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">App Insights</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Alert</div>
-      <div class="flow-arrow"></div>
-      <div class="flow-box">Retrain Trigger</div>
+  <!-- Flow 5: Monitoring Data Flow -->
+  <div class="card" style="margin-bottom:20px;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#e74c3c;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">5</div>
+      <h3 style="font-size:17px;font-weight:600;margin:0;color:#e74c3c;">Monitoring Data Flow</h3>
     </div>
+    <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:95px;padding:6px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #e74c3c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(231,76,60,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/devops/00012-icon-service-Application-Insights.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Inference Logs</div>
+      </div>
+      <div style="color:#e74c3c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:95px;padding:6px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #e74c3c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(231,76,60,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Drift Job</div>
+      </div>
+      <div style="color:#e74c3c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:95px;padding:6px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #e74c3c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(231,76,60,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/monitor/00020-icon-service-Metrics.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">PSI / KS / JS</div>
+      </div>
+      <div style="color:#e74c3c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:95px;padding:6px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #e74c3c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(231,76,60,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/monitor/00001-icon-service-Monitor.svg" style="width:30px;height:30px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">App Insights</div>
+      </div>
+      <div style="color:#e74c3c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:95px;padding:6px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #ffc107;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(255,193,7,0.15);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffc107"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/></svg>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Alert</div>
+      </div>
+      <div style="color:#ffc107;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:95px;padding:6px;">
+        <div style="width:52px;height:52px;background:white;border:2px solid #28a745;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(40,167,69,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#28a745"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;text-align:center;">Retrain</div>
+      </div>
+    </div>
+    <div style="height:4px;background:linear-gradient(90deg,#e74c3c 0%,#ffc107 70%,#28a745 100%);border-radius:2px;margin-top:8px;opacity:0.4;"></div>
   </div>
 </div>
 
