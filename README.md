@@ -25,25 +25,11 @@ The problem is that every design decision comes from Claude's general knowledge.
 
 This project trains four ML models on real LEGO data to fill those gaps:
 
-```
-  You describe          Claude Code writes        You open it in
-  a building    --->    a PowerShell script  --->  BrickLink Studio
-                              |
-                   Calls 4 deployed models
-                   for domain-specific help
-                              |
-              ┌───────────────┼───────────────┐
-              v               v               v
-        ┌──────────┐   ┌──────────┐   ┌──────────────┐
-        │ Spec Gen │   │ Validate │   │   Patterns   │
-        │ (RAG +   │   │ (Anomaly │   │  (Clustering │
-        │  OpenAI) │   │  Detect) │   │   on .ldr)   │
-        └──────────┘   └──────────┘   └──────────────┘
-         What to         Is it          How have others
-         build?        sound?          built this before?
-```
+<div align="center">
 
-The models run as Azure ML managed online endpoints. Claude Code calls them via HTTP during design sessions, the same way it would call any API. No separate frontend needed.
+![Why This Exists: From Prompt to LEGO Model](docs/integration-flow.svg)
+
+</div>
 
 The whole project also doubles as a study vehicle for the **DP-100 (Designing and Implementing a Data Science Solution on Azure)** certification exam. Every exam domain, from workspace provisioning to RAG pipelines, gets covered through one cohesive project instead of isolated toy examples.
 
