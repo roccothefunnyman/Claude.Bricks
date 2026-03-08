@@ -1993,66 +1993,188 @@ prompts/<br>
     </ul>
   </div>
 
-  <!-- What Gets Captured -->
-  <div class="card" style="margin-bottom:24px;">
-    <h3 style="font-size:18px;font-weight:600;margin-bottom:12px;">What Gets Captured</h3>
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:14px;">
-        <thead>
-          <tr style="background:#f1f3f5;text-align:left;">
-            <th style="padding:10px 14px;border-bottom:2px solid #dee2e6;">Metric</th>
-            <th style="padding:10px 14px;border-bottom:2px solid #dee2e6;">Source</th>
-            <th style="padding:10px 14px;border-bottom:2px solid #dee2e6;">Storage</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;">Prompt version</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Application code</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights custom dimensions</td></tr>
-          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;">Model name/version</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Deployment config</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights custom dimensions</td></tr>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;">Retrieval latency (ms)</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">AI Search call</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights dependency</td></tr>
-          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;">Generation latency (ms)</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">LLM call</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights dependency</td></tr>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;">Total response latency</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">End-to-end</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights request</td></tr>
-          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;">Input token count</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">LLM response</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights custom metric</td></tr>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;">Output token count</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">LLM response</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights custom metric</td></tr>
-          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;">Estimated cost ($)</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Token pricing</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights custom metric</td></tr>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;">Evaluation score</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Eval pipeline</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights custom metric</td></tr>
-          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;">Trace ID</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Foundry tracing</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights + Foundry</td></tr>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;">Error type/reason</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Exception handler</td><td style="padding:8px 14px;border-bottom:1px solid #eee;">App Insights exceptions</td></tr>
-        </tbody>
-      </table>
+  <!-- What Gets Captured - Dashboard-style grid -->
+  <div class="card" style="margin-bottom:24px;padding:0;overflow:hidden;">
+    <h3 style="font-size:18px;font-weight:600;margin:0;padding:16px 24px;background:linear-gradient(135deg,#0078d4,#005a9e);color:white;">What Gets Captured</h3>
+
+    <!-- Category headers row -->
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:2px solid #dee2e6;">
+      <div style="padding:10px 20px;font-size:13px;font-weight:700;color:#605e5c;text-transform:uppercase;letter-spacing:0.5px;background:#f0f6ff;">Metric</div>
+      <div style="padding:10px 16px;font-size:13px;font-weight:700;color:#605e5c;text-transform:uppercase;letter-spacing:0.5px;background:#f0f6ff;">Source</div>
+      <div style="padding:10px 16px;font-size:13px;font-weight:700;color:#605e5c;text-transform:uppercase;letter-spacing:0.5px;background:#f0f6ff;">Storage</div>
+    </div>
+
+    <!-- Group: Identity -->
+    <div style="background:#e8f4fd;padding:6px 20px;font-size:12px;font-weight:700;color:#0078d4;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid #c7ddf5;">
+      <img src="azure-icons/identity/00321-icon-service-Security.svg" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;">Identity and Versioning
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Prompt version</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">Application code</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#e8f4fd;padding:2px 8px;border-radius:4px;font-size:12px;color:#0078d4;font-weight:600;">Custom Dimensions</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;background:#fafbfc;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Model name / version</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">Deployment config</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#e8f4fd;padding:2px 8px;border-radius:4px;font-size:12px;color:#0078d4;font-weight:600;">Custom Dimensions</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Trace ID</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">Foundry tracing</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#e8f4fd;padding:2px 8px;border-radius:4px;font-size:12px;color:#0078d4;font-weight:600;">App Insights + Foundry</span></div>
+    </div>
+
+    <!-- Group: Latency -->
+    <div style="background:#f5f0ff;padding:6px 20px;font-size:12px;font-weight:700;color:#5c2d91;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid #d8cff0;">
+      <img src="azure-icons/monitor/00020-icon-service-Metrics.svg" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;">Latency
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Retrieval latency (ms)</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">AI Search call</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#f5f0ff;padding:2px 8px;border-radius:4px;font-size:12px;color:#5c2d91;font-weight:600;">Dependency</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;background:#fafbfc;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Generation latency (ms)</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">LLM call</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#f5f0ff;padding:2px 8px;border-radius:4px;font-size:12px;color:#5c2d91;font-weight:600;">Dependency</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Total response latency</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">End-to-end</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#f5f0ff;padding:2px 8px;border-radius:4px;font-size:12px;color:#5c2d91;font-weight:600;">Request</span></div>
+    </div>
+
+    <!-- Group: Cost & Tokens -->
+    <div style="background:#f0faf8;padding:6px 20px;font-size:12px;font-weight:700;color:#008575;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid #b2e0d6;">
+      <img src="azure-icons/general/00004-icon-service-Cost-Management-and-Billing.svg" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;">Cost and Tokens
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Input token count</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">LLM response</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#f0faf8;padding:2px 8px;border-radius:4px;font-size:12px;color:#008575;font-weight:600;">Custom Metric</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;background:#fafbfc;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Output token count</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">LLM response</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#f0faf8;padding:2px 8px;border-radius:4px;font-size:12px;color:#008575;font-weight:600;">Custom Metric</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Estimated cost ($)</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">Token pricing</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#f0faf8;padding:2px 8px;border-radius:4px;font-size:12px;color:#008575;font-weight:600;">Custom Metric</span></div>
+    </div>
+
+    <!-- Group: Quality & Errors -->
+    <div style="background:#fef5f5;padding:6px 20px;font-size:12px;font-weight:700;color:#e74c3c;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid #f5c6cb;">
+      <img src="azure-icons/devops/00012-icon-service-Application-Insights.svg" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;">Quality and Errors
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:1px solid #eee;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Evaluation score</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">Eval pipeline</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#fef5f5;padding:2px 8px;border-radius:4px;font-size:12px;color:#e74c3c;font-weight:600;">Custom Metric</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2.2fr 1.5fr 2fr;border-bottom:none;background:#fafbfc;">
+      <div style="padding:10px 20px;font-size:14px;font-weight:600;color:#323130;">Error type / reason</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;">Exception handler</div>
+      <div style="padding:10px 16px;font-size:13px;color:#605e5c;"><span style="background:#fef5f5;padding:2px 8px;border-radius:4px;font-size:12px;color:#e74c3c;font-weight:600;">Exceptions</span></div>
     </div>
   </div>
 
-  <!-- Drift Detection -->
+  <!-- Drift Detection - Visual -->
   <div class="card" style="margin-bottom:24px;">
-    <h3 style="font-size:18px;font-weight:600;margin-bottom:12px;">Drift Detection</h3>
-    <p style="margin-bottom:16px;">For Scenario 1 (facade classification). The pipeline compares current inference distributions against a training-time baseline using statistical tests.</p>
+    <h3 style="font-size:18px;font-weight:600;margin-bottom:4px;">Drift Detection</h3>
+    <p style="margin-bottom:20px;color:#605e5c;">For Scenario 1 (facade classification). Compares current inference distributions against a training-time baseline using statistical tests.</p>
 
-    <div class="v2-pipeline" style="margin-bottom:16px;">
-      <div class="v2-pipeline-step">Training Data</div>
-      <div class="v2-pipeline-arrow"></div>
-      <div class="v2-pipeline-step">Baseline Profile</div>
-      <div class="v2-pipeline-arrow"></div>
-      <div class="v2-pipeline-step">Scheduled Job</div>
-      <div class="v2-pipeline-arrow"></div>
-      <div class="v2-pipeline-step">Compare vs. Inference Logs</div>
-      <div class="v2-pipeline-arrow"></div>
-      <div class="v2-pipeline-step">Drift Metrics (PSI, KS, JS)</div>
-      <div class="v2-pipeline-arrow"></div>
-      <div class="v2-pipeline-step">Alert / Retrain</div>
+    <!-- Pipeline visual -->
+    <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;margin-bottom:24px;">
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:6px;">
+        <div style="width:56px;height:56px;background:white;border:2px solid #0078d4;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,120,212,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg" style="width:32px;height:32px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Training Data</div>
+        <div style="font-size:11px;color:#797775;">Source distribution</div>
+      </div>
+      <div style="color:#0078d4;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:6px;">
+        <div style="width:56px;height:56px;background:white;border:2px solid #5c2d91;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(92,45,145,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/general/10015-icon-service-Dashboard.svg" style="width:32px;height:32px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Baseline Profile</div>
+        <div style="font-size:11px;color:#797775;">create_baseline.py</div>
+      </div>
+      <div style="color:#5c2d91;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:6px;">
+        <div style="width:56px;height:56px;background:white;border:2px solid #008575;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,133,117,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/devops/10261-icon-service-Azure-DevOps.svg" style="width:32px;height:32px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Scheduled Job</div>
+        <div style="font-size:11px;color:#797775;">Weekly cron</div>
+      </div>
+      <div style="color:#008575;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:6px;">
+        <div style="width:56px;height:56px;background:white;border:2px solid #f7630c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(247,99,12,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/devops/00012-icon-service-Application-Insights.svg" style="width:32px;height:32px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Compare</div>
+        <div style="font-size:11px;color:#797775;">detect_drift.py</div>
+      </div>
+      <div style="color:#f7630c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:6px;">
+        <div style="width:56px;height:56px;background:white;border:2px solid #e74c3c;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(231,76,60,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <img src="azure-icons/monitor/00020-icon-service-Metrics.svg" style="width:32px;height:32px;">
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Drift Metrics</div>
+        <div style="font-size:11px;color:#797775;">PSI, KS, JS</div>
+      </div>
+      <div style="color:#e74c3c;font-size:20px;margin-bottom:18px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:100px;padding:6px;">
+        <div style="width:56px;height:56px;background:white;border:2px solid #28a745;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(40,167,69,0.12);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#28a745"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#323130;margin-top:6px;">Alert / Retrain</div>
+        <div style="font-size:11px;color:#797775;">alert_config.py</div>
+      </div>
     </div>
+    <div style="height:4px;background:linear-gradient(90deg,#0078d4 0%,#5c2d91 20%,#008575 40%,#f7630c 60%,#e74c3c 80%,#28a745 100%);border-radius:2px;margin-bottom:24px;opacity:0.4;"></div>
 
-    <p style="font-weight:600;margin-bottom:8px;">Scripts:</p>
-    <ul style="margin:0 0 12px 20px;padding:0;">
-      <li><code>monitoring/drift/create_baseline.py</code></li>
-      <li><code>monitoring/drift/detect_drift.py</code></li>
-      <li><code>monitoring/drift/alert_config.py</code></li>
-    </ul>
+    <!-- Threshold gauge visual -->
+    <h4 style="font-size:15px;font-weight:600;margin-bottom:14px;">PSI Threshold Zones</h4>
+    <div style="display:flex;border-radius:10px;overflow:hidden;height:40px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <div style="flex:2;background:linear-gradient(135deg,#28a745,#6fdc8c);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;position:relative;">
+        Normal
+        <span style="position:absolute;bottom:2px;font-size:10px;font-weight:400;opacity:0.85;">PSI &lt; 0.2</span>
+      </div>
+      <div style="width:3px;background:white;"></div>
+      <div style="flex:2;background:linear-gradient(135deg,#ffc107,#ffdb58);display:flex;align-items:center;justify-content:center;color:#5a4000;font-weight:700;font-size:13px;position:relative;">
+        Warning
+        <span style="position:absolute;bottom:2px;font-size:10px;font-weight:400;">0.2 - 0.4</span>
+      </div>
+      <div style="width:3px;background:white;"></div>
+      <div style="flex:2;background:linear-gradient(135deg,#e74c3c,#ff6b6b);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;position:relative;">
+        Critical &rarr; Retrain
+        <span style="position:absolute;bottom:2px;font-size:10px;font-weight:400;opacity:0.85;">PSI &gt; 0.4</span>
+      </div>
+    </div>
+    <p style="font-size:13px;color:#605e5c;margin-top:8px;">Critical threshold triggers automatic retraining via the <code>drift-check.yml</code> GitHub Actions workflow.</p>
 
-    <p style="font-weight:600;margin-bottom:8px;">Thresholds:</p>
-    <ul style="margin:0 0 0 20px;padding:0;">
-      <li>PSI &gt; 0.2 = <span class="badge" style="background:#fff3cd;color:#856404;">Warning</span></li>
-      <li>PSI &gt; 0.4 = <span class="badge" style="background:#f8d7da;color:#721c24;">Critical</span> (triggers retrain via GitHub Actions)</li>
-    </ul>
+    <!-- Three metric cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;">
+      <div style="background:#f0f6ff;border:1px solid #c7ddf5;border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:24px;font-weight:700;color:#0078d4;">PSI</div>
+        <div style="font-size:12px;color:#605e5c;margin-top:4px;">Population Stability Index</div>
+        <div style="font-size:11px;color:#999;margin-top:2px;">Overall distribution shift</div>
+      </div>
+      <div style="background:#f5f0ff;border:1px solid #d8cff0;border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:24px;font-weight:700;color:#5c2d91;">KS</div>
+        <div style="font-size:12px;color:#605e5c;margin-top:4px;">Kolmogorov-Smirnov</div>
+        <div style="font-size:11px;color:#999;margin-top:2px;">Max CDF divergence</div>
+      </div>
+      <div style="background:#f0faf8;border:1px solid #b2e0d6;border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:24px;font-weight:700;color:#008575;">JS</div>
+        <div style="font-size:12px;color:#605e5c;margin-top:4px;">Jensen-Shannon</div>
+        <div style="font-size:11px;color:#999;margin-top:2px;">Symmetric divergence</div>
+      </div>
+    </div>
   </div>
 
   <!-- KQL Dashboard Queries -->
