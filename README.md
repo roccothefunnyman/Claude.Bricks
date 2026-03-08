@@ -5,9 +5,9 @@
 **AI-Assisted Modular LEGO Design + Azure ML Infrastructure**
 
 [![As-Built Docs](https://img.shields.io/badge/As--Built_Docs-Live-0078d4?style=for-the-badge&logo=microsoft-azure&logoColor=white)](https://roccothefunnyman.github.io/Claude.Bricks/)
-[![Terraform](https://img.shields.io/badge/IaC-Terraform-7b42bc?style=for-the-badge&logo=terraform&logoColor=white)](#azure-ml-infrastructure)
-[![Azure ML](https://img.shields.io/badge/Azure_ML-SDK_v2-0078d4?style=for-the-badge&logo=microsoft-azure&logoColor=white)](#4-ml-scenarios)
-[![LDraw](https://img.shields.io/badge/LDraw-BrickLink_Studio-e74c3c?style=for-the-badge)](#lego-design-workflow)
+[![Terraform](https://img.shields.io/badge/IaC-Terraform-7b42bc?style=for-the-badge&logo=terraform&logoColor=white)](#-azure-ml-infrastructure)
+[![Azure ML](https://img.shields.io/badge/Azure_ML-SDK_v2-0078d4?style=for-the-badge&logo=microsoft-azure&logoColor=white)](#-4-ml-scenarios)
+[![LDraw](https://img.shields.io/badge/LDraw-BrickLink_Studio-e74c3c?style=for-the-badge)](#-lego-design-workflow)
 
 ---
 
@@ -17,9 +17,41 @@
 
 ---
 
-## Azure ML Infrastructure
+## Why This Exists
 
-> **[View the full interactive As-Built Document](https://roccothefunnyman.github.io/Claude.Bricks/)**
+Claude Code can already generate LEGO buildings from a text description. You say "2-story Victorian townhouse, dark red and tan," and it writes a PowerShell script that produces a valid LDraw file. That works today.
+
+The problem is that every design decision comes from Claude's general knowledge. It has no training data about which construction patterns actually produce stable models, which facade elements match which architectural styles, or what a "good" modular building even looks like structurally. It guesses, and sometimes it guesses wrong.
+
+This project trains four ML models on real LEGO data to fill those gaps:
+
+```
+  You describe          Claude Code writes        You open it in
+  a building    --->    a PowerShell script  --->  BrickLink Studio
+                              |
+                   Calls 4 deployed models
+                   for domain-specific help
+                              |
+              ┌───────────────┼───────────────┐
+              v               v               v
+        ┌──────────┐   ┌──────────┐   ┌──────────────┐
+        │ Spec Gen │   │ Validate │   │   Patterns   │
+        │ (RAG +   │   │ (Anomaly │   │  (Clustering │
+        │  OpenAI) │   │  Detect) │   │   on .ldr)   │
+        └──────────┘   └──────────┘   └──────────────┘
+         What to         Is it          How have others
+         build?        sound?          built this before?
+```
+
+The models run as Azure ML managed online endpoints. Claude Code calls them via HTTP during design sessions, the same way it would call any API. No separate frontend needed.
+
+The whole project also doubles as a study vehicle for the **DP-100 (Designing and Implementing a Data Science Solution on Azure)** certification exam. Every exam domain, from workspace provisioning to RAG pipelines, gets covered through one cohesive project instead of isolated toy examples.
+
+> **[Read the full As-Built Documentation](https://roccothefunnyman.github.io/Claude.Bricks/)** for architecture details, deployment phases, and cost breakdown.
+
+---
+
+## 🏗 Azure ML Infrastructure
 
 A single `terraform apply` provisions 15+ Azure resources into one Resource Group. Four independent ML scenarios run on top via Azure ML SDK v2, covering every major DP-100 exam domain in the process.
 
@@ -29,48 +61,52 @@ A single `terraform apply` provisions 15+ Azure resources into one Resource Grou
 
 </div>
 
-### 4 ML Scenarios
+### 🔬 4 ML Scenarios
 
-| # | Scenario | Technique | Compute | Key Services |
-|---|----------|-----------|---------|-------------|
-| **1** | Facade Style Classification | Random Forest on rendered images | CPU + GPU Cluster | Custom Vision, Managed Endpoint |
-| **2** | Structural Validation | Isolation Forest (anomaly detection) on .ldr features | CPU Cluster | MLflow, Online Endpoint |
-| **3** | Pattern Extraction | KMeans / HDBSCAN clustering via `@dsl.pipeline` | CPU Cluster | Pipeline Jobs, MLflow |
-| **4** | LLM Spec Generator | RAG with AI Search + Azure OpenAI + Prompt Flow | GPU Cluster | AI Search, OpenAI, Fine-tuning |
+| # | Scenario | What It Does | Technique | Key Services |
+|:-:|----------|-------------|-----------|:-------------|
+| **1** | Facade Classification | Identifies architectural style from rendered images | Random Forest | Custom Vision, Managed Endpoint |
+| **2** | Structural Validation | Flags unstable or malformed .ldr geometry | Isolation Forest | MLflow, Online Endpoint |
+| **3** | Pattern Extraction | Clusters proven construction patterns from training data | KMeans / HDBSCAN | Pipeline Jobs, MLflow |
+| **4** | Spec Generator | Turns natural language into structured building specs | RAG + Azure OpenAI | AI Search, Prompt Flow |
 
-### Deployment Phases
+### 📦 Deployment Phases
 
 ```
-Phase 1          Phase 2         Phase 3-6
-Terraform   -->  Bootstrap  -->  ML Scenarios (independent, any order)
-5-15 min         ~2 min          ~30-45 min each
+Phase 1              Phase 2             Phase 3-6
+Terraform       -->  Bootstrap      -->  ML Scenarios (independent, any order)
+5-15 min             ~2 min              ~30-45 min each
 
-15 Azure         Compute,        Train, evaluate, deploy,
-resources        datastores,     score - per scenario
-provisioned      environments
+15 Azure             Compute,            Train, evaluate, deploy,
+resources            datastores,         score per scenario
+provisioned          environments
 ```
 
 ---
 
-## LEGO Design Workflow
+## 🧱 LEGO Design Workflow
 
-A Claude Code-powered workflow for designing modular LEGO buildings. You describe what you want, Claude generates a PowerShell script, the script outputs an LDraw (.ldr) file, and you open it in BrickLink Studio (stud.io) to view, render, and refine.
+You describe what you want, Claude generates a PowerShell script, the script outputs an LDraw (.ldr) file, and you open it in BrickLink Studio to view, render, and refine.
 
 ### Prerequisites
 
-- **BrickLink Studio** (stud.io) - [Download here](https://www.bricklink.com/v3/studio/download.page) - for viewing and rendering .ldr files
-- **PowerShell 5.1+** - included with Windows 10/11
-- **Claude Code CLI** - for AI-assisted design sessions
+| Tool | Purpose |
+|------|---------|
+| **[BrickLink Studio](https://www.bricklink.com/v3/studio/download.page)** | View and render .ldr files |
+| **PowerShell 5.1+** | Included with Windows 10/11 |
+| **Claude Code CLI** | AI-assisted design sessions |
 
 ### Quick Start
 
-1. Open a terminal in this folder
-2. Run `claude`
-3. Describe the building you want:
-   > "Design a 2-story Victorian townhouse, 32x16 studs, dark red and tan with white trim"
-4. Claude generates a PowerShell script in `scripts/`
-5. The script runs and produces an .ldr file in `output/`
-6. Open the .ldr file in BrickLink Studio
+```
+1.  Open a terminal in this folder
+2.  Run `claude`
+3.  Describe the building you want:
+      "Design a 2-story Victorian townhouse, 32x16 studs, dark red and tan with white trim"
+4.  Claude generates a PowerShell script in scripts/
+5.  The script runs and produces an .ldr file in output/
+6.  Open the .ldr file in BrickLink Studio
+```
 
 ### Why PowerShell Scripts?
 
@@ -89,7 +125,7 @@ For complex buildings, Claude spawns a team of specialized agents:
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 ```
 Claude.Bricks/
@@ -115,7 +151,7 @@ Claude.Bricks/
 └── azure-icons/              # Azure SVG icons for documentation
 ```
 
-## Adding Reference Files
+## 📎 Adding Reference Files
 
 Drop any well-built .ldr files into `reference/` and ask Claude to analyze them:
 
@@ -123,7 +159,7 @@ Drop any well-built .ldr files into `reference/` and ask Claude to analyze them:
 
 Claude spawns **one Explore agent per file, all running in parallel**. Each agent reads its file in 500-line chunks and returns a structured summary covering dimensions, parts, colors, construction patterns, and architectural details.
 
-## Tips
+## 💡 Tips
 
 - **Be specific about style**: "Victorian with ornate cornice" works better than "nice building"
 - **Specify dimensions**: "32x16 studs, 2 stories" gives Claude clear constraints
