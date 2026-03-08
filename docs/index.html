@@ -151,9 +151,116 @@ tr:hover { background: #fafbfc; }
 </div>
 
 <!-- ============================================ -->
-<!-- TABLE OF CONTENTS -->
+<!-- PROJECT INTRODUCTION -->
 <!-- ============================================ -->
 <div class="container">
+
+<div class="card" style="margin-top:32px; border-left: 4px solid var(--azure-blue); background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);">
+<h2 id="about" style="margin-top:0; border-bottom:none; padding-bottom:0; font-size:1.5rem;">What is Claude.Bricks?</h2>
+
+<p style="font-size:1.05rem; line-height:1.7;">
+<strong>Claude.Bricks</strong> is a hands-on Azure ML project that trains machine learning models to assist in designing modular LEGO buildings from natural language descriptions. The end-to-end pipeline &mdash; from data ingestion through model deployment &mdash; is orchestrated by Claude Code AI agents that coordinate every stage: uploading training data to Blob Storage, extracting features from LDraw files and rendered images, submitting Azure ML training jobs, and deploying models to managed online endpoints that the agents themselves call via HTTP.
+</p>
+
+<p style="font-size:1.05rem; line-height:1.7;">
+Beyond being a functional ML system, Claude.Bricks serves as the <strong>ultimate study vehicle for the Microsoft DP-100 (Designing and Implementing a Data Science Solution on Azure) certification exam</strong>. Rather than studying each exam domain in isolation with toy examples, every concept is woven into a single, cohesive project with a real use case &mdash; making LEGO buildings from words.
+</p>
+
+<div style="margin: 24px 0;">
+<h3 style="margin-bottom:16px; color: var(--azure-dark);">DP-100 Exam Domain Coverage</h3>
+<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap:16px;">
+
+  <div style="display:flex; align-items:flex-start; gap:14px; padding:16px; background:#f0f6ff; border-radius:10px; border:1px solid #c7ddf5;">
+    <div style="background:#0078d4; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">1</div>
+    <div>
+      <strong style="color:var(--azure-dark);">Design and Prepare a Machine Learning Solution</strong>
+      <span style="float:right; color:var(--azure-blue); font-weight:600; font-size:0.85rem;">20&ndash;25%</span>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px; margin-bottom:0;">Terraform IaC provisioning, workspace configuration, compute targets (instances, CPU/GPU clusters), data stores, and environment setup. Covered in <strong>Phases 1&ndash;2</strong> and across all scenarios.</p>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:flex-start; gap:14px; padding:16px; background:#f0f6ff; border-radius:10px; border:1px solid #c7ddf5;">
+    <div style="background:#0078d4; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">2</div>
+    <div>
+      <strong style="color:var(--azure-dark);">Explore Data and Run Experiments</strong>
+      <span style="float:right; color:var(--azure-blue); font-weight:600; font-size:0.85rem;">20&ndash;25%</span>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px; margin-bottom:0;">Feature engineering from LDraw files, image preprocessing, MLflow experiment tracking, hyperparameter tuning, and data asset registration. Covered in <strong>Scenarios 1&ndash;3</strong>.</p>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:flex-start; gap:14px; padding:16px; background:#f0f6ff; border-radius:10px; border:1px solid #c7ddf5;">
+    <div style="background:#0078d4; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">3</div>
+    <div>
+      <strong style="color:var(--azure-dark);">Train and Deploy Models</strong>
+      <span style="float:right; color:var(--azure-blue); font-weight:600; font-size:0.85rem;">25&ndash;30%</span>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px; margin-bottom:0;">Command jobs, pipeline jobs (<code>@dsl.pipeline</code>), model registration, managed online endpoints, scoring scripts, and deployment configurations. Covered in <strong>Scenarios 1&ndash;4</strong>.</p>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:flex-start; gap:14px; padding:16px; background:#f0f6ff; border-radius:10px; border:1px solid #c7ddf5;">
+    <div style="background:#0078d4; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">4</div>
+    <div>
+      <strong style="color:var(--azure-dark);">Optimize Language Models for AI Applications</strong>
+      <span style="float:right; color:var(--azure-blue); font-weight:600; font-size:0.85rem;">25&ndash;30%</span>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px; margin-bottom:0;">RAG with AI Search, Azure OpenAI integration, Prompt Flow orchestration, fine-tuning workflows, and responsible AI. Covered in <strong>Scenario 4</strong>.</p>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div style="margin-top:24px;">
+<h3 style="margin-bottom:16px; color: var(--azure-dark);">End-to-End Pipeline</h3>
+<div style="display:flex; align-items:stretch; gap:0; flex-wrap:wrap; justify-content:center;">
+
+  <div style="flex:1; min-width:180px; max-width:220px; padding:18px; background:white; border-radius:12px; border:1px solid #dee2e6; text-align:center; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+    <div style="position:absolute; top:-12px; left:16px; background:var(--azure-blue); color:white; width:24px; height:24px; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center;">1</div>
+    <div style="font-size:1.4rem; margin-bottom:6px;">&#128230;</div>
+    <strong>Ingest</strong>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">Store images &amp; .ldr files in Blob Storage. Register as Azure ML data assets.</p>
+  </div>
+
+  <div style="display:flex; align-items:center; padding:0 4px; color:var(--azure-blue); font-size:1.5rem; font-weight:bold;">&#10140;</div>
+
+  <div style="flex:1; min-width:180px; max-width:220px; padding:18px; background:white; border-radius:12px; border:1px solid #dee2e6; text-align:center; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+    <div style="position:absolute; top:-12px; left:16px; background:var(--azure-blue); color:white; width:24px; height:24px; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center;">2</div>
+    <div style="font-size:1.4rem; margin-bottom:6px;">&#128300;</div>
+    <strong>Enrich</strong>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">Claude agents extract text descriptions and generate structured metadata features.</p>
+  </div>
+
+  <div style="display:flex; align-items:center; padding:0 4px; color:var(--azure-blue); font-size:1.5rem; font-weight:bold;">&#10140;</div>
+
+  <div style="flex:1; min-width:180px; max-width:220px; padding:18px; background:white; border-radius:12px; border:1px solid #dee2e6; text-align:center; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+    <div style="position:absolute; top:-12px; left:16px; background:var(--azure-blue); color:white; width:24px; height:24px; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center;">3</div>
+    <div style="font-size:1.4rem; margin-bottom:6px;">&#9881;&#65039;</div>
+    <strong>Train</strong>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">Azure ML jobs train models on compute clusters. MLflow logs metrics &amp; artifacts.</p>
+  </div>
+
+  <div style="display:flex; align-items:center; padding:0 4px; color:var(--azure-blue); font-size:1.5rem; font-weight:bold;">&#10140;</div>
+
+  <div style="flex:1; min-width:180px; max-width:220px; padding:18px; background:white; border-radius:12px; border:1px solid #dee2e6; text-align:center; position:relative; box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+    <div style="position:absolute; top:-12px; left:16px; background:var(--azure-blue); color:white; width:24px; height:24px; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center;">4</div>
+    <div style="font-size:1.4rem; margin-bottom:6px;">&#128640;</div>
+    <strong>Deploy</strong>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">Register models, deploy to managed online endpoints. Agents call endpoints via HTTP.</p>
+  </div>
+
+</div>
+<p style="text-align:center; font-size:0.85rem; color:var(--text-muted); margin-top:12px; font-style:italic;">All stages orchestrated by Claude Code agents &mdash; coordinating ingestion, enrichment, training, and deployment.</p>
+</div>
+
+<h3 style="margin-bottom:12px; color: var(--azure-dark);">What This Document Covers</h3>
+<p style="font-size:0.95rem; line-height:1.7; margin-bottom:0;">
+This as-built document walks through the <strong>complete infrastructure and ML workflow</strong>, section by section: the full <strong>architecture overview</strong> with every Azure resource mapped, the <strong>6 deployment phases</strong> from Terraform provisioning through scenario execution, the <strong>Terraform dependency graph</strong> showing how all 15+ resources interconnect, <strong>each of the 4 ML scenarios</strong> with their pipeline diagrams and resource usage, the <strong>end-to-end data flow</strong> across the system, a <strong>cost breakdown</strong> with estimated monthly spend, and the <strong>teardown procedure</strong> for clean resource deletion.
+</p>
+
+</div>
+
+<!-- ============================================ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ============================================ -->
 <h2 id="toc">Table of Contents</h2>
 <div class="card">
 <div class="toc">
