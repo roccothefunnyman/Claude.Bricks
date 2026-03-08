@@ -11,7 +11,7 @@
 
 ---
 
-*A Claude Code-powered workflow for designing modular LEGO buildings, backed by an Azure ML platform for facade classification, structural validation, pattern extraction, and LLM-powered spec generation.*
+*Claude Code agents design modular LEGO buildings from natural language. An Azure ML platform handles facade classification, structural validation, pattern extraction, and LLM-powered spec generation. The whole thing doubles as a DP-100 exam study project.*
 
 </div>
 
@@ -19,9 +19,9 @@
 
 ## Azure ML Infrastructure
 
-> **[View the full interactive As-Built Document](https://roccothefunnyman.github.io/Claude.Bricks/)** - complete with deployment phases, Terraform dependency graphs, scenario pipeline diagrams, data flow maps, and cost breakdowns.
+> **[View the full interactive As-Built Document](https://roccothefunnyman.github.io/Claude.Bricks/)**
 
-All infrastructure is deployed via a single `terraform apply` into one Azure Resource Group, with 4 independent ML scenarios powered by Azure ML SDK v2.
+A single `terraform apply` provisions 15+ Azure resources into one Resource Group. Four independent ML scenarios run on top via Azure ML SDK v2, covering every major DP-100 exam domain in the process.
 
 <div align="center">
 
