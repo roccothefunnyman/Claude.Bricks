@@ -265,201 +265,12 @@ Claude.Bricks also serves as a practical study project for the <strong>Microsoft
 </div>
 
 <!-- ============================================ -->
-<!-- MODEL INTEGRATION ARCHITECTURE -->
-<!-- ============================================ -->
-<div class="card" style="margin-top:24px; border-left: 4px solid var(--accent-green); background: linear-gradient(135deg, #f0fdf8 0%, #ffffff 100%);">
-<h3 id="integration" style="margin-top:0; color: var(--azure-dark); font-size:1.3rem;">How the Models Work Together</h3>
-
-<p style="font-size:1.05rem; line-height:1.7;">
-The goal is straightforward: you describe a building in plain English, and the system produces a valid LDraw (.ldr) file you can open in BrickLink Studio. Getting there requires four trained models working in sequence, with Claude Code acting as the orchestrator that ties them together.
-</p>
-
-<p style="font-size:0.95rem; line-height:1.7;">
-Today, Claude Code already generates LEGO buildings from natural language by writing PowerShell scripts that output .ldr files. That works, but the design decisions are all based on Claude's general knowledge and whatever reference files you feed it. The deployed models will add domain-specific intelligence at each step: generating structured specs from prompts, classifying architectural styles, validating structural integrity, and pulling proven construction patterns from the training data.
-</p>
-
-<div style="margin: 28px 0;">
-<!-- Integration Architecture Diagram -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" font-family="Segoe UI, system-ui, -apple-system, sans-serif" style="width:100%; max-width:900px; display:block; margin:0 auto;">
-  <defs>
-    <linearGradient id="integ-header" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#003d6b"/>
-      <stop offset="60%" stop-color="#0078d4"/>
-      <stop offset="100%" stop-color="#50a0ef"/>
-    </linearGradient>
-    <filter id="integ-shadow" x="-2%" y="-2%" width="104%" height="104%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
-    </filter>
-    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#0078d4"/>
-    </marker>
-    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
-    </marker>
-  </defs>
-
-  <!-- Background -->
-  <rect width="900" height="420" rx="12" fill="#f8f9fa"/>
-
-  <!-- Title -->
-  <rect width="900" height="44" rx="12" fill="url(#integ-header)"/>
-  <rect y="32" width="900" height="12" fill="url(#integ-header)"/>
-  <text x="450" y="28" text-anchor="middle" fill="white" font-size="16" font-weight="700">Design Workflow: Claude Code + Deployed Models</text>
-
-  <!-- User prompt (left) -->
-  <rect x="24" y="168" width="140" height="80" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2" filter="url(#integ-shadow)"/>
-  <text x="94" y="198" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">User Prompt</text>
-  <text x="94" y="216" text-anchor="middle" fill="#6c757d" font-size="10">"2-story Victorian,</text>
-  <text x="94" y="228" text-anchor="middle" fill="#6c757d" font-size="10">dark red and tan"</text>
-
-  <!-- Arrow: User -> Claude Code -->
-  <line x1="164" y1="208" x2="214" y2="208" stroke="#0078d4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Claude Code (center hub) -->
-  <rect x="220" y="140" width="160" height="136" rx="14" fill="#f0f6ff" stroke="#0078d4" stroke-width="3" filter="url(#integ-shadow)"/>
-  <circle cx="300" cy="172" r="20" fill="#0078d4" opacity="0.15"/>
-  <text x="300" y="177" text-anchor="middle" fill="#0078d4" font-size="18" font-weight="700">CC</text>
-  <text x="300" y="200" text-anchor="middle" fill="#1a1a2e" font-size="13" font-weight="700">Claude Code</text>
-  <text x="300" y="216" text-anchor="middle" fill="#6c757d" font-size="10">Orchestrator</text>
-  <text x="300" y="232" text-anchor="middle" fill="#6c757d" font-size="9">Writes PowerShell,</text>
-  <text x="300" y="244" text-anchor="middle" fill="#6c757d" font-size="9">calls endpoints,</text>
-  <text x="300" y="256" text-anchor="middle" fill="#6c757d" font-size="9">iterates on feedback</text>
-
-  <!-- Step labels -->
-  <circle cx="412" cy="108" r="11" fill="#ef4444"/>
-  <text x="412" y="112" text-anchor="middle" fill="white" font-size="10" font-weight="700">1</text>
-  <circle cx="412" cy="208" r="11" fill="#f59e0b"/>
-  <text x="412" y="212" text-anchor="middle" fill="white" font-size="10" font-weight="700">2</text>
-  <circle cx="412" cy="308" r="11" fill="#10b981"/>
-  <text x="412" y="312" text-anchor="middle" fill="white" font-size="10" font-weight="700">3</text>
-
-  <!-- Arrows from Claude Code to endpoints -->
-  <line x1="380" y1="170" x2="428" y2="108" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 3"/>
-  <line x1="380" y1="208" x2="478" y2="208" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <line x1="380" y1="240" x2="428" y2="308" stroke="#10b981" stroke-width="2" stroke-dasharray="5 3"/>
-
-  <!-- Endpoint 4: Spec Generator (top) -->
-  <rect x="430" y="66" width="200" height="84" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2" filter="url(#integ-shadow)"/>
-  <rect x="438" y="74" width="68" height="16" rx="8" fill="#ef4444"/>
-  <text x="472" y="86" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 4</text>
-  <text x="530" y="100" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">Spec Generator</text>
-  <text x="530" y="116" text-anchor="middle" fill="#6c757d" font-size="10">Azure OpenAI + AI Search</text>
-  <text x="530" y="132" text-anchor="middle" fill="#6c757d" font-size="9">RAG generates structured building spec</text>
-
-  <!-- Endpoint 1: Facade Classifier (middle-right) -->
-  <rect x="484" y="168" width="200" height="80" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#integ-shadow)"/>
-  <rect x="492" y="176" width="68" height="16" rx="8" fill="#6366f1"/>
-  <text x="526" y="188" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 1</text>
-  <text x="584" y="204" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">Facade Classifier</text>
-  <text x="584" y="220" text-anchor="middle" fill="#6c757d" font-size="10">Random Forest on rendered images</text>
-  <text x="584" y="236" text-anchor="middle" fill="#6c757d" font-size="9">Identifies style, informs design choices</text>
-
-  <!-- Endpoint 2 & 3: Validator + Pattern (bottom) -->
-  <rect x="430" y="268" width="200" height="84" rx="10" fill="#ecfdf5" stroke="#10b981" stroke-width="2" filter="url(#integ-shadow)"/>
-  <rect x="438" y="276" width="68" height="16" rx="8" fill="#f59e0b"/>
-  <text x="472" y="288" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 2</text>
-  <rect x="514" y="276" width="68" height="16" rx="8" fill="#10b981"/>
-  <text x="548" y="288" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 3</text>
-  <text x="530" y="308" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">Validator + Patterns</text>
-  <text x="530" y="324" text-anchor="middle" fill="#6c757d" font-size="10">Isolation Forest, KMeans/HDBSCAN</text>
-  <text x="530" y="340" text-anchor="middle" fill="#6c757d" font-size="9">Checks structure, suggests proven patterns</text>
-
-  <!-- Output .ldr (bottom center) -->
-  <rect x="220" y="310" width="160" height="64" rx="10" fill="#ecfdf5" stroke="#10b981" stroke-width="2" filter="url(#integ-shadow)"/>
-  <text x="300" y="338" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">Output: .ldr file</text>
-  <text x="300" y="356" text-anchor="middle" fill="#6c757d" font-size="10">Open in BrickLink Studio</text>
-
-  <!-- Arrow: Claude Code -> .ldr -->
-  <line x1="300" y1="276" x2="300" y2="304" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead-green)"/>
-
-  <!-- Feedback loop arrow (validator back to Claude Code) -->
-  <path d="M 430 340 Q 400 380 300 375 Q 240 370 220 310" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="340" y="390" text-anchor="middle" fill="#10b981" font-size="9" font-style="italic">validation feedback loop</text>
-
-  <!-- Status labels -->
-  <rect x="700" y="80" width="170" height="100" rx="8" fill="white" stroke="#dee2e6"/>
-  <text x="785" y="100" text-anchor="middle" fill="#1a1a2e" font-size="11" font-weight="700">Status</text>
-  <circle cx="718" cy="118" r="5" fill="#10b981"/>
-  <text x="730" y="122" fill="#6c757d" font-size="10">Working now (local)</text>
-  <circle cx="718" cy="138" r="5" fill="#f59e0b"/>
-  <text x="730" y="142" fill="#6c757d" font-size="10">Building (endpoints)</text>
-  <circle cx="718" cy="158" r="5" fill="#ef4444" opacity="0.4"/>
-  <text x="730" y="162" fill="#6c757d" font-size="10">Planned (integration)</text>
-
-  <!-- Footer -->
-  <text x="450" y="410" text-anchor="middle" fill="#6c757d" font-size="10" font-style="italic">Claude Code calls deployed Azure ML endpoints via HTTP. No separate frontend needed.</text>
-</svg>
-</div>
-
-<h4 style="color: var(--azure-dark); margin-bottom:8px;">The Integration Flow</h4>
-<p style="font-size:0.95rem; line-height:1.7;">When all four scenarios are deployed, a design session works like this:</p>
-
-<ol style="font-size:0.95rem; line-height:1.9; padding-left:24px; margin-bottom:16px;">
-  <li><strong>Spec generation (Scenario 4):</strong> You give Claude Code a natural language prompt. Claude calls the Spec Generator endpoint, which uses RAG (AI Search over the training data plus Azure OpenAI) to produce a structured building specification: dimensions, floor count, style classification, color assignments, window/door positions, and architectural features.</li>
-  <li><strong>Style validation (Scenario 1):</strong> If the spec references a known architectural style, Claude can optionally call the Facade Classifier endpoint to check whether the proposed design elements are consistent with that style. This is a sanity check, not a gate.</li>
-  <li><strong>Script generation:</strong> Claude writes a PowerShell script based on the spec, runs it, and produces the .ldr file. This step is the same as today, but informed by model output rather than general knowledge alone.</li>
-  <li><strong>Structural validation (Scenario 2):</strong> Claude sends the generated .ldr file's features to the Structural Validator endpoint. The Isolation Forest model flags anomalies (parts floating in space, walls with no foundation, collision-prone placements). If issues come back, Claude fixes the script and regenerates.</li>
-  <li><strong>Pattern lookup (Scenario 3):</strong> For specific construction challenges (cornices, roof lines, window arrangements), Claude can query the Pattern Extraction endpoint to retrieve proven patterns from the training data clusters. This helps when the design calls for something Claude hasn't seen in its reference files.</li>
-</ol>
-
-<h4 style="color: var(--azure-dark); margin-bottom:8px;">What Works Today vs. What's Planned</h4>
-<table style="font-size:0.9rem;">
-  <thead>
-    <tr>
-      <th style="width:30%;">Capability</th>
-      <th style="width:20%;">Status</th>
-      <th>Notes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Claude Code generates .ldr files from prompts</td>
-      <td><span style="color:#10b981; font-weight:600;">Working</span></td>
-      <td>PowerShell scripts, helper functions, reference file analysis. No model calls yet.</td>
-    </tr>
-    <tr>
-      <td>Azure ML infrastructure provisioned</td>
-      <td><span style="color:#10b981; font-weight:600;">Working</span></td>
-      <td>Terraform deploys all resources. Bootstrap configures compute and datastores.</td>
-    </tr>
-    <tr>
-      <td>Model training (Scenarios 1-4)</td>
-      <td><span style="color:#f59e0b; font-weight:600;">In Progress</span></td>
-      <td>Training scripts and pipelines being built. Need more training data for some scenarios.</td>
-    </tr>
-    <tr>
-      <td>Managed online endpoints</td>
-      <td><span style="color:#f59e0b; font-weight:600;">In Progress</span></td>
-      <td>Endpoint configuration defined in deployment code. Not yet serving live models.</td>
-    </tr>
-    <tr>
-      <td>Claude Code calls endpoints during design</td>
-      <td><span style="color:#ef4444; font-weight:600;">Planned</span></td>
-      <td>Claude Code can make HTTP calls. Integration code will be added once endpoints are live.</td>
-    </tr>
-    <tr>
-      <td>Feedback loop (validate, fix, regenerate)</td>
-      <td><span style="color:#ef4444; font-weight:600;">Planned</span></td>
-      <td>The iteration pattern already exists locally. Will extend to use model feedback.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 style="color: var(--azure-dark); margin-bottom:8px;">Why No Frontend?</h4>
-<p style="font-size:0.95rem; line-height:1.7; margin-bottom:0;">
-Claude Code already provides the user interface: you type what you want, Claude builds it. Adding a web frontend would be a separate project with its own deployment and maintenance costs, and it wouldn't add much for this use case. The models are deployed as REST endpoints, so Claude Code calls them the same way it would call any API. If a frontend becomes useful later (for demo purposes, or to let non-technical users try it), the endpoints are already there to support it.
-</p>
-
-</div>
-
-<!-- ============================================ -->
 <!-- TABLE OF CONTENTS -->
 <!-- ============================================ -->
 <h2 id="toc">Table of Contents</h2>
 <div class="card">
 <div class="toc">
   <a href="#about">About Claude.Bricks</a>
-  <a href="#integration">Model Integration Architecture</a>
   <a href="#arch-overview">1. Architecture Overview</a>
   <a href="#deployment-phases">2. Deployment Phases</a>
   <a href="#phase1-terraform">3. Phase 1: Shared Infrastructure (Terraform)</a>
@@ -471,6 +282,7 @@ Claude Code already provides the user interface: you type what you want, Claude 
   <a href="#data-flow">9. Data Flow Overview</a>
   <a href="#cost-breakdown">10. Cost Breakdown</a>
   <a href="#teardown">11. Teardown Procedure</a>
+  <a href="#integration">12. How the Models Work Together</a>
 </div>
 </div>
 
@@ -1475,6 +1287,329 @@ Claude Code already provides the user interface: you type what you want, Claude 
 <span style="color:#a6e3a1;">cd</span> deploymentcode/terraform
 <span style="color:#a6e3a1;">terraform</span> destroy
 </pre>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 12: HOW THE MODELS WORK TOGETHER -->
+<!-- ============================================ -->
+<h2 id="integration">12. How the Models Work Together</h2>
+<p>This section covers how the four deployed ML models integrate back into the LEGO design workflow, how Claude Code is configured to call them, and what works today vs. what's still planned.</p>
+
+<div class="card">
+<h3>The Goal</h3>
+<p>You describe a building in plain English, and the system produces a valid LDraw (.ldr) file you can open in BrickLink Studio. Getting there requires four trained models working in sequence, with Claude Code acting as the orchestrator that ties them together.</p>
+
+<p>Today, Claude Code already generates LEGO buildings from natural language by writing PowerShell scripts that output .ldr files. That works, but the design decisions are all based on Claude's general knowledge and whatever reference files you feed it. The deployed models will add domain-specific intelligence at each step: generating structured specs from prompts, classifying architectural styles, validating structural integrity, and pulling proven construction patterns from the training data.</p>
+</div>
+
+<div class="card">
+<h3>Design Workflow</h3>
+<div class="diagram-container" style="border:none; box-shadow:none; padding:0;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" font-family="Segoe UI, system-ui, -apple-system, sans-serif" style="width:100%; max-width:900px; display:block; margin:0 auto;">
+  <defs>
+    <linearGradient id="integ-header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#003d6b"/>
+      <stop offset="60%" stop-color="#0078d4"/>
+      <stop offset="100%" stop-color="#50a0ef"/>
+    </linearGradient>
+    <filter id="integ-shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0078d4"/>
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="420" rx="12" fill="#f8f9fa"/>
+
+  <!-- Title -->
+  <rect width="900" height="44" rx="12" fill="url(#integ-header)"/>
+  <rect y="32" width="900" height="12" fill="url(#integ-header)"/>
+  <text x="450" y="28" text-anchor="middle" fill="white" font-size="16" font-weight="700">Design Workflow: Claude Code + Deployed Models</text>
+
+  <!-- User prompt (left) -->
+  <rect x="24" y="168" width="140" height="80" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2" filter="url(#integ-shadow)"/>
+  <text x="94" y="198" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">User Prompt</text>
+  <text x="94" y="216" text-anchor="middle" fill="#6c757d" font-size="10">"2-story Victorian,</text>
+  <text x="94" y="228" text-anchor="middle" fill="#6c757d" font-size="10">dark red and tan"</text>
+
+  <!-- Arrow: User -> Claude Code -->
+  <line x1="164" y1="208" x2="214" y2="208" stroke="#0078d4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Claude Code (center hub) -->
+  <rect x="220" y="140" width="160" height="136" rx="14" fill="#f0f6ff" stroke="#0078d4" stroke-width="3" filter="url(#integ-shadow)"/>
+  <circle cx="300" cy="172" r="20" fill="#0078d4" opacity="0.15"/>
+  <text x="300" y="177" text-anchor="middle" fill="#0078d4" font-size="18" font-weight="700">CC</text>
+  <text x="300" y="200" text-anchor="middle" fill="#1a1a2e" font-size="13" font-weight="700">Claude Code</text>
+  <text x="300" y="216" text-anchor="middle" fill="#6c757d" font-size="10">Orchestrator</text>
+  <text x="300" y="232" text-anchor="middle" fill="#6c757d" font-size="9">Writes PowerShell,</text>
+  <text x="300" y="244" text-anchor="middle" fill="#6c757d" font-size="9">calls endpoints,</text>
+  <text x="300" y="256" text-anchor="middle" fill="#6c757d" font-size="9">iterates on feedback</text>
+
+  <!-- Step labels -->
+  <circle cx="412" cy="108" r="11" fill="#ef4444"/>
+  <text x="412" y="112" text-anchor="middle" fill="white" font-size="10" font-weight="700">1</text>
+  <circle cx="412" cy="208" r="11" fill="#f59e0b"/>
+  <text x="412" y="212" text-anchor="middle" fill="white" font-size="10" font-weight="700">2</text>
+  <circle cx="412" cy="308" r="11" fill="#10b981"/>
+  <text x="412" y="312" text-anchor="middle" fill="white" font-size="10" font-weight="700">3</text>
+
+  <!-- Arrows from Claude Code to endpoints -->
+  <line x1="380" y1="170" x2="428" y2="108" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 3"/>
+  <line x1="380" y1="208" x2="478" y2="208" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="380" y1="240" x2="428" y2="308" stroke="#10b981" stroke-width="2" stroke-dasharray="5 3"/>
+
+  <!-- Endpoint 4: Spec Generator (top) -->
+  <rect x="430" y="66" width="200" height="84" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2" filter="url(#integ-shadow)"/>
+  <rect x="438" y="74" width="68" height="16" rx="8" fill="#ef4444"/>
+  <text x="472" y="86" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 4</text>
+  <text x="530" y="100" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">Spec Generator</text>
+  <text x="530" y="116" text-anchor="middle" fill="#6c757d" font-size="10">Azure OpenAI + AI Search</text>
+  <text x="530" y="132" text-anchor="middle" fill="#6c757d" font-size="9">RAG generates structured building spec</text>
+
+  <!-- Endpoint 1: Facade Classifier (middle-right) -->
+  <rect x="484" y="168" width="200" height="80" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" filter="url(#integ-shadow)"/>
+  <rect x="492" y="176" width="68" height="16" rx="8" fill="#6366f1"/>
+  <text x="526" y="188" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 1</text>
+  <text x="584" y="204" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">Facade Classifier</text>
+  <text x="584" y="220" text-anchor="middle" fill="#6c757d" font-size="10">Random Forest on rendered images</text>
+  <text x="584" y="236" text-anchor="middle" fill="#6c757d" font-size="9">Identifies style, informs design choices</text>
+
+  <!-- Endpoint 2 & 3: Validator + Pattern (bottom) -->
+  <rect x="430" y="268" width="200" height="84" rx="10" fill="#ecfdf5" stroke="#10b981" stroke-width="2" filter="url(#integ-shadow)"/>
+  <rect x="438" y="276" width="68" height="16" rx="8" fill="#f59e0b"/>
+  <text x="472" y="288" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 2</text>
+  <rect x="514" y="276" width="68" height="16" rx="8" fill="#10b981"/>
+  <text x="548" y="288" text-anchor="middle" fill="white" font-size="8" font-weight="600">SCENARIO 3</text>
+  <text x="530" y="308" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">Validator + Patterns</text>
+  <text x="530" y="324" text-anchor="middle" fill="#6c757d" font-size="10">Isolation Forest, KMeans/HDBSCAN</text>
+  <text x="530" y="340" text-anchor="middle" fill="#6c757d" font-size="9">Checks structure, suggests proven patterns</text>
+
+  <!-- Output .ldr (bottom center) -->
+  <rect x="220" y="310" width="160" height="64" rx="10" fill="#ecfdf5" stroke="#10b981" stroke-width="2" filter="url(#integ-shadow)"/>
+  <text x="300" y="338" text-anchor="middle" fill="#1a1a2e" font-size="12" font-weight="700">Output: .ldr file</text>
+  <text x="300" y="356" text-anchor="middle" fill="#6c757d" font-size="10">Open in BrickLink Studio</text>
+
+  <!-- Arrow: Claude Code -> .ldr -->
+  <line x1="300" y1="276" x2="300" y2="304" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead-green)"/>
+
+  <!-- Feedback loop arrow (validator back to Claude Code) -->
+  <path d="M 430 340 Q 400 380 300 375 Q 240 370 220 310" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="340" y="390" text-anchor="middle" fill="#10b981" font-size="9" font-style="italic">validation feedback loop</text>
+
+  <!-- Status labels -->
+  <rect x="700" y="80" width="170" height="100" rx="8" fill="white" stroke="#dee2e6"/>
+  <text x="785" y="100" text-anchor="middle" fill="#1a1a2e" font-size="11" font-weight="700">Status</text>
+  <circle cx="718" cy="118" r="5" fill="#10b981"/>
+  <text x="730" y="122" fill="#6c757d" font-size="10">Working now (local)</text>
+  <circle cx="718" cy="138" r="5" fill="#f59e0b"/>
+  <text x="730" y="142" fill="#6c757d" font-size="10">Building (endpoints)</text>
+  <circle cx="718" cy="158" r="5" fill="#ef4444" opacity="0.4"/>
+  <text x="730" y="162" fill="#6c757d" font-size="10">Planned (integration)</text>
+
+  <!-- Footer -->
+  <text x="450" y="410" text-anchor="middle" fill="#6c757d" font-size="10" font-style="italic">Claude Code calls deployed Azure ML endpoints via HTTP. No separate frontend needed.</text>
+</svg>
+</div>
+</div>
+
+<div class="card">
+<h3>The Integration Flow</h3>
+<p>When all four scenarios are deployed, a design session works like this:</p>
+
+<ol style="font-size:0.95rem; line-height:1.9; padding-left:24px; margin-bottom:16px;">
+  <li><strong>Spec generation (Scenario 4):</strong> You give Claude Code a natural language prompt. Claude calls the Spec Generator endpoint, which uses RAG (AI Search over the training data plus Azure OpenAI) to produce a structured building specification: dimensions, floor count, style classification, color assignments, window/door positions, and architectural features.</li>
+  <li><strong>Style validation (Scenario 1):</strong> If the spec references a known architectural style, Claude can optionally call the Facade Classifier endpoint to check whether the proposed design elements are consistent with that style. This is a sanity check, not a gate.</li>
+  <li><strong>Script generation:</strong> Claude writes a PowerShell script based on the spec, runs it, and produces the .ldr file. This step is the same as today, but informed by model output rather than general knowledge alone.</li>
+  <li><strong>Structural validation (Scenario 2):</strong> Claude sends the generated .ldr file's features to the Structural Validator endpoint. The Isolation Forest model flags anomalies (parts floating in space, walls with no foundation, collision-prone placements). If issues come back, Claude fixes the script and regenerates.</li>
+  <li><strong>Pattern lookup (Scenario 3):</strong> For specific construction challenges (cornices, roof lines, window arrangements), Claude can query the Pattern Extraction endpoint to retrieve proven patterns from the training data clusters. This helps when the design calls for something Claude hasn't seen in its reference files.</li>
+</ol>
+</div>
+
+<div class="card">
+<h3>Configuring Claude Code to Call the Endpoints</h3>
+<p>There are two practical approaches. Both work, and they can coexist. Start with Option A because it takes five minutes. Move to Option B if the curl approach feels clunky after real use.</p>
+
+<h4 style="color: var(--azure-dark); margin-top:20px; margin-bottom:8px;">Option A: CLAUDE.md Instructions + .env File</h4>
+<p>The simplest approach. Store endpoint URIs and keys in a <code>.env</code> file (gitignored, never committed), and add usage instructions to <code>CLAUDE.md</code>. Claude Code reads <code>CLAUDE.md</code> at the start of every session, so it knows the endpoints exist and how to call them.</p>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin:16px 0;">
+  <div>
+    <p style="font-size:0.85rem; font-weight:600; color:var(--azure-dark); margin-bottom:8px;">.env (gitignored)</p>
+<pre style="background:#1e1e2e;color:#cdd6f4;padding:16px;border-radius:8px;overflow-x:auto;font-size:0.8rem;margin:0;">
+<span style="color:#6c7086;"># Azure ML Endpoint Configuration</span>
+<span style="color:#a6e3a1;">AZURE_ML_SPEC_ENDPOINT</span>=https://spec-generator.eastus.inference.ml.azure.com/score
+<span style="color:#a6e3a1;">AZURE_ML_SPEC_KEY</span>=abc123...
+<span style="color:#a6e3a1;">AZURE_ML_VALIDATOR_ENDPOINT</span>=https://structural-validator.eastus.inference.ml.azure.com/score
+<span style="color:#a6e3a1;">AZURE_ML_VALIDATOR_KEY</span>=def456...
+<span style="color:#a6e3a1;">AZURE_ML_CLASSIFIER_ENDPOINT</span>=https://facade-classifier.eastus.inference.ml.azure.com/score
+<span style="color:#a6e3a1;">AZURE_ML_CLASSIFIER_KEY</span>=ghi789...
+<span style="color:#a6e3a1;">AZURE_ML_PATTERNS_ENDPOINT</span>=https://pattern-library.eastus.inference.ml.azure.com/score
+<span style="color:#a6e3a1;">AZURE_ML_PATTERNS_KEY</span>=jkl012...
+</pre>
+  </div>
+  <div>
+    <p style="font-size:0.85rem; font-weight:600; color:var(--azure-dark); margin-bottom:8px;">CLAUDE.md (added section)</p>
+<pre style="background:#1e1e2e;color:#cdd6f4;padding:16px;border-radius:8px;overflow-x:auto;font-size:0.8rem;margin:0;">
+<span style="color:#6c7086;">## Model Endpoints</span>
+<span style="color:#6c7086;">Load from .env before calling:</span>
+<span style="color:#a6e3a1;">set -a; source .env; set +a</span>
+
+<span style="color:#6c7086;">### Spec Generator (call first)</span>
+<span style="color:#a6e3a1;">curl</span> -X POST $AZURE_ML_SPEC_ENDPOINT \
+  -H "Authorization: Bearer $AZURE_ML_SPEC_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "...", "dimensions": "32x16"}'
+
+<span style="color:#6c7086;">### Structural Validator (call after .ldr)</span>
+<span style="color:#6c7086;">### Facade Classifier (optional)</span>
+<span style="color:#6c7086;">### Pattern Library (query by feature)</span>
+</pre>
+  </div>
+</div>
+
+<p style="font-size:0.9rem; color:var(--text-muted);">Claude Code constructs <code>curl</code> commands during design sessions based on these instructions. It already knows how to run bash commands, so no new tooling is required.</p>
+
+<h4 style="color: var(--azure-dark); margin-top:24px; margin-bottom:8px;">Option B: MCP Server (Native Tool Integration)</h4>
+<p>A more polished approach. Build a small MCP (Model Context Protocol) server that wraps the Azure ML endpoints as Claude Code tools. Instead of constructing curl commands, Claude gets native tools like <code>generate_spec</code>, <code>validate_structure</code>, and <code>get_patterns</code> that it can call directly.</p>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin:16px 0;">
+  <div>
+    <p style="font-size:0.85rem; font-weight:600; color:var(--azure-dark); margin-bottom:8px;">.claude/settings.json</p>
+<pre style="background:#1e1e2e;color:#cdd6f4;padding:16px;border-radius:8px;overflow-x:auto;font-size:0.8rem;margin:0;">
+{
+  <span style="color:#f9e2af;">"mcpServers"</span>: {
+    <span style="color:#f9e2af;">"claude-bricks-ml"</span>: {
+      <span style="color:#f9e2af;">"command"</span>: <span style="color:#a6e3a1;">"node"</span>,
+      <span style="color:#f9e2af;">"args"</span>: [<span style="color:#a6e3a1;">"mcp-server/index.js"</span>],
+      <span style="color:#f9e2af;">"env"</span>: {
+        <span style="color:#f9e2af;">"AZURE_ML_SPEC_ENDPOINT"</span>: <span style="color:#a6e3a1;">"https://..."</span>,
+        <span style="color:#f9e2af;">"AZURE_ML_SPEC_KEY"</span>: <span style="color:#a6e3a1;">"..."</span>
+      }
+    }
+  }
+}
+</pre>
+  </div>
+  <div>
+    <p style="font-size:0.85rem; font-weight:600; color:var(--azure-dark); margin-bottom:8px;">What Claude Code sees</p>
+<pre style="background:#1e1e2e;color:#cdd6f4;padding:16px;border-radius:8px;overflow-x:auto;font-size:0.8rem;margin:0;">
+<span style="color:#6c7086;">Available tools from claude-bricks-ml:</span>
+
+<span style="color:#a6e3a1;">generate_spec</span>(prompt, dimensions)
+  <span style="color:#6c7086;">// Calls Scenario 4 endpoint</span>
+  <span style="color:#6c7086;">// Returns structured building spec</span>
+
+<span style="color:#a6e3a1;">validate_structure</span>(ldr_features)
+  <span style="color:#6c7086;">// Calls Scenario 2 endpoint</span>
+  <span style="color:#6c7086;">// Returns anomaly scores</span>
+
+<span style="color:#a6e3a1;">classify_facade</span>(image_path)
+  <span style="color:#6c7086;">// Calls Scenario 1 endpoint</span>
+
+<span style="color:#a6e3a1;">get_patterns</span>(feature_type)
+  <span style="color:#6c7086;">// Calls Scenario 3 endpoint</span>
+</pre>
+  </div>
+</div>
+
+<p style="font-size:0.9rem;">The MCP server itself is roughly 100-150 lines of Node.js. It's a thin wrapper that receives tool calls from Claude Code and forwards them as HTTP POST requests to the Azure ML endpoints. The advantage is cleaner integration: Claude Code treats the models as first-class tools rather than bash commands, and the server handles authentication, error formatting, and response parsing in one place.</p>
+
+<table style="font-size:0.9rem; margin-top:16px;">
+  <thead>
+    <tr>
+      <th style="width:25%;">Consideration</th>
+      <th>Option A: CLAUDE.md + .env</th>
+      <th>Option B: MCP Server</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Setup time</strong></td>
+      <td>5 minutes</td>
+      <td>1-2 hours (write the server)</td>
+    </tr>
+    <tr>
+      <td><strong>New dependencies</strong></td>
+      <td>None</td>
+      <td>Node.js, @modelcontextprotocol/sdk</td>
+    </tr>
+    <tr>
+      <td><strong>How Claude calls models</strong></td>
+      <td>Constructs curl commands in bash</td>
+      <td>Native tool calls (like any built-in tool)</td>
+    </tr>
+    <tr>
+      <td><strong>Error handling</strong></td>
+      <td>Claude parses curl output</td>
+      <td>Server formats errors before returning</td>
+    </tr>
+    <tr>
+      <td><strong>Secret management</strong></td>
+      <td>.env file (gitignored)</td>
+      <td>settings.json env vars (gitignored)</td>
+    </tr>
+    <tr>
+      <td><strong>Best for</strong></td>
+      <td>Getting started, testing endpoints</td>
+      <td>Daily use once endpoints are stable</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card">
+<h3>What Works Today vs. What's Planned</h3>
+<table style="font-size:0.9rem;">
+  <thead>
+    <tr>
+      <th style="width:30%;">Capability</th>
+      <th style="width:20%;">Status</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Claude Code generates .ldr files from prompts</td>
+      <td><span style="color:#10b981; font-weight:600;">Working</span></td>
+      <td>PowerShell scripts, helper functions, reference file analysis. No model calls yet.</td>
+    </tr>
+    <tr>
+      <td>Azure ML infrastructure provisioned</td>
+      <td><span style="color:#10b981; font-weight:600;">Working</span></td>
+      <td>Terraform deploys all resources. Bootstrap configures compute and datastores.</td>
+    </tr>
+    <tr>
+      <td>Model training (Scenarios 1-4)</td>
+      <td><span style="color:#f59e0b; font-weight:600;">In Progress</span></td>
+      <td>Training scripts and pipelines being built. Need more training data for some scenarios.</td>
+    </tr>
+    <tr>
+      <td>Managed online endpoints</td>
+      <td><span style="color:#f59e0b; font-weight:600;">In Progress</span></td>
+      <td>Endpoint configuration defined in deployment code. Not yet serving live models.</td>
+    </tr>
+    <tr>
+      <td>Claude Code calls endpoints during design</td>
+      <td><span style="color:#ef4444; font-weight:600;">Planned</span></td>
+      <td>Will use Option A (CLAUDE.md + .env) first, then evaluate MCP server.</td>
+    </tr>
+    <tr>
+      <td>Feedback loop (validate, fix, regenerate)</td>
+      <td><span style="color:#ef4444; font-weight:600;">Planned</span></td>
+      <td>The iteration pattern already exists locally. Will extend to use model feedback.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 style="color: var(--azure-dark); margin-top:20px; margin-bottom:8px;">Why No Frontend?</h4>
+<p style="font-size:0.95rem; line-height:1.7; margin-bottom:0;">
+Claude Code already provides the user interface: you type what you want, Claude builds it. Adding a web frontend would be a separate project with its own deployment and maintenance costs, and it wouldn't add much for this use case. The models are deployed as REST endpoints, so Claude Code calls them the same way it would call any API. If a frontend becomes useful later (for demo purposes, or to let non-technical users try it), the endpoints are already there to support it.
+</p>
 </div>
 
 <!-- Footer -->
