@@ -1,0 +1,25 @@
+// Average latency grouped by prompt version
+// Dashboard: GenAI Operations - Latency by Prompt Version
+// Shows how different prompt versions affect end-to-end response time
+
+requests
+| where timestamp > ago(30d)
+| where name startswith "generate_spec" or name startswith "rag_pipeline"
+| extend prompt_version = tostring(customDimensions["prompt_version"])
+| where isnotempty(prompt_version)
+| summarize
+    avg_duration_ms = avg(duration),
+    p50_duration_ms = percentile(duration, 50),
+    p95_duration_ms = percentile(duration, 95),
+    p99_duration_ms = percentile(duration, 99),
+    request_count = count()
+    by prompt_version, bin(timestamp, 1d)
+| order by timestamp asc, prompt_version asc
+| project
+    timestamp,
+    prompt_version,
+    avg_duration_ms = round(avg_duration_ms, 1),
+    p50_duration_ms = round(p50_duration_ms, 1),
+    p95_duration_ms = round(p95_duration_ms, 1),
+    p99_duration_ms = round(p99_duration_ms, 1),
+    request_count

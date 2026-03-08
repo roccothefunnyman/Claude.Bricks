@@ -1,0 +1,188 @@
+# Infrastructure Deployment Workflow
+# Deploys Azure resources via Bicep with environment promotion (dev -> test).
+# Uses OIDC federated identity for Azure login -- no client secrets stored in GitHub.
+
+name: Infrastructure Deployment
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "deploymentcode/bicep/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (dev or test)"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+          - both
+
+permissions:
+  id-token: write   # Required for OIDC federated credential
+  contents: read
+
+env:
+  BICEP_DIR: deploymentcode/bicep
+  LOCATION: eastus
+
+jobs:
+  # -------------------------------------------------------------------
+  # Lint and validate Bicep templates before any deployment
+  # -------------------------------------------------------------------
+  validate:
+    name: Lint & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Bicep Lint
+        # az bicep build compiles and lints the template.
+        # Catches syntax errors and best-practice violations early.
+        run: |
+          az bicep build --file ${{ env.BICEP_DIR }}/main.bicep
+          echo "Bicep lint passed"
+
+      - name: Bicep Validate (dev parameters)
+        run: |
+          az deployment group validate \
+            --resource-group rg-claudebricks-dev \
+            --template-file ${{ env.BICEP_DIR }}/main.bicep \
+            --parameters ${{ env.BICEP_DIR }}/parameters/dev.bicepparam \
+            --name validate-${{ github.run_number }}
+          echo "Bicep validation passed for dev"
+
+  # -------------------------------------------------------------------
+  # Deploy to dev environment
+  # Runs automatically on push or when manually triggered for dev/both
+  # -------------------------------------------------------------------
+  deploy-dev:
+    name: Deploy to Dev
+    needs: validate
+    if: >-
+      github.event_name == 'push' ||
+      github.event.inputs.environment == 'dev' ||
+      github.event.inputs.environment == 'both'
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      RESOURCE_GROUP: rg-claudebricks-dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure resource group exists
+        run: |
+          az group create \
+            --name ${{ env.RESOURCE_GROUP }} \
+            --location ${{ env.LOCATION }} \
+            --output none
+
+      - name: What-If Preview (dev)
+        # Show what changes will be made before applying them.
+        # This step is informational -- it does not block deployment.
+        run: |
+          az deployment group what-if \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file ${{ env.BICEP_DIR }}/main.bicep \
+            --parameters ${{ env.BICEP_DIR }}/parameters/dev.bicepparam \
+            --name whatif-dev-${{ github.run_number }}
+
+      - name: Deploy to Dev
+        run: |
+          az deployment group create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file ${{ env.BICEP_DIR }}/main.bicep \
+            --parameters ${{ env.BICEP_DIR }}/parameters/dev.bicepparam \
+            --name deploy-dev-${{ github.run_number }} \
+            --verbose
+          echo "Dev deployment complete"
+
+      - name: Verify deployment outputs
+        run: |
+          az deployment group show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name deploy-dev-${{ github.run_number }} \
+            --query "properties.outputs" \
+            --output table
+
+  # -------------------------------------------------------------------
+  # Deploy to test environment
+  # Protected by GitHub environment protection rule (manual approval).
+  # Only runs on manual dispatch when test or both is selected.
+  # -------------------------------------------------------------------
+  deploy-test:
+    name: Deploy to Test
+    needs: deploy-dev
+    if: >-
+      github.event.inputs.environment == 'test' ||
+      github.event.inputs.environment == 'both'
+    runs-on: ubuntu-latest
+    # The "test" environment should have a required reviewer configured
+    # in GitHub repo settings -> Environments -> test -> Protection rules
+    environment: test
+    env:
+      RESOURCE_GROUP: rg-claudebricks-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure resource group exists
+        run: |
+          az group create \
+            --name ${{ env.RESOURCE_GROUP }} \
+            --location ${{ env.LOCATION }} \
+            --output none
+
+      - name: What-If Preview (test)
+        run: |
+          az deployment group what-if \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file ${{ env.BICEP_DIR }}/main.bicep \
+            --parameters ${{ env.BICEP_DIR }}/parameters/test.bicepparam \
+            --name whatif-test-${{ github.run_number }}
+
+      - name: Deploy to Test
+        run: |
+          az deployment group create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file ${{ env.BICEP_DIR }}/main.bicep \
+            --parameters ${{ env.BICEP_DIR }}/parameters/test.bicepparam \
+            --name deploy-test-${{ github.run_number }} \
+            --verbose
+          echo "Test deployment complete"
+
+      - name: Verify deployment outputs
+        run: |
+          az deployment group show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name deploy-test-${{ github.run_number }} \
+            --query "properties.outputs" \
+            --output table

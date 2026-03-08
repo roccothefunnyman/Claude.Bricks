@@ -1,0 +1,316 @@
+# ML Training Pipeline Workflow
+# Submits Azure ML training jobs for Scenarios 1-3, waits for completion,
+# validates metrics against thresholds, and registers the model if passed.
+# Posts metrics as a PR comment when triggered by a pull request.
+
+name: ML Training Pipeline
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "deploymentcode/scripts/scenario1/**"
+      - "deploymentcode/scripts/scenario2/**"
+      - "deploymentcode/scripts/scenario3/**"
+  pull_request:
+    paths:
+      - "deploymentcode/scripts/scenario1/**"
+      - "deploymentcode/scripts/scenario2/**"
+      - "deploymentcode/scripts/scenario3/**"
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Scenario to train (1=Facade Classification, 2=Structural Validation, 3=Pattern Extraction)"
+        required: true
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+      compute_target:
+        description: "Compute target override (leave blank for default)"
+        required: false
+        type: string
+        default: ""
+      experiment_name:
+        description: "Experiment name override (leave blank for default)"
+        required: false
+        type: string
+        default: ""
+  # Allow drift-check workflow to trigger retraining
+  repository_dispatch:
+    types: [drift-detected]
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write   # Needed to post PR comments
+
+env:
+  RESOURCE_GROUP: rg-claudebricks-dev
+  WORKSPACE_NAME: mlw-claudebricks-dev
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  train:
+    name: Train & Validate Model
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install azure-ai-ml azure-identity mlflow azureml-mlflow
+
+      # Determine which scenario to run based on trigger type.
+      # Push/PR: detect from changed files. Manual: use input. Dispatch: use payload.
+      - name: Determine scenario
+        id: scenario
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            SCENARIO="${{ github.event.inputs.scenario }}"
+          elif [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            SCENARIO="${{ github.event.client_payload.scenario || '1' }}"
+          else
+            # Detect from changed files -- pick the lowest-numbered scenario changed
+            CHANGED=$(git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD)
+            if echo "$CHANGED" | grep -q "scenario1/"; then
+              SCENARIO="1"
+            elif echo "$CHANGED" | grep -q "scenario2/"; then
+              SCENARIO="2"
+            elif echo "$CHANGED" | grep -q "scenario3/"; then
+              SCENARIO="3"
+            else
+              echo "No scenario files changed, defaulting to scenario 1"
+              SCENARIO="1"
+            fi
+          fi
+          echo "scenario=$SCENARIO" >> "$GITHUB_OUTPUT"
+          echo "Selected scenario: $SCENARIO"
+
+      # Map scenario number to configuration values
+      - name: Set scenario configuration
+        id: config
+        run: |
+          SCENARIO="${{ steps.scenario.outputs.scenario }}"
+
+          case "$SCENARIO" in
+            1)
+              SCRIPT_DIR="deploymentcode/scripts/scenario1"
+              DEFAULT_EXPERIMENT="facade-classification"
+              DEFAULT_COMPUTE="cpu-cluster"
+              MODEL_NAME="facade-classifier"
+              METRIC_NAME="accuracy"
+              METRIC_THRESHOLD="0.85"
+              ;;
+            2)
+              SCRIPT_DIR="deploymentcode/scripts/scenario2"
+              DEFAULT_EXPERIMENT="structural-validation"
+              DEFAULT_COMPUTE="cpu-cluster"
+              MODEL_NAME="structural-validator"
+              METRIC_NAME="f1_score"
+              METRIC_THRESHOLD="0.80"
+              ;;
+            3)
+              SCRIPT_DIR="deploymentcode/scripts/scenario3"
+              DEFAULT_EXPERIMENT="pattern-extraction"
+              DEFAULT_COMPUTE="cpu-cluster"
+              MODEL_NAME="pattern-extractor"
+              METRIC_NAME="silhouette_score"
+              METRIC_THRESHOLD="0.60"
+              ;;
+          esac
+
+          # Apply overrides from manual dispatch inputs
+          EXPERIMENT="${{ github.event.inputs.experiment_name }}"
+          COMPUTE="${{ github.event.inputs.compute_target }}"
+          [ -z "$EXPERIMENT" ] && EXPERIMENT="$DEFAULT_EXPERIMENT"
+          [ -z "$COMPUTE" ] && COMPUTE="$DEFAULT_COMPUTE"
+
+          echo "script_dir=$SCRIPT_DIR" >> "$GITHUB_OUTPUT"
+          echo "experiment=$EXPERIMENT" >> "$GITHUB_OUTPUT"
+          echo "compute=$COMPUTE" >> "$GITHUB_OUTPUT"
+          echo "model_name=$MODEL_NAME" >> "$GITHUB_OUTPUT"
+          echo "metric_name=$METRIC_NAME" >> "$GITHUB_OUTPUT"
+          echo "metric_threshold=$METRIC_THRESHOLD" >> "$GITHUB_OUTPUT"
+
+      - name: Submit AML training job
+        id: submit
+        run: |
+          # Submit training job and capture the job name for polling
+          JOB_NAME=$(az ml job create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --file ${{ steps.config.outputs.script_dir }}/job.yml \
+            --set experiment_name=${{ steps.config.outputs.experiment }} \
+            --set compute=${{ steps.config.outputs.compute }} \
+            --query name \
+            --output tsv)
+
+          echo "job_name=$JOB_NAME" >> "$GITHUB_OUTPUT"
+          echo "Submitted job: $JOB_NAME"
+
+      - name: Wait for job completion
+        id: wait
+        run: |
+          JOB_NAME="${{ steps.submit.outputs.job_name }}"
+          echo "Waiting for job $JOB_NAME to complete..."
+
+          # Poll every 60 seconds, timeout after 60 minutes
+          TIMEOUT=3600
+          ELAPSED=0
+          INTERVAL=60
+
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            STATUS=$(az ml job show \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --name "$JOB_NAME" \
+              --query status \
+              --output tsv)
+
+            echo "Job status: $STATUS (elapsed: ${ELAPSED}s)"
+
+            case "$STATUS" in
+              Completed)
+                echo "Job completed successfully"
+                echo "status=Completed" >> "$GITHUB_OUTPUT"
+                exit 0
+                ;;
+              Failed|Canceled|CancelRequested)
+                echo "::error::Job ended with status: $STATUS"
+                exit 1
+                ;;
+            esac
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "::error::Job timed out after ${TIMEOUT}s"
+          exit 1
+
+      - name: Pull metrics from completed job
+        id: metrics
+        run: |
+          JOB_NAME="${{ steps.submit.outputs.job_name }}"
+          METRIC_NAME="${{ steps.config.outputs.metric_name }}"
+
+          # Download MLflow metrics from the completed job
+          METRIC_VALUE=$(az ml job show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "$JOB_NAME" \
+            --query "properties.mlflow.metrics.$METRIC_NAME" \
+            --output tsv 2>/dev/null || echo "")
+
+          # Fallback: try fetching from job outputs if not in properties
+          if [ -z "$METRIC_VALUE" ] || [ "$METRIC_VALUE" == "None" ]; then
+            echo "Metric not found in properties, checking job outputs..."
+            az ml job download \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --name "$JOB_NAME" \
+              --output-name metrics \
+              --download-path ./job-output 2>/dev/null || true
+
+            if [ -f "./job-output/metrics/$METRIC_NAME" ]; then
+              METRIC_VALUE=$(cat "./job-output/metrics/$METRIC_NAME")
+            fi
+          fi
+
+          if [ -z "$METRIC_VALUE" ] || [ "$METRIC_VALUE" == "None" ]; then
+            echo "::error::Could not retrieve metric '$METRIC_NAME' from job"
+            exit 1
+          fi
+
+          echo "metric_value=$METRIC_VALUE" >> "$GITHUB_OUTPUT"
+          echo "$METRIC_NAME = $METRIC_VALUE"
+
+      - name: Compare metrics against threshold
+        id: compare
+        run: |
+          METRIC_NAME="${{ steps.config.outputs.metric_name }}"
+          METRIC_VALUE="${{ steps.metrics.outputs.metric_value }}"
+          THRESHOLD="${{ steps.config.outputs.metric_threshold }}"
+
+          echo "Comparing $METRIC_NAME: $METRIC_VALUE >= $THRESHOLD"
+
+          # Use awk for floating point comparison
+          PASSED=$(awk "BEGIN { print ($METRIC_VALUE >= $THRESHOLD) ? \"true\" : \"false\" }")
+
+          echo "passed=$PASSED" >> "$GITHUB_OUTPUT"
+
+          if [ "$PASSED" == "false" ]; then
+            echo "::error::Metric $METRIC_NAME ($METRIC_VALUE) is below threshold ($THRESHOLD)"
+            exit 1
+          fi
+
+          echo "Metric $METRIC_NAME ($METRIC_VALUE) meets threshold ($THRESHOLD)"
+
+      - name: Register model
+        if: steps.compare.outputs.passed == 'true'
+        run: |
+          JOB_NAME="${{ steps.submit.outputs.job_name }}"
+          MODEL_NAME="${{ steps.config.outputs.model_name }}"
+          METRIC_NAME="${{ steps.config.outputs.metric_name }}"
+          METRIC_VALUE="${{ steps.metrics.outputs.metric_value }}"
+
+          az ml model create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "$MODEL_NAME" \
+            --path "azureml://jobs/$JOB_NAME/outputs/artifacts/model" \
+            --type mlflow_model \
+            --description "Scenario ${{ steps.scenario.outputs.scenario }} - $METRIC_NAME: $METRIC_VALUE (run: ${{ github.run_number }})" \
+            --tags "github_run=${{ github.run_number }}" "scenario=${{ steps.scenario.outputs.scenario }}" "$METRIC_NAME=$METRIC_VALUE"
+
+          echo "Model registered: $MODEL_NAME"
+
+      # Post metrics summary as a PR comment for visibility during code review
+      - name: Post metrics as PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const scenario = '${{ steps.scenario.outputs.scenario }}';
+            const metricName = '${{ steps.config.outputs.metric_name }}';
+            const metricValue = '${{ steps.metrics.outputs.metric_value }}';
+            const threshold = '${{ steps.config.outputs.metric_threshold }}';
+            const passed = '${{ steps.compare.outputs.passed }}';
+            const jobName = '${{ steps.submit.outputs.job_name }}';
+            const statusEmoji = passed === 'true' ? ':white_check_mark:' : ':x:';
+
+            const body = `## ML Training Results - Scenario ${scenario}
+
+            | Metric | Value | Threshold | Status |
+            |--------|-------|-----------|--------|
+            | ${metricName} | ${metricValue} | >= ${threshold} | ${statusEmoji} |
+
+            **AML Job**: \`${jobName}\`
+            **Workflow Run**: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body.trim()
+            });

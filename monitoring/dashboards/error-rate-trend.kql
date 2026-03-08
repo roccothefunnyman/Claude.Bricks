@@ -1,0 +1,23 @@
+// Error rate by day, grouped by error type
+// Dashboard: GenAI Operations - Error Rate Trend
+// Shows daily error rate and breakdown by exception type
+
+let total_requests = requests
+| where timestamp > ago(30d)
+| summarize total = count() by bin(timestamp, 1d);
+//
+exceptions
+| where timestamp > ago(30d)
+| extend error_type = coalesce(type, "UnknownError")
+| extend prompt_version = tostring(customDimensions["prompt_version"])
+| summarize error_count = count() by error_type, bin(timestamp, 1d), prompt_version
+| join kind=leftouter total_requests on timestamp
+| extend error_rate = round(100.0 * error_count / coalesce(total, 1), 2)
+| project
+    timestamp,
+    error_type,
+    prompt_version,
+    error_count,
+    total_requests = coalesce(total, 0),
+    error_rate_pct = error_rate
+| order by timestamp asc, error_count desc

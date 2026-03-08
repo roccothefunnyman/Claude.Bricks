@@ -1,0 +1,32 @@
+{# RAG Template v2 - Structured with explicit grounding instructions #}
+{# Usage: render with context (retrieved documents), query (user prompt), #}
+{#        and optional prompt_version for telemetry tracking              #}
+
+You have been provided with reference materials retrieved from the Claude.Bricks knowledge base. You MUST ground your specification in these materials. For each architectural decision, cite which reference material informed it.
+
+## Retrieved Reference Materials
+
+{% for doc in context %}
+### Reference {{ loop.index }}: {{ doc.source }}
+Relevance Score: {{ doc.score | default("N/A") }}
+
+{{ doc.content }}
+
+{% endfor %}
+
+## User Request
+
+{{ query }}
+
+## Grounding Instructions
+
+1. When specifying part numbers, only use parts that appear in the reference materials or the standards parts catalog.
+2. When describing construction patterns (masonry, cornices, window placement), follow the techniques shown in the reference materials.
+3. For each major design decision, add an inline citation: [Ref N] where N is the reference number above.
+4. If the reference materials do not cover a needed aspect, state that you are using general LDraw conventions and flag it as ungrounded.
+5. Do not hallucinate part numbers. If you are unsure whether a part exists, say so and suggest alternatives from the references.
+
+{% if prompt_version is defined %}
+{# Metadata for telemetry - not rendered to model #}
+<!-- prompt_version: {{ prompt_version }} -->
+{% endif %}

@@ -1,0 +1,287 @@
+# GenAI Evaluation Workflow
+# Runs the RAG/prompt quality evaluation pipeline against Scenario 4.
+# Scores responses on groundedness, relevance, coherence, fluency, and safety.
+# Blocks deployment if any metric falls below configured thresholds.
+
+name: GenAI Evaluation
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "prompts/**"
+      - "eval/**"
+      - "deploymentcode/scripts/scenario4/**"
+  pull_request:
+    paths:
+      - "prompts/**"
+      - "eval/**"
+      - "deploymentcode/scripts/scenario4/**"
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: "Evaluation dataset filename (in eval/datasets/)"
+        required: false
+        type: string
+        default: "lego-spec-generator.jsonl"
+      threshold_config:
+        description: "Threshold config filename (in eval/configs/)"
+        required: false
+        type: string
+        default: "thresholds.json"
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write   # Needed to post PR comments
+
+env:
+  RESOURCE_GROUP: rg-claudebricks-dev
+  WORKSPACE_NAME: mlw-claudebricks-dev
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  evaluate:
+    name: Run GenAI Evaluation
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install azure-ai-ml azure-identity azure-ai-evaluation openai requests
+
+      - name: Resolve configuration paths
+        id: config
+        run: |
+          DATASET="${{ github.event.inputs.dataset || 'lego-spec-generator.jsonl' }}"
+          THRESHOLDS="${{ github.event.inputs.threshold_config || 'thresholds.json' }}"
+
+          echo "dataset=eval/datasets/$DATASET" >> "$GITHUB_OUTPUT"
+          echo "thresholds=eval/configs/$THRESHOLDS" >> "$GITHUB_OUTPUT"
+
+          # Validate files exist
+          if [ ! -f "eval/datasets/$DATASET" ]; then
+            echo "::error::Dataset not found: eval/datasets/$DATASET"
+            exit 1
+          fi
+          if [ ! -f "eval/configs/$THRESHOLDS" ]; then
+            echo "::error::Threshold config not found: eval/configs/$THRESHOLDS"
+            exit 1
+          fi
+
+          echo "Dataset: eval/datasets/$DATASET"
+          echo "Thresholds: eval/configs/$THRESHOLDS"
+
+      - name: Load evaluation dataset
+        id: dataset
+        run: |
+          DATASET_PATH="${{ steps.config.outputs.dataset }}"
+          ROW_COUNT=$(wc -l < "$DATASET_PATH")
+          echo "row_count=$ROW_COUNT" >> "$GITHUB_OUTPUT"
+          echo "Evaluation dataset: $ROW_COUNT test cases"
+
+      - name: Load quality thresholds
+        id: thresholds
+        run: |
+          THRESHOLDS_PATH="${{ steps.config.outputs.thresholds }}"
+          cat "$THRESHOLDS_PATH"
+
+          # Extract individual thresholds for later comparison
+          GROUNDEDNESS=$(python3 -c "import json; print(json.load(open('$THRESHOLDS_PATH'))['groundedness'])")
+          RELEVANCE=$(python3 -c "import json; print(json.load(open('$THRESHOLDS_PATH'))['relevance'])")
+          COHERENCE=$(python3 -c "import json; print(json.load(open('$THRESHOLDS_PATH'))['coherence'])")
+          FLUENCY=$(python3 -c "import json; print(json.load(open('$THRESHOLDS_PATH'))['fluency'])")
+          SAFETY=$(python3 -c "import json; print(json.load(open('$THRESHOLDS_PATH'))['safety_pass_rate'])")
+
+          echo "groundedness=$GROUNDEDNESS" >> "$GITHUB_OUTPUT"
+          echo "relevance=$RELEVANCE" >> "$GITHUB_OUTPUT"
+          echo "coherence=$COHERENCE" >> "$GITHUB_OUTPUT"
+          echo "fluency=$FLUENCY" >> "$GITHUB_OUTPUT"
+          echo "safety=$SAFETY" >> "$GITHUB_OUTPUT"
+
+      - name: Run evaluation pipeline
+        id: eval
+        run: |
+          # Run the evaluation script which scores each test case and outputs results
+          python3 eval/run_evaluation.py \
+            --dataset "${{ steps.config.outputs.dataset }}" \
+            --thresholds "${{ steps.config.outputs.thresholds }}" \
+            --output-dir eval/results \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }}
+
+          # The evaluation script writes a results summary JSON
+          RESULTS_FILE="eval/results/summary.json"
+          if [ ! -f "$RESULTS_FILE" ]; then
+            echo "::error::Evaluation script did not produce summary.json"
+            exit 1
+          fi
+
+          # Extract aggregate metric scores
+          GROUNDEDNESS=$(python3 -c "import json; print(json.load(open('$RESULTS_FILE'))['groundedness'])")
+          RELEVANCE=$(python3 -c "import json; print(json.load(open('$RESULTS_FILE'))['relevance'])")
+          COHERENCE=$(python3 -c "import json; print(json.load(open('$RESULTS_FILE'))['coherence'])")
+          FLUENCY=$(python3 -c "import json; print(json.load(open('$RESULTS_FILE'))['fluency'])")
+          SAFETY=$(python3 -c "import json; print(json.load(open('$RESULTS_FILE'))['safety_pass_rate'])")
+
+          echo "groundedness=$GROUNDEDNESS" >> "$GITHUB_OUTPUT"
+          echo "relevance=$RELEVANCE" >> "$GITHUB_OUTPUT"
+          echo "coherence=$COHERENCE" >> "$GITHUB_OUTPUT"
+          echo "fluency=$FLUENCY" >> "$GITHUB_OUTPUT"
+          echo "safety=$SAFETY" >> "$GITHUB_OUTPUT"
+
+          echo "Results: groundedness=$GROUNDEDNESS relevance=$RELEVANCE coherence=$COHERENCE fluency=$FLUENCY safety=$SAFETY"
+
+      - name: Compare against thresholds
+        id: gate
+        run: |
+          # Compare each metric against its threshold.
+          # Any failure blocks the pipeline.
+          FAILURES=""
+
+          check_metric() {
+            local name=$1 actual=$2 threshold=$3
+            PASSED=$(awk "BEGIN { print ($actual >= $threshold) ? \"true\" : \"false\" }")
+            if [ "$PASSED" == "false" ]; then
+              echo "::error::$name ($actual) is below threshold ($threshold)"
+              FAILURES="$FAILURES $name"
+            else
+              echo "$name: $actual >= $threshold (PASS)"
+            fi
+          }
+
+          check_metric "groundedness" \
+            "${{ steps.eval.outputs.groundedness }}" \
+            "${{ steps.thresholds.outputs.groundedness }}"
+
+          check_metric "relevance" \
+            "${{ steps.eval.outputs.relevance }}" \
+            "${{ steps.thresholds.outputs.relevance }}"
+
+          check_metric "coherence" \
+            "${{ steps.eval.outputs.coherence }}" \
+            "${{ steps.thresholds.outputs.coherence }}"
+
+          check_metric "fluency" \
+            "${{ steps.eval.outputs.fluency }}" \
+            "${{ steps.thresholds.outputs.fluency }}"
+
+          check_metric "safety_pass_rate" \
+            "${{ steps.eval.outputs.safety }}" \
+            "${{ steps.thresholds.outputs.safety }}"
+
+          if [ -n "$FAILURES" ]; then
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+            echo "failures=$FAILURES" >> "$GITHUB_OUTPUT"
+          else
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+            echo "All metrics meet thresholds"
+          fi
+
+      - name: Generate evaluation report
+        run: |
+          # Create a human-readable report alongside the JSON summary
+          python3 -c "
+          import json, datetime
+
+          results = json.load(open('eval/results/summary.json'))
+          thresholds = json.load(open('${{ steps.config.outputs.thresholds }}'))
+
+          report = []
+          report.append('=' * 60)
+          report.append('GenAI Evaluation Report')
+          report.append(f'Date: {datetime.datetime.utcnow().isoformat()}Z')
+          report.append(f'Dataset: ${{ steps.config.outputs.dataset }}')
+          report.append(f'Test cases: ${{ steps.dataset.outputs.row_count }}')
+          report.append(f'Workflow run: #${{ github.run_number }}')
+          report.append('=' * 60)
+          report.append('')
+          report.append(f'{\"Metric\":<20} {\"Score\":<10} {\"Threshold\":<12} {\"Status\":<8}')
+          report.append('-' * 50)
+
+          metrics = ['groundedness', 'relevance', 'coherence', 'fluency', 'safety_pass_rate']
+          for m in metrics:
+              score = results.get(m, 0)
+              thresh = thresholds.get(m, 0)
+              status = 'PASS' if score >= thresh else 'FAIL'
+              report.append(f'{m:<20} {score:<10.4f} {thresh:<12} {status:<8}')
+
+          report.append('')
+          overall = 'PASSED' if '${{ steps.gate.outputs.passed }}' == 'true' else 'FAILED'
+          report.append(f'Overall: {overall}')
+          report.append('=' * 60)
+
+          text = '\n'.join(report)
+          print(text)
+          with open('eval/results/report.txt', 'w') as f:
+              f.write(text)
+          "
+
+      - name: Upload evaluation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-${{ github.run_number }}
+          path: eval/results/
+          retention-days: 30
+
+      - name: Post evaluation summary as PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('eval/results/summary.json', 'utf8'));
+            const thresholds = JSON.parse(fs.readFileSync('${{ steps.config.outputs.thresholds }}', 'utf8'));
+            const passed = '${{ steps.gate.outputs.passed }}';
+            const overall = passed === 'true' ? ':white_check_mark: PASSED' : ':x: FAILED';
+
+            const metrics = ['groundedness', 'relevance', 'coherence', 'fluency', 'safety_pass_rate'];
+            let table = '| Metric | Score | Threshold | Status |\n|--------|-------|-----------|--------|\n';
+            for (const m of metrics) {
+              const score = (results[m] || 0).toFixed(4);
+              const thresh = thresholds[m] || 0;
+              const status = parseFloat(score) >= thresh ? ':white_check_mark:' : ':x:';
+              table += `| ${m} | ${score} | >= ${thresh} | ${status} |\n`;
+            }
+
+            const body = `## GenAI Evaluation Results ${overall}
+
+            **Dataset**: ${{ steps.config.outputs.dataset }} (${{ steps.dataset.outputs.row_count }} test cases)
+
+            ${table}
+
+            **Workflow Run**: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body.trim()
+            });
+
+      - name: Fail if below thresholds
+        if: steps.gate.outputs.passed == 'false'
+        run: |
+          echo "::error::Evaluation quality gate failed. Metrics below threshold:${{ steps.gate.outputs.failures }}"
+          echo "Deployment is blocked until quality metrics meet the configured thresholds."
+          exit 1

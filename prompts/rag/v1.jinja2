@@ -1,0 +1,13 @@
+{# RAG Template v1 - Simple context injection #}
+{# Usage: render with context (retrieved documents) and query (user prompt) #}
+
+Based on the following reference materials:
+
+{% for doc in context %}
+---
+Source: {{ doc.source }}
+{{ doc.content }}
+{% endfor %}
+---
+
+Generate a building specification for: {{ query }}

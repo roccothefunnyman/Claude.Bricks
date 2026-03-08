@@ -1,0 +1,232 @@
+# Drift Detection Workflow
+# Runs weekly (Sunday midnight UTC) or on manual dispatch.
+# Submits a drift detection AML job that compares current data distribution
+# against the training baseline. If drift exceeds the threshold, triggers
+# the training pipeline via repository_dispatch to retrain automatically.
+
+name: Drift Detection
+
+on:
+  schedule:
+    # Run every Sunday at midnight UTC
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Scenario to check for drift (default: 1 = Facade Classification)"
+        required: false
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+        default: "1"
+      drift_threshold:
+        description: "Drift threshold override (0.0 - 1.0, default 0.3)"
+        required: false
+        type: string
+        default: "0.3"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  RESOURCE_GROUP: rg-claudebricks-dev
+  WORKSPACE_NAME: mlw-claudebricks-dev
+  # Default drift threshold: if population stability index (PSI) or similar
+  # metric exceeds this value, retraining is triggered.
+  DEFAULT_DRIFT_THRESHOLD: "0.3"
+
+jobs:
+  detect-drift:
+    name: Check for Data Drift
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install azure-ai-ml azure-identity
+
+      - name: Determine scenario and threshold
+        id: config
+        run: |
+          SCENARIO="${{ github.event.inputs.scenario || '1' }}"
+          THRESHOLD="${{ github.event.inputs.drift_threshold || env.DEFAULT_DRIFT_THRESHOLD }}"
+
+          echo "scenario=$SCENARIO" >> "$GITHUB_OUTPUT"
+          echo "threshold=$THRESHOLD" >> "$GITHUB_OUTPUT"
+          echo "Checking drift for scenario $SCENARIO with threshold $THRESHOLD"
+
+      - name: Submit drift detection job
+        id: submit
+        run: |
+          SCENARIO="${{ steps.config.outputs.scenario }}"
+
+          # Submit the drift detection job defined in the monitoring directory.
+          # This job compares the current data distribution against the training baseline.
+          JOB_NAME=$(az ml job create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --file monitoring/drift/drift-detection-job.yml \
+            --set inputs.scenario="$SCENARIO" \
+            --query name \
+            --output tsv)
+
+          echo "job_name=$JOB_NAME" >> "$GITHUB_OUTPUT"
+          echo "Submitted drift detection job: $JOB_NAME"
+
+      - name: Wait for drift detection job
+        run: |
+          JOB_NAME="${{ steps.submit.outputs.job_name }}"
+          echo "Waiting for drift detection job $JOB_NAME..."
+
+          TIMEOUT=1800
+          ELAPSED=0
+          INTERVAL=30
+
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            STATUS=$(az ml job show \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --name "$JOB_NAME" \
+              --query status \
+              --output tsv)
+
+            echo "Job status: $STATUS (elapsed: ${ELAPSED}s)"
+
+            case "$STATUS" in
+              Completed)
+                echo "Drift detection job completed"
+                exit 0
+                ;;
+              Failed|Canceled|CancelRequested)
+                echo "::error::Drift detection job ended with status: $STATUS"
+                exit 1
+                ;;
+            esac
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "::error::Drift detection job timed out after ${TIMEOUT}s"
+          exit 1
+
+      - name: Pull drift metrics
+        id: drift
+        run: |
+          JOB_NAME="${{ steps.submit.outputs.job_name }}"
+
+          # Download job outputs containing drift metrics
+          az ml job download \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "$JOB_NAME" \
+            --download-path ./drift-output
+
+          # Extract the drift score from the job output.
+          # The drift detection script is expected to write a JSON file with metrics.
+          if [ -f "./drift-output/named-outputs/drift_metrics/drift_report.json" ]; then
+            DRIFT_SCORE=$(python3 -c "
+            import json
+            report = json.load(open('./drift-output/named-outputs/drift_metrics/drift_report.json'))
+            print(report.get('overall_drift_score', report.get('psi', 0)))
+            ")
+          else
+            # Fallback: check for metric in job properties
+            DRIFT_SCORE=$(az ml job show \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --name "$JOB_NAME" \
+              --query "properties.mlflow.metrics.drift_score" \
+              --output tsv 2>/dev/null || echo "0")
+          fi
+
+          echo "drift_score=$DRIFT_SCORE" >> "$GITHUB_OUTPUT"
+          echo "Drift score: $DRIFT_SCORE"
+
+      - name: Evaluate drift against threshold
+        id: evaluate
+        run: |
+          DRIFT_SCORE="${{ steps.drift.outputs.drift_score }}"
+          THRESHOLD="${{ steps.config.outputs.threshold }}"
+
+          echo "Drift score: $DRIFT_SCORE, Threshold: $THRESHOLD"
+
+          EXCEEDED=$(awk "BEGIN { print ($DRIFT_SCORE > $THRESHOLD) ? \"true\" : \"false\" }")
+          echo "exceeded=$EXCEEDED" >> "$GITHUB_OUTPUT"
+
+          if [ "$EXCEEDED" == "true" ]; then
+            echo "::warning::Drift threshold exceeded ($DRIFT_SCORE > $THRESHOLD). Retraining will be triggered."
+          else
+            echo "Drift within acceptable bounds ($DRIFT_SCORE <= $THRESHOLD). No action needed."
+          fi
+
+      # Trigger the training pipeline if drift exceeds the threshold.
+      # Uses repository_dispatch so the train.yml workflow receives the event.
+      - name: Trigger retraining pipeline
+        if: steps.evaluate.outputs.exceeded == 'true'
+        run: |
+          SCENARIO="${{ steps.config.outputs.scenario }}"
+          DRIFT_SCORE="${{ steps.drift.outputs.drift_score }}"
+
+          echo "Triggering retraining for scenario $SCENARIO (drift: $DRIFT_SCORE)"
+
+          # Use GitHub API to send a repository_dispatch event.
+          # The train.yml workflow listens for the "drift-detected" event type.
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/dispatches" \
+            -d "{
+              \"event_type\": \"drift-detected\",
+              \"client_payload\": {
+                \"scenario\": \"$SCENARIO\",
+                \"drift_score\": \"$DRIFT_SCORE\",
+                \"triggered_by\": \"drift-check-${{ github.run_number }}\"
+              }
+            }"
+
+          echo "Retraining pipeline triggered via repository_dispatch"
+
+      - name: Post drift detection summary
+        if: always()
+        run: |
+          SCENARIO="${{ steps.config.outputs.scenario }}"
+          DRIFT_SCORE="${{ steps.drift.outputs.drift_score }}"
+          THRESHOLD="${{ steps.config.outputs.threshold }}"
+          EXCEEDED="${{ steps.evaluate.outputs.exceeded }}"
+          JOB_NAME="${{ steps.submit.outputs.job_name }}"
+
+          echo "=========================================="
+          echo "Drift Detection Summary"
+          echo "=========================================="
+          echo "Scenario:        $SCENARIO"
+          echo "AML Job:         $JOB_NAME"
+          echo "Drift Score:     $DRIFT_SCORE"
+          echo "Threshold:       $THRESHOLD"
+          if [ "$EXCEEDED" == "true" ]; then
+            echo "Status:          DRIFT DETECTED - Retraining triggered"
+          else
+            echo "Status:          OK - No significant drift"
+          fi
+          echo "=========================================="

@@ -12,6 +12,18 @@ ldraw_examples/
 # Archived work from earlier sessions
 oldstuff/
 
+# Evaluation results (generated, not committed)
+eval/results/
+
+# Bicep build artifacts
+deploymentcode/bicep/*.json
+!deploymentcode/bicep/bicepconfig.json
+
+# Terraform state and providers
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+
 # Claude Code local settings
 .claude/
 

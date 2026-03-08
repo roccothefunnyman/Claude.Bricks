@@ -1,0 +1,30 @@
+// Evaluation pass rate over time (groundedness and other quality metrics)
+// Dashboard: GenAI Operations - Quality Gate Pass Rate
+// Tracks percentage of evaluations passing quality thresholds by day
+
+customMetrics
+| where timestamp > ago(30d)
+| where name in ("groundedness", "relevance", "coherence", "fluency", "buildability")
+| extend prompt_version = tostring(customDimensions["prompt_version"])
+| extend passed = iff(
+    (name == "groundedness" and value >= 0.70) or
+    (name == "relevance" and value >= 0.75) or
+    (name == "coherence" and value >= 0.80) or
+    (name == "fluency" and value >= 0.85) or
+    (name == "buildability" and value >= 0.70),
+    1, 0)
+| summarize
+    total_evals = count(),
+    passed_count = sum(passed),
+    pass_rate = round(100.0 * sum(passed) / count(), 1),
+    avg_score = round(avg(value), 3)
+    by name, bin(timestamp, 1d), prompt_version
+| order by timestamp asc, name asc
+| project
+    timestamp,
+    metric = name,
+    prompt_version,
+    pass_rate,
+    avg_score,
+    passed_count,
+    total_evals

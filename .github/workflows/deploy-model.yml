@@ -1,0 +1,373 @@
+# Model Deployment Workflow (Blue/Green with Canary)
+# Deploys a registered model to a managed online endpoint using safe rollout:
+#   1. Deploy as canary (new deployment with 0% traffic)
+#   2. Run smoke tests against the canary
+#   3. Shift initial traffic percentage to canary
+#   4. Wait for health check window
+#   5. Promote to 100% or rollback on failure
+#
+# Manual dispatch only -- deploying to production requires human intent.
+
+name: Model Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      model_name:
+        description: "Model name in AML registry"
+        required: true
+        type: string
+      model_version:
+        description: "Model version to deploy"
+        required: true
+        type: string
+      endpoint_name:
+        description: "Target managed online endpoint name"
+        required: true
+        type: string
+      initial_traffic_pct:
+        description: "Initial traffic percentage for canary (0-100)"
+        required: false
+        type: string
+        default: "10"
+      health_check_duration:
+        description: "Health check window in seconds (default 300 = 5 min)"
+        required: false
+        type: string
+        default: "300"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  RESOURCE_GROUP: rg-claudebricks-dev
+  WORKSPACE_NAME: mlw-claudebricks-dev
+
+jobs:
+  deploy:
+    name: Deploy Model (Blue/Green)
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install azure-ai-ml azure-identity requests
+
+      # Identify the current live deployment so we can route traffic back to it on failure
+      - name: Identify current deployment
+        id: current
+        run: |
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+
+          # Check if endpoint exists
+          ENDPOINT_EXISTS=$(az ml online-endpoint show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "$ENDPOINT" \
+            --query name \
+            --output tsv 2>/dev/null || echo "")
+
+          if [ -z "$ENDPOINT_EXISTS" ]; then
+            echo "Endpoint does not exist, will create it"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "current_deployment=" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+
+            # Find the deployment currently receiving traffic
+            CURRENT=$(az ml online-endpoint show \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --name "$ENDPOINT" \
+              --query "traffic" \
+              --output json)
+
+            echo "Current traffic allocation: $CURRENT"
+            # Extract deployment name with highest traffic
+            CURRENT_DEPLOY=$(echo "$CURRENT" | python3 -c "
+            import json, sys
+            traffic = json.load(sys.stdin)
+            if traffic:
+                print(max(traffic, key=traffic.get))
+            else:
+                print('')
+            ")
+            echo "current_deployment=$CURRENT_DEPLOY" >> "$GITHUB_OUTPUT"
+            echo "Current live deployment: $CURRENT_DEPLOY"
+          fi
+
+      - name: Create endpoint if needed
+        if: steps.current.outputs.exists == 'false'
+        run: |
+          az ml online-endpoint create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "${{ github.event.inputs.endpoint_name }}" \
+            --auth-mode key
+
+      # Generate a unique deployment name using model version and run number
+      - name: Generate deployment name
+        id: deploy_name
+        run: |
+          # Use model version and run number for a unique, traceable name
+          DEPLOY_NAME="v${{ github.event.inputs.model_version }}-run${{ github.run_number }}"
+          # Sanitize: AML deployment names must be alphanumeric + hyphens, max 32 chars
+          DEPLOY_NAME=$(echo "$DEPLOY_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | cut -c1-32)
+          echo "name=$DEPLOY_NAME" >> "$GITHUB_OUTPUT"
+          echo "Canary deployment name: $DEPLOY_NAME"
+
+      - name: Deploy canary (0% traffic)
+        run: |
+          MODEL_NAME="${{ github.event.inputs.model_name }}"
+          MODEL_VERSION="${{ github.event.inputs.model_version }}"
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+          DEPLOY_NAME="${{ steps.deploy_name.outputs.name }}"
+
+          # Create deployment with 0% traffic initially
+          az ml online-deployment create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --endpoint-name "$ENDPOINT" \
+            --name "$DEPLOY_NAME" \
+            --model "azureml:${MODEL_NAME}:${MODEL_VERSION}" \
+            --instance-type Standard_DS2_v2 \
+            --instance-count 1 \
+            --all-traffic false
+
+          echo "Canary deployment created: $DEPLOY_NAME"
+
+      - name: Smoke test canary deployment
+        id: smoke
+        run: |
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+          DEPLOY_NAME="${{ steps.deploy_name.outputs.name }}"
+
+          # Get endpoint scoring URI and key
+          SCORING_URI=$(az ml online-endpoint show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "$ENDPOINT" \
+            --query scoring_uri \
+            --output tsv)
+
+          API_KEY=$(az ml online-endpoint get-credentials \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "$ENDPOINT" \
+            --query primaryKey \
+            --output tsv)
+
+          # Run smoke test against the specific canary deployment
+          # Send 5 test requests and check for HTTP 200
+          PASS_COUNT=0
+          TOTAL=5
+          for i in $(seq 1 $TOTAL); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X POST "$SCORING_URI" \
+              -H "Authorization: Bearer $API_KEY" \
+              -H "Content-Type: application/json" \
+              -H "azureml-model-deployment: $DEPLOY_NAME" \
+              -d '{"input_data": {"columns": ["test"], "data": [["smoke_test"]]}}' \
+              --max-time 10)
+
+            echo "Request $i: HTTP $HTTP_CODE"
+            if [ "$HTTP_CODE" == "200" ]; then
+              PASS_COUNT=$((PASS_COUNT + 1))
+            fi
+          done
+
+          SUCCESS_RATE=$(awk "BEGIN { printf \"%.0f\", ($PASS_COUNT / $TOTAL) * 100 }")
+          echo "Smoke test: $PASS_COUNT/$TOTAL passed ($SUCCESS_RATE%)"
+
+          if [ $PASS_COUNT -lt $((TOTAL - 1)) ]; then
+            echo "::error::Smoke test failed: only $PASS_COUNT/$TOTAL requests succeeded"
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Smoke test passed"
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Rollback on smoke test failure
+        if: steps.smoke.outputs.passed == 'false'
+        run: |
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+          DEPLOY_NAME="${{ steps.deploy_name.outputs.name }}"
+
+          echo "::error::Rolling back -- deleting failed canary deployment"
+          az ml online-deployment delete \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --endpoint-name "$ENDPOINT" \
+            --name "$DEPLOY_NAME" \
+            --yes
+
+          exit 1
+
+      - name: Shift initial traffic to canary
+        if: steps.smoke.outputs.passed == 'true'
+        run: |
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+          DEPLOY_NAME="${{ steps.deploy_name.outputs.name }}"
+          CURRENT_DEPLOY="${{ steps.current.outputs.current_deployment }}"
+          TRAFFIC_PCT="${{ github.event.inputs.initial_traffic_pct }}"
+          REMAINING=$((100 - TRAFFIC_PCT))
+
+          if [ -n "$CURRENT_DEPLOY" ]; then
+            TRAFFIC_JSON="{\"$DEPLOY_NAME\": $TRAFFIC_PCT, \"$CURRENT_DEPLOY\": $REMAINING}"
+          else
+            # No existing deployment -- give canary 100% immediately
+            TRAFFIC_JSON="{\"$DEPLOY_NAME\": 100}"
+          fi
+
+          echo "Setting traffic: $TRAFFIC_JSON"
+          az ml online-endpoint update \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "$ENDPOINT" \
+            --traffic "$TRAFFIC_JSON"
+
+      - name: Health check window
+        if: steps.smoke.outputs.passed == 'true'
+        id: health
+        run: |
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+          DEPLOY_NAME="${{ steps.deploy_name.outputs.name }}"
+          DURATION="${{ github.event.inputs.health_check_duration }}"
+
+          echo "Monitoring canary health for ${DURATION}s..."
+
+          # Check deployment logs and metrics during the health window
+          INTERVAL=30
+          ELAPSED=0
+          HEALTHY=true
+
+          while [ $ELAPSED -lt $DURATION ]; do
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+
+            # Check deployment provisioning state
+            STATE=$(az ml online-deployment show \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --endpoint-name "$ENDPOINT" \
+              --name "$DEPLOY_NAME" \
+              --query provisioning_state \
+              --output tsv)
+
+            echo "[${ELAPSED}s/${DURATION}s] Deployment state: $STATE"
+
+            if [ "$STATE" != "Succeeded" ]; then
+              echo "::warning::Deployment entered unhealthy state: $STATE"
+              HEALTHY=false
+              break
+            fi
+
+            # Quick liveness check
+            SCORING_URI=$(az ml online-endpoint show \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --name "$ENDPOINT" \
+              --query scoring_uri --output tsv)
+
+            API_KEY=$(az ml online-endpoint get-credentials \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --name "$ENDPOINT" \
+              --query primaryKey --output tsv)
+
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X POST "$SCORING_URI" \
+              -H "Authorization: Bearer $API_KEY" \
+              -H "Content-Type: application/json" \
+              -H "azureml-model-deployment: $DEPLOY_NAME" \
+              -d '{"input_data": {"columns": ["test"], "data": [["health_check"]]}}' \
+              --max-time 10)
+
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "::warning::Health check returned HTTP $HTTP_CODE at ${ELAPSED}s"
+              HEALTHY=false
+              break
+            fi
+          done
+
+          echo "healthy=$HEALTHY" >> "$GITHUB_OUTPUT"
+
+      - name: Promote canary to 100% traffic
+        if: steps.health.outputs.healthy == 'true'
+        run: |
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+          DEPLOY_NAME="${{ steps.deploy_name.outputs.name }}"
+
+          echo "Health check passed -- promoting canary to 100% traffic"
+          az ml online-endpoint update \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --name "$ENDPOINT" \
+            --traffic "{\"$DEPLOY_NAME\": 100}"
+
+          echo "Canary promoted to 100% traffic"
+
+      - name: Archive old deployment
+        if: steps.health.outputs.healthy == 'true' && steps.current.outputs.current_deployment != ''
+        run: |
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+          OLD_DEPLOY="${{ steps.current.outputs.current_deployment }}"
+
+          echo "Archiving old deployment: $OLD_DEPLOY"
+          az ml online-deployment delete \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --endpoint-name "$ENDPOINT" \
+            --name "$OLD_DEPLOY" \
+            --yes
+
+          echo "Old deployment archived"
+
+      - name: Rollback on health check failure
+        if: steps.health.outputs.healthy == 'false'
+        run: |
+          ENDPOINT="${{ github.event.inputs.endpoint_name }}"
+          DEPLOY_NAME="${{ steps.deploy_name.outputs.name }}"
+          CURRENT_DEPLOY="${{ steps.current.outputs.current_deployment }}"
+
+          echo "::error::Health check failed -- rolling back"
+
+          # Restore 100% traffic to the previous deployment
+          if [ -n "$CURRENT_DEPLOY" ]; then
+            az ml online-endpoint update \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --workspace-name ${{ env.WORKSPACE_NAME }} \
+              --name "$ENDPOINT" \
+              --traffic "{\"$CURRENT_DEPLOY\": 100}"
+            echo "Traffic restored to $CURRENT_DEPLOY"
+          fi
+
+          # Delete the failed canary
+          az ml online-deployment delete \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --endpoint-name "$ENDPOINT" \
+            --name "$DEPLOY_NAME" \
+            --yes
+
+          echo "::error::Rollback complete. Canary deployment deleted."
+          exit 1

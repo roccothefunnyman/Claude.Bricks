@@ -1,0 +1,8 @@
+{
+  "groundedness": 0.7,
+  "relevance": 0.75,
+  "coherence": 0.8,
+  "fluency": 0.85,
+  "safety_pass_rate": 1.0,
+  "buildability": 0.7
+}
