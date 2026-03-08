@@ -402,32 +402,32 @@ Claude.Bricks also serves as a practical study project for the <strong>Microsoft
 <div class="diagram-container">
 <div class="diagram-title">Deployment Phase Timeline</div>
 <svg viewBox="0 0 1100 120" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:1100px;display:block;margin:0 auto;">
-  <!-- Phase boxes -->
+  <!-- Phase boxes with right-pointing arrows -->
   <rect x="0" y="30" width="150" height="60" rx="8" fill="#7b42bc" />
   <text x="75" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 1</text>
   <text x="75" y="72" text-anchor="middle" fill="white" font-size="9">Terraform Infra</text>
 
-  <polygon points="160,60 175,45 175,75" fill="#0078d4"/>
+  <polygon points="155,45 175,60 155,75" fill="#7b42bc"/>
   <rect x="180" y="30" width="140" height="60" rx="8" fill="#0078d4" />
   <text x="250" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 2</text>
   <text x="250" y="72" text-anchor="middle" fill="white" font-size="9">Bootstrap (SDK)</text>
 
-  <polygon points="330,60 345,45 345,75" fill="#6366f1"/>
+  <polygon points="325,45 345,60 325,75" fill="#0078d4"/>
   <rect x="350" y="30" width="150" height="60" rx="8" fill="#6366f1" />
   <text x="425" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 3</text>
   <text x="425" y="72" text-anchor="middle" fill="white" font-size="9">Scenario 1: Classification</text>
 
-  <polygon points="510,60 525,45 525,75" fill="#f59e0b"/>
+  <polygon points="505,45 525,60 505,75" fill="#6366f1"/>
   <rect x="530" y="30" width="150" height="60" rx="8" fill="#f59e0b" />
   <text x="605" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 4</text>
   <text x="605" y="72" text-anchor="middle" fill="white" font-size="9">Scenario 2: Anomaly Det.</text>
 
-  <polygon points="690,60 705,45 705,75" fill="#10b981"/>
+  <polygon points="685,45 705,60 685,75" fill="#f59e0b"/>
   <rect x="710" y="30" width="150" height="60" rx="8" fill="#10b981" />
   <text x="785" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 5</text>
   <text x="785" y="72" text-anchor="middle" fill="white" font-size="9">Scenario 3: Clustering</text>
 
-  <polygon points="870,60 885,45 885,75" fill="#ef4444"/>
+  <polygon points="865,45 885,60 865,75" fill="#10b981"/>
   <rect x="890" y="30" width="160" height="60" rx="8" fill="#ef4444" />
   <text x="970" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="600">Phase 6</text>
   <text x="970" y="72" text-anchor="middle" fill="white" font-size="9">Scenario 4: LLM + RAG</text>
@@ -456,25 +456,29 @@ Claude.Bricks also serves as a practical study project for the <strong>Microsoft
 <h3>What Terraform Creates</h3>
 <p>A single <code>terraform apply</code> provisions 15 Azure resources. The ML Workspace is the hub; Storage, Key Vault, ACR, and App Insights are required linked services.</p>
 
+<style>
+.az-icon { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:5px; color:white; font-size:9px; font-weight:700; margin-right:6px; vertical-align:middle; flex-shrink:0; }
+.tf-resource { display:flex; align-items:center; }
+</style>
 <table>
 <thead><tr><th>Resource</th><th>Terraform Type</th><th>Purpose</th><th>Used By</th></tr></thead>
 <tbody>
-<tr><td>Resource Group</td><td><code>azurerm_resource_group</code></td><td>Container for all resources</td><td>All</td></tr>
-<tr><td>Storage Account</td><td><code>azurerm_storage_account</code></td><td>Data, artifacts, models</td><td>All</td></tr>
-<tr><td>4x Blob Containers</td><td><code>azurerm_storage_container</code></td><td>Per-scenario data</td><td>S1-S4</td></tr>
-<tr><td>Key Vault</td><td><code>azurerm_key_vault</code></td><td>Secrets &amp; connection strings</td><td>All</td></tr>
-<tr><td>Container Registry</td><td><code>azurerm_container_registry</code></td><td>Training environment images</td><td>All</td></tr>
-<tr><td>Log Analytics</td><td><code>azurerm_log_analytics_workspace</code></td><td>Monitoring backend</td><td>All</td></tr>
-<tr><td>Application Insights</td><td><code>azurerm_application_insights</code></td><td>ML telemetry</td><td>All</td></tr>
-<tr><td>ML Workspace</td><td><code>azurerm_machine_learning_workspace</code></td><td>Central ML hub</td><td>All</td></tr>
-<tr><td>Compute Instance</td><td><code>azurerm_machine_learning_compute_instance</code></td><td>Dev notebooks</td><td>Dev</td></tr>
-<tr><td>CPU Cluster</td><td><code>azurerm_machine_learning_compute_cluster</code></td><td>Training (CPU)</td><td>S1-S3</td></tr>
-<tr><td>GPU Cluster</td><td><code>azurerm_machine_learning_compute_cluster</code></td><td>Training (GPU)</td><td>S1, S4</td></tr>
-<tr><td>Custom Vision (Training)</td><td><code>azurerm_cognitive_account</code></td><td>Image classification</td><td>S1</td></tr>
-<tr><td>Custom Vision (Prediction)</td><td><code>azurerm_cognitive_account</code></td><td>Inference</td><td>S1</td></tr>
-<tr><td>Azure OpenAI</td><td><code>azurerm_cognitive_account</code></td><td>LLM base model</td><td>S4</td></tr>
-<tr><td>OpenAI Deployment</td><td><code>azurerm_cognitive_deployment</code></td><td>gpt-4o-mini</td><td>S4</td></tr>
-<tr><td>AI Search</td><td><code>azurerm_search_service</code></td><td>RAG vector store</td><td>S4</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#0078d4;">RG</span> Resource Group</div></td><td><code>azurerm_resource_group</code></td><td>Container for all resources</td><td>All</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#37c2b1;">SA</span> Storage Account</div></td><td><code>azurerm_storage_account</code></td><td>Data, artifacts, models</td><td>All</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#37c2b1;">&#128230;</span> 4x Blob Containers</div></td><td><code>azurerm_storage_container</code></td><td>Per-scenario data</td><td>S1-S4</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#5ea0ef;">&#128273;</span> Key Vault</div></td><td><code>azurerm_key_vault</code></td><td>Secrets &amp; connection strings</td><td>All</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#0078d4;">CR</span> Container Registry</div></td><td><code>azurerm_container_registry</code></td><td>Training environment images</td><td>All</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#1988d9;">LA</span> Log Analytics</div></td><td><code>azurerm_log_analytics_workspace</code></td><td>Monitoring backend</td><td>All</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#624fd0;">AI</span> Application Insights</div></td><td><code>azurerm_application_insights</code></td><td>ML telemetry</td><td>All</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#198ab3;">ML</span> ML Workspace</div></td><td><code>azurerm_machine_learning_workspace</code></td><td>Central ML hub</td><td>All</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#22c55e; color:#166534;">CI</span> Compute Instance</div></td><td><code>azurerm_machine_learning_compute_instance</code></td><td>Dev notebooks</td><td>Dev</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#22c55e; color:#166534;">CP</span> CPU Cluster</div></td><td><code>azurerm_machine_learning_compute_cluster</code></td><td>Training (CPU)</td><td>S1-S3</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#f97316; color:#fff;">GP</span> GPU Cluster</div></td><td><code>azurerm_machine_learning_compute_cluster</code></td><td>Training (GPU)</td><td>S1, S4</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#f59e0b; color:#92400e;">CV</span> Custom Vision (Training)</div></td><td><code>azurerm_cognitive_account</code></td><td>Image classification</td><td>S1</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#f59e0b; color:#92400e;">CV</span> Custom Vision (Prediction)</div></td><td><code>azurerm_cognitive_account</code></td><td>Inference</td><td>S1</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#f59e0b; color:#92400e;">OA</span> Azure OpenAI</div></td><td><code>azurerm_cognitive_account</code></td><td>LLM base model</td><td>S4</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#ef4444;">FT</span> OpenAI Deployment</div></td><td><code>azurerm_cognitive_deployment</code></td><td>gpt-4o-mini</td><td>S4</td></tr>
+<tr><td><div class="tf-resource"><span class="az-icon" style="background:#f59e0b; color:#92400e;">&#128269;</span> AI Search</div></td><td><code>azurerm_search_service</code></td><td>RAG vector store</td><td>S4</td></tr>
 </tbody>
 </table>
 </div>
