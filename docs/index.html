@@ -826,7 +826,7 @@ tr:hover { background: #fafbfc; }
 <div style="min-width:120px;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Subscription</div>
 <div style="flex:1;display:flex;justify-content:center;">
 <div style="background:white;border:1px solid #ddd;border-radius:10px;padding:12px 24px;text-align:center;min-width:140px;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
-<div style="font-size:24px;margin-bottom:4px;">&#9729;</div>
+<img src="azure-icons/general/10002-icon-service-Subscriptions.svg" alt="Subscription" style="width:36px;height:36px;margin-bottom:4px;">
 <div style="font-weight:700;font-size:12px;">Azure Subscription</div>
 <div style="color:#888;font-size:10px;margin-top:2px;">Pay-As-You-Go</div>
 </div>
@@ -861,7 +861,7 @@ tr:hover { background: #fafbfc; }
 <div style="min-width:120px;font-size:10px;font-weight:700;color:#0078d4;text-transform:uppercase;letter-spacing:0.5px;padding-top:12px;">Core<br>Platform</div>
 <div style="flex:1;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
 <div style="background:white;border:1px solid #d6e4f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,120,212,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/ai+machine learning/10166-icon-service-Machine-Learning.svg" alt="ML" style="width:36px;height:36px;"><br>
+<img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML" style="width:36px;height:36px;"><br>
 <div style="font-weight:700;font-size:11px;margin-top:4px;">ML Workspace</div>
 <div style="color:#999;font-size:9px;margin-top:2px;">mlw-claudebricks-dev</div>
 </div>
@@ -931,7 +931,7 @@ tr:hover { background: #fafbfc; }
 <div style="color:#999;font-size:9px;margin-top:2px;">GPT-4o + embeddings</div>
 </div>
 <div style="background:white;border:1px solid #c8e6e0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,133,117,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/ai+machine learning/10044-icon-service-Cognitive-Search.svg" alt="Search" style="width:36px;height:36px;"><br>
+<img src="azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="Search" style="width:36px;height:36px;"><br>
 <div style="font-weight:700;font-size:11px;margin-top:4px;">AI Search</div>
 <div style="color:#999;font-size:9px;margin-top:2px;">Basic, hybrid search</div>
 </div>
@@ -994,7 +994,7 @@ tr:hover { background: #fafbfc; }
 <div style="min-width:120px;font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.5px;">Shared<br>(cross-env)</div>
 <div style="flex:1;display:flex;align-items:center;gap:16px;justify-content:center;">
 <div style="background:white;border:1px solid #ddd;border-radius:10px;padding:12px 20px;text-align:center;min-width:140px;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
-<img src="azure-icons/ai+machine learning/10166-icon-service-Machine-Learning.svg" alt="ML" style="width:36px;height:36px;"><br>
+<img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML" style="width:36px;height:36px;"><br>
 <div style="font-weight:700;font-size:11px;margin-top:4px;">AML Registry</div>
 <div style="color:#999;font-size:9px;margin-top:2px;">reg-claudebricks</div>
 </div>
@@ -1417,10 +1417,10 @@ tr:hover { background: #fafbfc; }
 <table>
 <thead><tr><th>Script</th><th>Layer</th><th>What It Registers</th></tr></thead>
 <tbody>
-<tr><td><code>register_data_assets.py</code></td><td>2</td><td>4 data assets: <code>facade-images:1</code> (uri_folder), <code>ldr-files:1</code> (uri_folder), <code>ldr-validation-features:1</code> (uri_file), <code>reference-models:1</code> (uri_folder)</td></tr>
-<tr><td><code>register_envs.py</code></td><td>2</td><td>2 environments: <code>claudebricks-sklearn:1</code> (scikit-learn, Pillow, MLflow), <code>claudebricks-clustering:1</code> (scikit-learn, UMAP, HDBSCAN, MLflow)</td></tr>
-<tr><td><code>register_components.py</code></td><td>3</td><td>3 components: <code>extract-features</code>, <code>run-clustering</code>, <code>evaluate-model</code> (reusable pipeline steps with defined inputs/outputs)</td></tr>
-<tr><td><code>publish_to_registry.py</code></td><td>4</td><td>Copies selected assets (models, environments, components) from the workspace to the shared AML registry for cross-workspace use</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>register_data_assets.py</code></td><td>2</td><td>4 data assets: <code>facade-images:1</code> (uri_folder), <code>ldr-files:1</code> (uri_folder), <code>ldr-validation-features:1</code> (uri_file), <code>reference-models:1</code> (uri_folder)</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>register_envs.py</code></td><td>2</td><td>2 environments: <code>claudebricks-sklearn:1</code> (scikit-learn, Pillow, MLflow), <code>claudebricks-clustering:1</code> (scikit-learn, UMAP, HDBSCAN, MLflow)</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>register_components.py</code></td><td>3</td><td>3 components: <code>extract-features</code>, <code>run-clustering</code>, <code>evaluate-model</code> (reusable pipeline steps with defined inputs/outputs)</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>publish_to_registry.py</code></td><td>4</td><td>Copies selected assets (models, environments, components) from the workspace to the shared AML registry for cross-workspace use</td></tr>
 </tbody>
 </table>
 </div>
@@ -1549,16 +1549,16 @@ tr:hover { background: #fafbfc; }
 <table>
 <thead><tr><th>Script</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td><code>prepare_data.py</code></td><td>Upload facade images to blob, create versioned data asset</td></tr>
-<tr><td><code>train.py</code></td><td>Training logic (runs on cluster): load images, train RandomForest, MLflow autolog</td></tr>
-<tr><td><code>train_job.py</code></td><td>Submit training as AML command job</td></tr>
-<tr><td><code>register_model.py</code></td><td>Register best model from experiment run</td></tr>
-<tr><td><code>deploy_endpoint.py</code></td><td>Create endpoint and initial "blue" deployment (100% traffic)</td></tr>
-<tr><td><code>deploy_canary.py</code></td><td>Deploy new model version as "green" (0% traffic)</td></tr>
-<tr><td><code>promote_deployment.py</code></td><td>Shift traffic percentage to new deployment</td></tr>
-<tr><td><code>rollback_deployment.py</code></td><td>Revert all traffic to previous deployment</td></tr>
-<tr><td><code>smoke_test.py</code></td><td>Validate endpoint health (latency, accuracy, schema)</td></tr>
-<tr><td><code>score.py</code></td><td>Client-side scoring example</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>prepare_data.py</code></td><td>Upload facade images to blob, create versioned data asset</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>train.py</code></td><td>Training logic (runs on cluster): load images, train RandomForest, MLflow autolog</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>train_job.py</code></td><td>Submit training as AML command job</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>register_model.py</code></td><td>Register best model from experiment run</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>deploy_endpoint.py</code></td><td>Create endpoint and initial "blue" deployment (100% traffic)</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>deploy_canary.py</code></td><td>Deploy new model version as "green" (0% traffic)</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>promote_deployment.py</code></td><td>Shift traffic percentage to new deployment</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>rollback_deployment.py</code></td><td>Revert all traffic to previous deployment</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>smoke_test.py</code></td><td>Validate endpoint health (latency, accuracy, schema)</td></tr>
+<tr><td><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>score.py</code></td><td>Client-side scoring example</td></tr>
 </tbody>
 </table>
 </div>
@@ -2003,9 +2003,9 @@ tr:hover { background: #fafbfc; }
 <table style="width:100%;font-size:14px;border-collapse:collapse;">
 <thead><tr style="background:#f8f9fa;"><th style="padding:6px;text-align:left;">Script</th><th style="padding:6px;text-align:left;">Purpose</th></tr></thead>
 <tbody>
-<tr><td style="padding:6px;border-top:1px solid #eee;"><code>eval/run_evaluation.py</code></td><td style="padding:6px;border-top:1px solid #eee;">Main evaluation runner. Scores all test cases against deployed model.</td></tr>
-<tr><td style="padding:6px;border-top:1px solid #eee;"><code>eval/run_prompt_experiment.py</code></td><td style="padding:6px;border-top:1px solid #eee;">A/B testing across prompt variant combinations (system x RAG matrix).</td></tr>
-<tr><td style="padding:6px;border-top:1px solid #eee;"><code>eval/run_rag_tuning.py</code></td><td style="padding:6px;border-top:1px solid #eee;">RAG configuration optimization (chunk size, overlap, search mode, top-k).</td></tr>
+<tr><td style="padding:6px;border-top:1px solid #eee;"><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>eval/run_evaluation.py</code></td><td style="padding:6px;border-top:1px solid #eee;">Main evaluation runner. Scores all test cases against deployed model.</td></tr>
+<tr><td style="padding:6px;border-top:1px solid #eee;"><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>eval/run_prompt_experiment.py</code></td><td style="padding:6px;border-top:1px solid #eee;">A/B testing across prompt variant combinations (system x RAG matrix).</td></tr>
+<tr><td style="padding:6px;border-top:1px solid #eee;"><img src="azure-icons/languages/python.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>eval/run_rag_tuning.py</code></td><td style="padding:6px;border-top:1px solid #eee;">RAG configuration optimization (chunk size, overlap, search mode, top-k).</td></tr>
 </tbody>
 </table>
 </div>
@@ -2280,11 +2280,11 @@ prompts/<br>
           </tr>
         </thead>
         <tbody>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;"><code>avg-latency-by-prompt.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Avg/p50/p95/p99 latency by prompt version</td></tr>
-          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;"><code>token-cost-by-day.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Daily token consumption and estimated USD cost</td></tr>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;"><code>groundedness-pass-rate.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Quality metric pass rates by day</td></tr>
-          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;"><code>error-rate-trend.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Error rate by exception type</td></tr>
-          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;"><code>top-failure-modes.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Top 10 failure categories by frequency</td></tr>
+          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;"><img src="azure-icons/languages/kql.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>avg-latency-by-prompt.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Avg/p50/p95/p99 latency by prompt version</td></tr>
+          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;"><img src="azure-icons/languages/kql.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>token-cost-by-day.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Daily token consumption and estimated USD cost</td></tr>
+          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;"><img src="azure-icons/languages/kql.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>groundedness-pass-rate.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Quality metric pass rates by day</td></tr>
+          <tr style="background:#f9fafb;"><td style="padding:8px 14px;border-bottom:1px solid #eee;"><img src="azure-icons/languages/kql.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>error-rate-trend.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Error rate by exception type</td></tr>
+          <tr><td style="padding:8px 14px;border-bottom:1px solid #eee;"><img src="azure-icons/languages/kql.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;"><code>top-failure-modes.kql</code></td><td style="padding:8px 14px;border-bottom:1px solid #eee;">Top 10 failure categories by frequency</td></tr>
         </tbody>
       </table>
     </div>
