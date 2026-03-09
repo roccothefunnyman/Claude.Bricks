@@ -1401,71 +1401,100 @@ tr:hover { background: #fafbfc; }
 
 <div class="diagram-container">
 <div class="diagram-title">Scenario 1: End-to-End ML Pipeline</div>
-<div style="max-width:1100px;margin:0 auto;">
-  <!-- Pipeline steps -->
-  <div class="v2-pipeline">
-    <div class="v2-pipeline-step" style="background:#eef2ff;border-color:#6366f1;">
-      <div class="step-title" style="color:#4338ca;">1. Data Prep</div>
-      <div class="step-script" style="color:#6366f1;">prepare_data.py</div>
-      <div class="step-detail">Upload images<br>Create data asset</div>
-    </div>
-    <div class="v2-pipeline-arrow"><svg width="24" height="14" viewBox="0 0 20 14"><path d="M1 7h16M13 1l5 6-5 6" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/></svg></div>
-    <div class="v2-pipeline-step" style="background:#eef2ff;border-color:#6366f1;">
-      <div class="step-title" style="color:#4338ca;">2. Train</div>
-      <div class="step-script" style="color:#6366f1;">train_job.py</div>
-      <div class="step-detail">Command job on<br>cpu-cluster</div>
-    </div>
-    <div class="v2-pipeline-arrow"><svg width="24" height="14" viewBox="0 0 20 14"><path d="M1 7h16M13 1l5 6-5 6" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/></svg></div>
-    <div class="v2-pipeline-step cluster-step" style="background:#c7d2fe;border-color:#6366f1;max-width:220px;">
-      <div style="font-size:9px;font-weight:700;color:#312e81;text-transform:uppercase;letter-spacing:0.5px;">On Cluster</div>
-      <div class="step-title" style="color:#4338ca;margin-top:2px;">train.py</div>
-      <div class="step-detail">Load images (64x64 RGB)<br>RandomForestClassifier<br>MLflow autolog metrics</div>
-    </div>
-    <div class="v2-pipeline-arrow"><svg width="24" height="14" viewBox="0 0 20 14"><path d="M1 7h16M13 1l5 6-5 6" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/></svg></div>
-    <div class="v2-pipeline-step" style="background:#eef2ff;border-color:#6366f1;">
-      <div class="step-title" style="color:#4338ca;">3. Register</div>
-      <div class="step-script" style="color:#6366f1;">register_model.py</div>
-      <div class="step-detail">facade-classifier:1<br>MLflow model type</div>
-    </div>
-    <div class="v2-pipeline-arrow"><svg width="24" height="14" viewBox="0 0 20 14"><path d="M1 7h16M13 1l5 6-5 6" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/></svg></div>
-    <div class="v2-pipeline-step" style="background:#eef2ff;border-color:#6366f1;">
-      <div class="step-title" style="color:#4338ca;">4. Deploy</div>
-      <div class="step-script" style="color:#6366f1;">deploy_endpoint.py</div>
-      <div class="step-detail">Managed Online Endpoint<br>DS3_v2, key auth</div>
-    </div>
-    <div class="v2-pipeline-arrow"><svg width="24" height="14" viewBox="0 0 20 14"><path d="M1 7h16M13 1l5 6-5 6" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/></svg></div>
-    <div class="v2-pipeline-step" style="background:#dbeafe;border-color:#3b82f6;">
-      <div class="step-title" style="color:#1e40af;">5. Score</div>
-      <div class="step-script" style="color:#3b82f6;">score.py</div>
-      <div class="step-detail">POST image &rarr;<br>style label</div>
+<div style="max-width:960px;margin:0 auto;">
+
+  <!-- Phase 1: Data Preparation -->
+  <div style="border:2px solid #0078d4;border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:8px;background:linear-gradient(180deg,#f0f6ff 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#0078d4;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">PHASE 1: DATA PREPARATION</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/general/10780-icon-service-Blob-Block.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">Blob Storage</div>
+        <div style="font-size:11px;color:#797775;">facade-images/</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#0078d4;font-size:20px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/languages/python.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">prepare_data.py</div>
+        <div style="font-size:11px;color:#797775;">Upload + version</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#0078d4;font-size:20px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">Data Asset</div>
+        <div style="font-size:11px;color:#797775;">facade-images:1</div>
+      </div>
     </div>
   </div>
-  <!-- Supporting resources -->
-  <div class="v2-support-row" style="margin-top:16px;">
-    <div class="v2-support-card" style="border-color:#6ee7b7;background:#ecfdf5;">
-      <div class="sc-title" style="color:#065f46;">Blob: facade-images</div>
-      <div class="sc-detail">historic/, modern/, ...</div>
-    </div>
-    <div class="v2-support-card" style="border-color:#93c5fd;background:#f0f6ff;">
-      <div class="sc-title" style="color:#1e40af;">Data Asset</div>
-      <div class="sc-detail">facade-images:1 (uri_folder)</div>
-    </div>
-    <div class="v2-support-card" style="border-color:#fbbf24;background:#fef3c7;">
-      <div class="sc-title" style="color:#92400e;">MLflow Experiment</div>
-      <div class="sc-detail">scenario1-facade-classification</div>
-    </div>
-    <div class="v2-support-card" style="border-color:#93c5fd;background:#f0f6ff;">
-      <div class="sc-title" style="color:#1e40af;">Model Registry</div>
-      <div class="sc-detail">facade-classifier:1</div>
-    </div>
-    <div class="v2-support-card" style="border-color:#f9a8d4;background:#fce7f3;">
-      <div class="sc-title" style="color:#9d174d;">Online Endpoint</div>
-      <div class="sc-detail">facade-classifier-endpoint</div>
-      <div class="sc-detail">Blue/green deployment</div>
+
+  <div style="text-align:center;font-size:24px;color:#0078d4;margin:4px 0;">&#9660;</div>
+
+  <!-- Phase 2: Training -->
+  <div style="border:2px solid #6366f1;border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:8px;background:linear-gradient(180deg,#eef2ff 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#6366f1;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">PHASE 2: TRAINING</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7d2fe;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(99,102,241,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/languages/python.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">train_job.py</div>
+        <div style="font-size:11px;color:#797775;">Submit command job</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#6366f1;font-size:20px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:linear-gradient(180deg,#e0e7ff 0%,#fff 100%);border:2.5px solid #6366f1;border-radius:14px;padding:16px 20px 12px;min-width:180px;box-shadow:0 4px 16px rgba(99,102,241,0.18);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" style="width:44px;height:44px;margin-bottom:6px;">
+        <div style="font-size:9px;font-weight:700;color:#312e81;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">On CPU Cluster</div>
+        <div style="font-size:14px;font-weight:700;color:#4338ca;">train.py</div>
+        <div style="font-size:11px;color:#797775;margin-top:4px;">RandomForest on 64x64 RGB</div>
+        <div style="font-size:11px;color:#797775;">MLflow autolog metrics</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#6366f1;font-size:20px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7d2fe;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(99,102,241,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">MLflow Experiment</div>
+        <div style="font-size:11px;color:#797775;">scenario1-facade</div>
+      </div>
     </div>
   </div>
+
+  <div style="text-align:center;font-size:24px;color:#6366f1;margin:4px 0;">&#9660;</div>
+
+  <!-- Phase 3: Register -->
+  <div style="display:flex;justify-content:center;margin-bottom:8px;">
+    <div style="display:flex;flex-direction:column;align-items:center;background:white;border:2px solid #f59e0b;border-radius:10px;padding:14px 24px 10px;box-shadow:0 2px 8px rgba(245,158,11,0.15);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+      <img src="azure-icons/languages/python.svg" style="width:40px;height:40px;margin-bottom:6px;">
+      <div style="font-size:13px;font-weight:700;color:#92400e;">register_model.py</div>
+      <div style="font-size:11px;color:#797775;">facade-classifier:1 (MLflow)</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;font-size:24px;color:#f59e0b;margin:4px 0;">&#9660;</div>
+
+  <!-- Phase 4: Deploy + Score -->
+  <div style="border:2px solid #10b981;border-radius:14px;padding:16px 16px 12px;position:relative;background:linear-gradient(180deg,#ecfdf5 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#10b981;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">PHASE 4: DEPLOY + INFERENCE</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #6ee7b7;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(16,185,129,0.1);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/languages/python.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#065f46;">deploy_endpoint.py</div>
+        <div style="font-size:11px;color:#797775;">Managed endpoint</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#10b981;font-size:20px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:linear-gradient(180deg,#d1fae5 0%,#fff 100%);border:2.5px solid #10b981;border-radius:14px;padding:16px 20px 12px;min-width:180px;box-shadow:0 4px 16px rgba(16,185,129,0.18);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" style="width:44px;height:44px;margin-bottom:6px;">
+        <div style="font-size:14px;font-weight:700;color:#065f46;">Online Endpoint</div>
+        <div style="font-size:11px;color:#797775;margin-top:4px;">facade-classifier-endpoint</div>
+        <div style="font-size:11px;color:#797775;">Blue/green | DS3_v2</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#10b981;font-size:20px;">&#9654;</div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #6ee7b7;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(16,185,129,0.1);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/languages/python.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#065f46;">score.py</div>
+        <div style="font-size:11px;color:#797775;">POST image &rarr; label</div>
+      </div>
+    </div>
+  </div>
+
 </div>
-<div class="diagram-caption">Images flow from Blob Storage through a data asset to the training cluster. The trained model is registered in MLflow, then deployed to a managed online endpoint for real-time inference.</div>
+<div class="diagram-caption">Images flow from Blob Storage through a versioned data asset to the training cluster. The trained model is registered in MLflow, then deployed to a managed online endpoint with blue/green traffic splitting for real-time inference.</div>
 </div>
 
 <div class="card">
