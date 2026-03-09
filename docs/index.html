@@ -812,200 +812,153 @@ tr:hover { background: #fafbfc; }
 <h2 id="arch-overview">2. Architecture Overview</h2>
 <div class="card">
 <div class="diagram-container">
-<!-- Resource Map Header Banner -->
-<div style="background:linear-gradient(135deg,#003d6b 0%,#0078d4 100%);border-radius:12px 12px 0 0;padding:20px 24px;margin-bottom:0;">
-<div style="color:white;font-size:18px;font-weight:700;letter-spacing:0.3px;">Claude.Bricks: Complete Resource Map</div>
-<div style="color:rgba(255,255,255,0.8);font-size:12px;margin-top:4px;">rg-claudebricks-dev &nbsp;|&nbsp; East US</div>
-</div>
+<div class="diagram-title">Claude.Bricks: Complete Resource Map</div>
+<div style="max-width:960px;margin:0 auto;">
 
-<!-- Hierarchy Container -->
-<div style="border:1px solid #e0e0e0;border-top:none;border-radius:0 0 12px 12px;padding:0;overflow:hidden;">
+  <!-- Layer 1: Core Platform -->
+  <div style="border:2px solid #0078d4;border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:8px;background:linear-gradient(180deg,#f0f6ff 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#0078d4;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">CORE PLATFORM</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">ML Workspace</div>
+        <div style="font-size:11px;color:#797775;">mlw-claudebricks-dev</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">Storage</div>
+        <div style="font-size:11px;color:#797775;">stclaudebricksdev</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/security/10245-icon-service-Key-Vaults.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">Key Vault</div>
+        <div style="font-size:11px;color:#797775;">kv-claudebricks-dev</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/containers/10105-icon-service-Container-Registries.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">ACR</div>
+        <div style="font-size:11px;color:#797775;">acrclaudebricksdev</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/devops/00012-icon-service-Application-Insights.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">App Insights</div>
+        <div style="font-size:11px;color:#797775;">appi-claudebricks-dev</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #c7ddf5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,120,212,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/analytics/00009-icon-service-Log-Analytics-Workspaces.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">Log Analytics</div>
+        <div style="font-size:11px;color:#797775;">law-claudebricks-dev</div>
+      </div>
+    </div>
+  </div>
 
-<!-- Tier 1: Subscription -->
-<div style="display:flex;align-items:center;background:#fafafa;padding:16px 20px;border-bottom:1px solid #eee;">
-<div style="min-width:120px;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Subscription</div>
-<div style="flex:1;display:flex;justify-content:center;">
-<div style="background:white;border:1px solid #ddd;border-radius:10px;padding:12px 24px;text-align:center;min-width:140px;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
-<img src="azure-icons/general/10002-icon-service-Subscriptions.svg" alt="Subscription" style="width:36px;height:36px;margin-bottom:4px;">
-<div style="font-weight:700;font-size:12px;">Azure Subscription</div>
-<div style="color:#888;font-size:10px;margin-top:2px;">Pay-As-You-Go</div>
-</div>
-</div>
-</div>
+  <div style="text-align:center;font-size:24px;color:#0078d4;margin:4px 0;">&#9660;</div>
 
-<!-- Connector Arrow -->
-<div style="text-align:center;padding:4px 0;color:#bbb;font-size:16px;background:#fafafa;border-bottom:1px solid #eee;">&#9660;</div>
+  <!-- Layer 2: Compute -->
+  <div style="border:2px solid #10b981;border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:8px;background:linear-gradient(180deg,#ecfdf5 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#10b981;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">COMPUTE</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #6ee7b7;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(16,185,129,0.1);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">Compute Instance</div>
+        <div style="font-size:11px;color:#797775;">DS2_v2, dev only</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #6ee7b7;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(16,185,129,0.1);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">CPU Cluster</div>
+        <div style="font-size:11px;color:#797775;">0-2 nodes, DS3_v2</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #6ee7b7;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(16,185,129,0.1);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">GPU Cluster</div>
+        <div style="font-size:11px;color:#797775;">0-1 node, NC4as_T4_v3</div>
+      </div>
+    </div>
+  </div>
 
-<!-- Tier 2: Resource Groups -->
-<div style="display:flex;align-items:center;background:#f5f8fc;padding:16px 20px;border-bottom:1px solid #eee;">
-<div style="min-width:120px;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Resource<br>Groups</div>
-<div style="flex:1;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;">
-<div style="background:white;border:2px solid #0078d4;border-radius:10px;padding:12px 20px;text-align:center;min-width:140px;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,120,212,0.15)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
-<img src="azure-icons/general/10007-icon-service-Resource-Groups.svg" alt="RG" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:12px;margin-top:4px;">rg-claudebricks-dev</div>
-<div style="color:#888;font-size:10px;margin-top:2px;">Primary (active)</div>
-</div>
-<div style="background:white;border:1px dashed #aaa;border-radius:10px;padding:12px 20px;text-align:center;min-width:140px;opacity:0.65;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
-<img src="azure-icons/general/10007-icon-service-Resource-Groups.svg" alt="RG" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:12px;margin-top:4px;">rg-claudebricks-test</div>
-<div style="color:#888;font-size:10px;margin-top:2px;">Mirror layout</div>
-</div>
-</div>
-</div>
+  <div style="text-align:center;font-size:24px;color:#10b981;margin:4px 0;">&#9660;</div>
 
-<!-- Connector Arrow -->
-<div style="text-align:center;padding:4px 0;color:#bbb;font-size:16px;background:#f5f8fc;border-bottom:1px solid #eee;">&#9660;</div>
+  <!-- Layer 3: AI Services (Conditional) -->
+  <div style="border:2px dashed #f59e0b;border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:8px;background:linear-gradient(180deg,#fffbeb 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#f59e0b;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">AI SERVICES (CONDITIONAL)</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #fbbf24;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(245,158,11,0.1);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai foundry/OpenAI.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#92400e;">Azure OpenAI</div>
+        <div style="font-size:11px;color:#797775;">GPT-4o + embeddings</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #fbbf24;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(245,158,11,0.1);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#92400e;">AI Search</div>
+        <div style="font-size:11px;color:#797775;">Basic, hybrid search</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #fbbf24;border-radius:10px;padding:14px 16px 10px;min-width:130px;opacity:0.7;box-shadow:0 2px 6px rgba(245,158,11,0.1);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai foundry/CustomVision.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#92400e;">Custom Vision</div>
+        <div style="font-size:11px;color:#797775;">Optional</div>
+      </div>
+    </div>
+  </div>
 
-<!-- Tier 3: Core Platform -->
-<div style="display:flex;align-items:flex-start;background:#f0f6ff;padding:16px 20px;border-bottom:1px solid #eee;">
-<div style="min-width:120px;font-size:10px;font-weight:700;color:#0078d4;text-transform:uppercase;letter-spacing:0.5px;padding-top:12px;">Core<br>Platform</div>
-<div style="flex:1;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-<div style="background:white;border:1px solid #d6e4f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,120,212,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">ML Workspace</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">mlw-claudebricks-dev</div>
-</div>
-<div style="background:white;border:1px solid #d6e4f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,120,212,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg" alt="Storage" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Storage</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">stclaudebricksdev</div>
-</div>
-<div style="background:white;border:1px solid #d6e4f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,120,212,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/security/10245-icon-service-Key-Vaults.svg" alt="KV" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Key Vault</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">kv-claudebricks-dev</div>
-</div>
-<div style="background:white;border:1px solid #d6e4f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,120,212,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/containers/10105-icon-service-Container-Registries.svg" alt="ACR" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Container Registry</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">acrclaudebricksdev</div>
-</div>
-<div style="background:white;border:1px solid #d6e4f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,120,212,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/devops/00012-icon-service-Application-Insights.svg" alt="AppInsights" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">App Insights</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">appi-claudebricks-dev</div>
-</div>
-<div style="background:white;border:1px solid #d6e4f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,120,212,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/analytics/00009-icon-service-Log-Analytics-Workspaces.svg" alt="LA" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Log Analytics</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">law-claudebricks-dev</div>
-</div>
-</div>
-</div>
+  <div style="text-align:center;font-size:24px;color:#f59e0b;margin:4px 0;">&#9660;</div>
 
-<!-- Connector Arrow -->
-<div style="text-align:center;padding:4px 0;color:#bbb;font-size:16px;background:#f0f6ff;border-bottom:1px solid #eee;">&#9660;</div>
+  <!-- Layer 4: AI Foundry -->
+  <div style="border:2px solid #ef4444;border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:8px;background:linear-gradient(180deg,#fef2f2 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#ef4444;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">AI FOUNDRY</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #fca5a5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(239,68,68,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai foundry/AIFoundry.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">Foundry Hub</div>
+        <div style="font-size:11px;color:#797775;">hub-claudebricks-dev</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #fca5a5;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(239,68,68,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/ai foundry/AIFoundryProject.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">Foundry Project</div>
+        <div style="font-size:11px;color:#797775;">proj-claudebricks-dev</div>
+      </div>
+    </div>
+  </div>
 
-<!-- Tier 4: Compute -->
-<div style="display:flex;align-items:flex-start;background:#f5f0ff;padding:16px 20px;border-bottom:1px solid #eee;">
-<div style="min-width:120px;font-size:10px;font-weight:700;color:#5c2d91;text-transform:uppercase;letter-spacing:0.5px;padding-top:12px;">Compute</div>
-<div style="flex:1;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-<div style="background:white;border:1px solid #e0d6f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(92,45,145,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="Compute" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Compute Instance</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">DS2_v2 (dev only)</div>
-</div>
-<div style="background:white;border:1px solid #e0d6f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(92,45,145,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="Compute" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">CPU Cluster</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">0-2 nodes, DS3_v2</div>
-</div>
-<div style="background:white;border:1px solid #e0d6f0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(92,45,145,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg" alt="Compute" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">GPU Cluster</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">0-1 node, NC4as_T4_v3</div>
-</div>
-</div>
-</div>
+  <div style="text-align:center;font-size:24px;color:#ef4444;margin:4px 0;">&#9660;</div>
 
-<!-- Connector Arrow -->
-<div style="text-align:center;padding:4px 0;color:#bbb;font-size:16px;background:#f5f0ff;border-bottom:1px solid #eee;">&#9660;</div>
+  <!-- Layer 5: Storage Containers -->
+  <div style="border:2px solid #14b8a6;border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:8px;background:linear-gradient(180deg,#f0fdfa 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#14b8a6;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">STORAGE CONTAINERS</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div style="background:white;border:1px solid #99f6e4;border-radius:20px;padding:6px 14px;font-size:11px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(20,184,166,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/general/10780-icon-service-Blob-Block.svg" style="width:16px;height:16px;"> <span style="font-weight:600;color:#0f766e;">facade-images</span>
+      </div>
+      <div style="background:white;border:1px solid #99f6e4;border-radius:20px;padding:6px 14px;font-size:11px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(20,184,166,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/general/10780-icon-service-Blob-Block.svg" style="width:16px;height:16px;"> <span style="font-weight:600;color:#0f766e;">ldr-files</span>
+      </div>
+      <div style="background:white;border:1px solid #99f6e4;border-radius:20px;padding:6px 14px;font-size:11px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(20,184,166,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/general/10780-icon-service-Blob-Block.svg" style="width:16px;height:16px;"> <span style="font-weight:600;color:#0f766e;">reference-models</span>
+      </div>
+      <div style="background:white;border:1px solid #99f6e4;border-radius:20px;padding:6px 14px;font-size:11px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(20,184,166,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/general/10780-icon-service-Blob-Block.svg" style="width:16px;height:16px;"> <span style="font-weight:600;color:#0f766e;">training-data</span>
+      </div>
+      <div style="background:white;border:1px solid #99f6e4;border-radius:20px;padding:6px 14px;font-size:11px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(20,184,166,0.08);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/general/10780-icon-service-Blob-Block.svg" style="width:16px;height:16px;"> <span style="font-weight:600;color:#0f766e;">inference-logs</span>
+      </div>
+    </div>
+  </div>
 
-<!-- Tier 5: AI Services -->
-<div style="display:flex;align-items:flex-start;background:#f0faf8;padding:16px 20px;border-bottom:1px solid #eee;">
-<div style="min-width:120px;font-size:10px;font-weight:700;color:#008575;text-transform:uppercase;letter-spacing:0.5px;padding-top:12px;">AI Services</div>
-<div style="flex:1;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-<div style="background:white;border:1px solid #c8e6e0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,133,117,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/ai foundry/OpenAI.svg" alt="OpenAI" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Azure OpenAI</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">GPT-4o + embeddings</div>
-</div>
-<div style="background:white;border:1px solid #c8e6e0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,133,117,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" alt="Search" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">AI Search</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">Basic, hybrid search</div>
-</div>
-<div style="background:white;border:1px solid #c8e6e0;border-radius:10px;padding:10px 8px;text-align:center;width:110px;opacity:0.7;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,133,117,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/ai foundry/CustomVision.svg" alt="CV" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Custom Vision</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">Optional</div>
-</div>
-</div>
-</div>
-
-<!-- Connector Arrow -->
-<div style="text-align:center;padding:4px 0;color:#bbb;font-size:16px;background:#f0faf8;border-bottom:1px solid #eee;">&#9660;</div>
-
-<!-- Tier 6: AI Foundry -->
-<div style="display:flex;align-items:flex-start;background:#fef5f5;padding:16px 20px;border-bottom:1px solid #eee;">
-<div style="min-width:120px;font-size:10px;font-weight:700;color:#e74c3c;text-transform:uppercase;letter-spacing:0.5px;padding-top:12px;">AI Foundry<br><span style="background:#e74c3c;color:white;font-size:8px;padding:1px 5px;border-radius:3px;font-weight:600;">NEW</span></div>
-<div style="flex:1;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-<div style="background:white;border:1px solid #f0d6d6;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(231,76,60,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/ai foundry/AIFoundry.svg" alt="Foundry" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Foundry Hub</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">hub-claudebricks-dev</div>
-</div>
-<div style="background:white;border:1px solid #f0d6d6;border-radius:10px;padding:10px 8px;text-align:center;width:110px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(231,76,60,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-<img src="azure-icons/ai foundry/AIFoundryProject.svg" alt="Project" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">Foundry Project</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">proj-claudebricks-dev</div>
-</div>
-</div>
-</div>
-
-<!-- Connector Arrow -->
-<div style="text-align:center;padding:4px 0;color:#bbb;font-size:16px;background:#fef5f5;border-bottom:1px solid #eee;">&#9660;</div>
-
-<!-- Tier 7: Storage Containers -->
-<div style="display:flex;align-items:flex-start;background:#fff8f0;padding:16px 20px;border-bottom:1px solid #eee;">
-<div style="min-width:120px;font-size:10px;font-weight:700;color:#f7630c;text-transform:uppercase;letter-spacing:0.5px;padding-top:8px;">Storage<br>Containers</div>
-<div style="flex:1;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
-<div style="background:white;border:1px solid #fcd5b5;border-radius:20px;padding:6px 14px;font-size:10px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:transform 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-<img src="azure-icons/general/10780-icon-service-Blob-Block.svg" alt="Blob" style="width:16px;height:16px;"> <span style="font-weight:600;">facade-images</span>
-</div>
-<div style="background:white;border:1px solid #fcd5b5;border-radius:20px;padding:6px 14px;font-size:10px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:transform 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-<img src="azure-icons/general/10780-icon-service-Blob-Block.svg" alt="Blob" style="width:16px;height:16px;"> <span style="font-weight:600;">ldr-files</span>
-</div>
-<div style="background:white;border:1px solid #fcd5b5;border-radius:20px;padding:6px 14px;font-size:10px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:transform 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-<img src="azure-icons/general/10780-icon-service-Blob-Block.svg" alt="Blob" style="width:16px;height:16px;"> <span style="font-weight:600;">reference-models</span>
-</div>
-<div style="background:white;border:1px solid #fcd5b5;border-radius:20px;padding:6px 14px;font-size:10px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:transform 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-<img src="azure-icons/general/10780-icon-service-Blob-Block.svg" alt="Blob" style="width:16px;height:16px;"> <span style="font-weight:600;">training-data</span>
-</div>
-<div style="background:white;border:1px solid #fcd5b5;border-radius:20px;padding:6px 14px;font-size:10px;display:flex;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:transform 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-<img src="azure-icons/general/10780-icon-service-Blob-Block.svg" alt="Blob" style="width:16px;height:16px;"> <span style="font-weight:600;">inference-logs</span>
-</div>
-</div>
-</div>
-
-<!-- Shared Cross-Environment -->
-<div style="background:#f8f9fa;padding:16px 20px;border-top:2px dashed #ccc;">
-<div style="display:flex;align-items:center;">
-<div style="min-width:120px;font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.5px;">Shared<br>(cross-env)</div>
-<div style="flex:1;display:flex;align-items:center;gap:16px;justify-content:center;">
-<div style="background:white;border:1px solid #ddd;border-radius:10px;padding:12px 20px;text-align:center;min-width:140px;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:transform 0.15s,box-shadow 0.15s;cursor:default;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
-<img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg" alt="ML" style="width:36px;height:36px;"><br>
-<div style="font-weight:700;font-size:11px;margin-top:4px;">AML Registry</div>
-<div style="color:#999;font-size:9px;margin-top:2px;">reg-claudebricks</div>
-</div>
-<div style="font-size:11px;color:#666;max-width:260px;">Shares models, environments, and components between dev and test workspaces.</div>
-</div>
-</div>
-</div>
-
-</div><!-- end hierarchy container -->
+  <!-- Shared AML Registry -->
+  <div style="border:2px dashed #9ca3af;border-radius:14px;padding:16px 16px 12px;position:relative;margin-top:20px;background:linear-gradient(180deg,#f9fafb 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#6b7280;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;letter-spacing:0.5px;">SHARED (CROSS-ENVIRONMENT)</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:center;padding-top:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;background:white;border:1.5px solid #d1d5db;border-radius:10px;padding:14px 16px 10px;min-width:130px;box-shadow:0 2px 6px rgba(0,0,0,0.06);transition:transform 0.2s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+        <img src="azure-icons/containers/10105-icon-service-Container-Registries.svg" style="width:40px;height:40px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:#323130;">AML Registry</div>
+        <div style="font-size:11px;color:#797775;">reg-claudebricks</div>
+      </div>
+      <div style="font-size:12px;color:#6b7280;max-width:280px;">Shares models, environments, and components between dev and test workspaces.</div>
+    </div>
+  </div>
 
 <div style="font-size:11px;color:#666;margin-top:12px;font-style:italic;">Dev environment shown above. Test environment uses a separate resource group (rg-claudebricks-test) with the same resource layout. The shared AML registry spans both.</div>
+
+</div><!-- end max-width wrapper -->
 
 </div><!-- end diagram-container -->
 </div><!-- end card -->
