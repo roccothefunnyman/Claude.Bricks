@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 1: Facade Classification - Step-by-Step Walkthrough</title>
+<style>
+:root {
+  --azure-blue: #0078d4;
+  --azure-dark: #003d6b;
+  --azure-light: #50e6ff;
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #6c757d;
+  --border: #dee2e6;
+  --accent-green: #37c2b1;
+  --accent-purple: #7b61ff;
+  --accent-orange: #fea11b;
+  --accent-red: #e74c3c;
+  --scenario1: #6366f1;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; font-size: 16px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+h1 { font-size: 2.5rem; font-weight: 700; color: var(--azure-dark); }
+h2 { font-size: 1.8rem; font-weight: 600; color: var(--azure-blue); margin: 48px 0 24px; border-bottom: 3px solid var(--azure-blue); padding-bottom: 8px; }
+h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin: 24px 0 12px; }
+p { margin-bottom: 12px; }
+code { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+.header { background: linear-gradient(135deg, #312e81 0%, var(--scenario1) 60%, #818cf8 100%); color: white; padding: 48px 0; text-align: center; }
+.header h1 { color: white; }
+.header p { color: rgba(255,255,255,0.85); font-size: 1.2rem; margin-top: 8px; }
+
+/* Cards */
+.card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 24px; margin-bottom: 24px; border: 1px solid var(--border); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95rem; }
+th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f0f6ff; font-weight: 600; color: var(--azure-dark); }
+tr:hover { background: #fafbfc; }
+
+/* Flow diagrams */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.flow-box { display: flex; flex-direction: column; align-items: center; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border); background: white; min-width: 120px; text-align: center; font-size: 0.95rem; position: relative; }
+.flow-box strong { font-size: 0.9rem; }
+.flow-box .sub { font-size: 0.8rem; color: var(--text-muted); }
+.flow-arrow { font-size: 1.5rem; color: var(--azure-blue); font-weight: bold; flex-shrink: 0; }
+.flow-arrow-down { text-align: center; font-size: 1.5rem; color: var(--azure-blue); margin: 4px 0; }
+
+/* Diagram containers */
+.diagram-container { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; overflow-x: auto; }
+.diagram-title { text-align: center; font-weight: 600; font-size: 1.1rem; color: var(--azure-dark); margin-bottom: 16px; }
+.diagram-caption { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; font-style: italic; }
+
+/* Step cards */
+.step-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+  border: 1px solid #e8eaed;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  margin-bottom: 32px;
+}
+.step-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+}
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 14px 14px 0 0;
+}
+.step-card.step-prereq::before { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+.step-card.step-data::before { background: linear-gradient(90deg, #0078d4, #50e6ff); }
+.step-card.step-train::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.step-card.step-register::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.step-card.step-deploy::before { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+.step-card.step-canary::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.step-card.step-monitor::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.step-body { padding: 24px 28px 20px; }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.step-num {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.step-header h3 { margin: 0; font-size: 1.2rem; }
+.step-header .step-subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0; }
+
+/* Code blocks */
+.code-block {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 16px 0;
+  position: relative;
+}
+.code-block .comment { color: #6c7086; }
+.code-block .cmd { color: #89b4fa; }
+.code-block .flag { color: #a6e3a1; }
+.code-block .string { color: #f9e2af; }
+.code-block .output { color: #9399b2; font-style: italic; }
+
+.code-label {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.1);
+  color: #9399b2;
+}
+
+/* Tags */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tag-blue { background: #e8f4fd; color: #0058a3; }
+.tag-blue::before { background: #0078d4; }
+.tag-green { background: #e6f7ed; color: #0e6027; }
+.tag-green::before { background: #107c41; }
+.tag-purple { background: #f0e8f7; color: #5c2d91; }
+.tag-purple::before { background: #8764b8; }
+.tag-orange { background: #fff3e0; color: #b45309; }
+.tag-orange::before { background: #f59e0b; }
+.tag-red { background: #fef2f2; color: #991b1b; }
+.tag-red::before { background: #ef4444; }
+.tag-gray { background: #f3f4f6; color: #4b5563; }
+.tag-gray::before { background: #6b7280; }
+
+/* Callout boxes */
+.callout {
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  border-left: 4px solid;
+  font-size: 0.9rem;
+}
+.callout-info { background: #f0f6ff; border-color: #0078d4; }
+.callout-warn { background: #fffbeb; border-color: #f59e0b; }
+.callout-success { background: #ecfdf5; border-color: #10b981; }
+.callout-danger { background: #fef2f2; border-color: #ef4444; }
+.callout-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+
+/* TOC */
+.toc a { display: block; padding: 8px 0; color: var(--scenario1); text-decoration: none; border-bottom: 1px solid #eee; font-size: 15px; }
+.toc a:hover { color: #312e81; }
+
+/* Resource node cards (matching as-built) */
+.node-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 14px 16px 10px;
+  min-width: 130px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+  cursor: default;
+}
+.node-card:hover { transform: translateY(-3px); }
+.node-card img { width: 40px; height: 40px; margin-bottom: 6px; }
+.node-card .name { font-size: 13px; font-weight: 700; color: #323130; }
+.node-card .detail { font-size: 11px; color: #797775; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .flow-row { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  h1 { font-size: 1.8rem; }
+}
+
+/* Print */
+@media print {
+  .header { padding: 24px 0; }
+  .card, .step-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+  .diagram-container { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;opacity:0.8;margin-bottom:8px;">Claude.Bricks Walkthrough</div>
+  <h1>Scenario 1: Facade Classification</h1>
+  <p>Step-by-step execution guide</p>
+  <div style="font-size:14px;opacity:0.9;margin-top:8px;">Random Forest &bull; Azure ML SDK v2 &bull; Blue/Green Deployment &bull; Drift Monitoring</div>
+</div>
+
+<div class="container">
+
+<!-- OVERVIEW -->
+<h2 id="overview">Overview</h2>
+
+<div class="card">
+<p>This walkthrough takes you through every step of executing Scenario 1, from setting up your local environment to deploying a trained model behind a managed online endpoint with blue/green traffic control. Each step shows the exact commands to run and what to expect.</p>
+
+<p>Scenario 1 trains a <strong>Random Forest classifier</strong> on rendered facade images to categorize architectural styles (historic, modern, industrial, commercial, residential). Images are flattened to 64x64 RGB feature vectors (12,288 features) and classified using scikit-learn, with MLflow tracking and a managed online endpoint for real-time inference.</p>
+</div>
+
+<!-- PIPELINE OVERVIEW -->
+<div class="diagram-container">
+<div class="diagram-title">Scenario 1: Execution Pipeline</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#6b7280;background:#f9fafb;">
+    <strong>Prerequisites</strong>
+    <div class="sub">Auth + env vars</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#0078d4;background:#f0f6ff;">
+    <strong>Register Assets</strong>
+    <div class="sub">Envs + data</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#6366f1;background:#eef2ff;">
+    <strong>Train</strong>
+    <div class="sub">AML job on cpu-cluster</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#f59e0b;background:#fffbeb;">
+    <strong>Register Model</strong>
+    <div class="sub">facade-classifier:N</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Deploy</strong>
+    <div class="sub">Managed endpoint</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Canary</strong>
+    <div class="sub">Blue/green rollout</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#ef4444;background:#fef2f2;">
+    <strong>Monitor</strong>
+    <div class="sub">Drift detection</div>
+  </div>
+</div>
+<div class="diagram-caption">Each step depends on the previous one completing successfully. The entire pipeline can be run manually (this guide) or automated via GitHub Actions.</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<h2 id="toc">Table of Contents</h2>
+<div class="toc" style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;">
+<div>
+  <a href="#overview">Overview</a>
+  <a href="#step0">Step 0: Prerequisites</a>
+  <a href="#step1">Step 1: Set Environment Variables</a>
+  <a href="#step2">Step 2: Register Environments</a>
+  <a href="#step3">Step 3: Register Data Assets</a>
+  <a href="#step4">Step 4: Upload Training Data</a>
+</div>
+<div>
+  <a href="#step5">Step 5: Submit Training Job</a>
+  <a href="#step6">Step 6: Register the Model</a>
+  <a href="#step7">Step 7: Deploy to Endpoint</a>
+  <a href="#step8">Step 8: Blue/Green Canary Rollout</a>
+  <a href="#step9">Step 9: Drift Monitoring</a>
+  <a href="#troubleshooting">Troubleshooting</a>
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 0: PREREQUISITES -->
+<!-- ============================================ -->
+<h2 id="step0">Step 0: Prerequisites</h2>
+
+<div class="step-card step-prereq">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#6b7280;">0</div>
+  <div>
+    <h3>Prerequisites and Authentication</h3>
+    <div class="step-subtitle">Verify infrastructure is deployed and configure local access</div>
+  </div>
+</div>
+
+<p>Before running any Scenario 1 scripts, confirm that the Bicep infrastructure deployment has completed. You need a running AML workspace with compute targets provisioned.</p>
+
+<h3>Required Azure Resources</h3>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg">
+    <div class="name">ML Workspace</div>
+    <div class="detail">mlw-claudebricks-dev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg">
+    <div class="name">Storage Account</div>
+    <div class="detail">stclaudebricksdev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #6ee7b7;">
+    <img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg">
+    <div class="name">CPU Cluster</div>
+    <div class="detail">cpu-cluster (DS3_v2)</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/containers/10105-icon-service-Container-Registries.svg">
+    <div class="name">ACR</div>
+    <div class="detail">acrclaudebricksdev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/devops/00012-icon-service-Application-Insights.svg">
+    <div class="name">App Insights</div>
+    <div class="detail">appi-claudebricks-dev</div>
+  </div>
+</div>
+</div>
+
+<h3>Install Python Dependencies</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">pip install</span> <span class="flag">azure-ai-ml azure-identity mlflow scikit-learn pillow numpy</span>
+</div>
+
+<h3>Authenticate to Azure</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Login to Azure (opens browser)</span>
+<span class="cmd">az login</span>
+
+<span class="comment"># Set your subscription</span>
+<span class="cmd">az account set</span> <span class="flag">--subscription</span> <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+
+<span class="comment"># Verify you can see the workspace</span>
+<span class="cmd">az resource show</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--name</span> mlw-claudebricks-dev <span class="flag">--resource-type</span> Microsoft.MachineLearningServices/workspaces <span class="flag">--query</span> name <span class="flag">-o</span> tsv
+<span class="output"># Expected: mlw-claudebricks-dev</span>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">DefaultAzureCredential</div>
+  All Python scripts use <code>DefaultAzureCredential</code> from the Azure Identity SDK. This automatically picks up your <code>az login</code> session locally, or managed identity / OIDC in CI/CD. No API keys or connection strings needed.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 1: ENVIRONMENT VARIABLES -->
+<!-- ============================================ -->
+<h2 id="step1">Step 1: Set Environment Variables</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0078d4;">1</div>
+  <div>
+    <h3>Configure Environment Variables</h3>
+    <div class="step-subtitle">Tell the SDK scripts which workspace to target</div>
+  </div>
+</div>
+
+<p>Every script in <code>deploymentcode/scripts/</code> imports <code>common/ml_client.py</code>, which reads three environment variables to construct the MLClient connection.</p>
+
+<div class="code-block">
+<div class="code-label">Bash</div>
+<span class="cmd">export</span> SUBSCRIPTION_ID=<span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+<span class="cmd">export</span> RESOURCE_GROUP=<span class="string">"rg-claudebricks-dev"</span>
+<span class="cmd">export</span> ML_WORKSPACE=<span class="string">"mlw-claudebricks-dev"</span>
+
+<span class="comment"># Optional: for Application Insights telemetry</span>
+<span class="cmd">export</span> APPLICATIONINSIGHTS_CONNECTION_STRING=<span class="string">"&lt;from Azure portal&gt;"</span>
+</div>
+
+<div class="code-block">
+<div class="code-label">PowerShell</div>
+<span class="cmd">$env:SUBSCRIPTION_ID</span> = <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+<span class="cmd">$env:RESOURCE_GROUP</span> = <span class="string">"rg-claudebricks-dev"</span>
+<span class="cmd">$env:ML_WORKSPACE</span> = <span class="string">"mlw-claudebricks-dev"</span>
+</div>
+
+<table>
+<thead><tr><th>Variable</th><th>Value</th><th>Used By</th></tr></thead>
+<tbody>
+<tr><td><code>SUBSCRIPTION_ID</code></td><td>Your Azure subscription ID</td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>RESOURCE_GROUP</code></td><td><code>rg-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>ML_WORKSPACE</code></td><td><code>mlw-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>APPLICATIONINSIGHTS_CONNECTION_STRING</code></td><td>App Insights connection string</td><td><code>telemetry.py</code> (optional)</td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 2: REGISTER ENVIRONMENTS -->
+<!-- ============================================ -->
+<h2 id="step2">Step 2: Register Environments</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0078d4;">2</div>
+  <div>
+    <h3>Register Conda Environments</h3>
+    <div class="step-subtitle">Create versioned environment definitions in the AML workspace</div>
+  </div>
+</div>
+
+<p>Training jobs run inside isolated environments on the compute cluster. This script registers the <code>claudebricks-sklearn</code> environment with all dependencies (scikit-learn, Pillow, MLflow, pandas).</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts
+<span class="cmd">python</span> register_envs.py <span class="flag">--version</span> 1
+</div>
+
+<div class="callout callout-success">
+  <div class="callout-title">Expected Output</div>
+  The script registers two environments: <code>claudebricks-sklearn:1</code> (used by Scenarios 1-3) and <code>claudebricks-genai:1</code> (used by Scenario 4). Only the sklearn environment is needed for this walkthrough.
+</div>
+
+<table>
+<thead><tr><th>Environment</th><th>Base Image</th><th>Key Packages</th></tr></thead>
+<tbody>
+<tr><td><code>claudebricks-sklearn:1</code></td><td><code>openmpi4.1.0-ubuntu22.04</code></td><td>scikit-learn, Pillow, MLflow, pandas, numpy, HDBSCAN, UMAP</td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-info">
+  <div class="callout-title">First-time build</div>
+  The first time a job uses this environment, AML builds a Docker image from the conda spec and pushes it to your ACR (<code>acrclaudebricksdev</code>). This takes 5-10 minutes. Subsequent jobs reuse the cached image.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 3: REGISTER DATA ASSETS -->
+<!-- ============================================ -->
+<h2 id="step3">Step 3: Register Data Assets</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0078d4;">3</div>
+  <div>
+    <h3>Register Data Assets</h3>
+    <div class="step-subtitle">Create a versioned data asset reference for the facade images</div>
+  </div>
+</div>
+
+<p>Register the Scenario 1 data asset so training jobs can reference it by name and version.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> register_data_assets.py <span class="flag">--version</span> 1
+</div>
+
+<p>This creates a <code>facade-images:1</code> data asset of type <code>uri_folder</code> pointing to the facade images in blob storage.</p>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 4: UPLOAD TRAINING DATA -->
+<!-- ============================================ -->
+<h2 id="step4">Step 4: Upload Training Data</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0078d4;">4</div>
+  <div>
+    <h3>Prepare and Upload Training Data</h3>
+    <div class="step-subtitle">Upload labeled facade images to blob storage</div>
+  </div>
+</div>
+
+<p>The training script expects images organized into subdirectories by class label. Each subdirectory name becomes a classification label.</p>
+
+<h3>Required Directory Structure</h3>
+<div class="code-block">
+<div class="code-label">Data Layout</div>
+<span class="string">facade-images/</span>
+  <span class="flag">historic/</span>
+    image001.png
+    image002.png
+    ...
+  <span class="flag">modern/</span>
+    image001.png
+    image002.png
+    ...
+  <span class="flag">industrial/</span>
+    ...
+  <span class="flag">commercial/</span>
+    ...
+  <span class="flag">residential/</span>
+    ...
+</div>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Minimum data</div>
+  At least 10 images per class is recommended. Images are resized to 64x64 RGB during training, so resolution does not matter. PNG and JPG formats both work.
+</div>
+
+<p>Upload images to blob storage using the prepare_data script, or manually upload to the <code>facade-images</code> container in your storage account:</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts/scenario1
+<span class="cmd">python</span> prepare_data.py
+
+<span class="comment"># Or upload manually via Azure CLI:</span>
+<span class="cmd">az storage blob upload-batch</span> <span class="flag">--account-name</span> stclaudebricksdev <span class="flag">--destination</span> facade-images <span class="flag">--source</span> ../../data/scenario1/ <span class="flag">--auth-mode</span> login
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 5: SUBMIT TRAINING JOB -->
+<!-- ============================================ -->
+<h2 id="step5">Step 5: Submit Training Job</h2>
+
+<div class="step-card step-train">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:var(--scenario1);">5</div>
+  <div>
+    <h3>Submit the AML Training Job</h3>
+    <div class="step-subtitle">Run Random Forest training on cpu-cluster via Azure ML</div>
+  </div>
+</div>
+
+<p>This submits a command job to the AML workspace. The job runs <code>train.py</code> on <code>cpu-cluster</code> inside the <code>claudebricks-sklearn:1</code> environment.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts/scenario1
+<span class="cmd">python</span> train_job.py
+
+<span class="output"># Output: Job name printed to stdout, e.g.:</span>
+<span class="output"># Submitted job: gallant_shoe_abc123xyz</span>
+<span class="output"># Studio URL: https://ml.azure.com/runs/gallant_shoe_abc123xyz?...</span>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">Save the job name</div>
+  Copy the job name from the output. You will need it in Step 6 to register the model from this job's artifacts.
+</div>
+
+<h3>What Happens Inside the Job</h3>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">train.py Execution Flow</div>
+<div style="max-width:800px;margin:0 auto;">
+
+  <div style="border:2px solid var(--scenario1);border-radius:14px;padding:16px;position:relative;background:linear-gradient(180deg,#eef2ff 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--scenario1);color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;">RUNS ON CPU-CLUSTER</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">Load Images</div>
+        <div class="detail">From subdirs by label</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--scenario1);font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">Resize 64x64</div>
+        <div class="detail">RGB flatten to 12,288</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--scenario1);font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">Train/Test Split</div>
+        <div class="detail">80/20, stratified</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--scenario1);font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">RandomForest</div>
+        <div class="detail">200 estimators</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--scenario1);font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">Log to MLflow</div>
+        <div class="detail">test_accuracy + model</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<table>
+<thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Experiment name</td><td><code>scenario1-facade-classification</code></td></tr>
+<tr><td>Compute target</td><td><code>cpu-cluster</code></td></tr>
+<tr><td>Environment</td><td><code>claudebricks-sklearn:1</code></td></tr>
+<tr><td>Input data asset</td><td><code>facade-images:1</code></td></tr>
+<tr><td>n_estimators</td><td>200</td></tr>
+<tr><td>Metric logged</td><td><code>test_accuracy</code></td></tr>
+<tr><td>Model output</td><td><code>./outputs/model/</code> (MLflow format)</td></tr>
+</tbody>
+</table>
+
+<h3>Monitor the Job</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Check job status via Azure CLI</span>
+<span class="cmd">az ml job show</span> <span class="flag">--name</span> <span class="string">&lt;job-name&gt;</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--workspace-name</span> mlw-claudebricks-dev <span class="flag">--query</span> status <span class="flag">-o</span> tsv
+
+<span class="comment"># Or open the Studio URL printed during submission to watch in real time</span>
+</div>
+
+<p>The job typically takes 3-8 minutes depending on dataset size. The cpu-cluster scales from 0 to 1 node (cold start adds ~2 minutes on first run).</p>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Quality Gate</div>
+  In the CI/CD pipeline (<code>train.yml</code>), the job's <code>test_accuracy</code> metric is compared against a threshold of <strong>0.85</strong>. If the model does not meet this threshold, the pipeline stops and the model is not registered. When running manually, check the metric yourself in MLflow before proceeding.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 6: REGISTER MODEL -->
+<!-- ============================================ -->
+<h2 id="step6">Step 6: Register the Model</h2>
+
+<div class="step-card step-register">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f59e0b;">6</div>
+  <div>
+    <h3>Register the Trained Model</h3>
+    <div class="step-subtitle">Create a versioned model entry in the AML workspace</div>
+  </div>
+</div>
+
+<p>Once the training job succeeds, register the model from its output artifacts. The model is stored in MLflow format, which includes the serialized Random Forest plus metadata.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> register_model.py <span class="flag">--job-name</span> <span class="string">&lt;job-name-from-step-5&gt;</span>
+
+<span class="output"># Output:</span>
+<span class="output"># Registered model: facade-classifier version 1</span>
+</div>
+
+<table>
+<thead><tr><th>Property</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Model name</td><td><code>facade-classifier</code></td></tr>
+<tr><td>Model type</td><td>MLflow (sklearn)</td></tr>
+<tr><td>Source</td><td><code>azureml://jobs/&lt;job-name&gt;/outputs/artifacts/paths/model/</code></td></tr>
+<tr><td>Versioning</td><td>Auto-incremented (1, 2, 3...)</td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-info">
+  <div class="callout-title">Verify in Studio</div>
+  Open the AML workspace in Azure ML Studio, navigate to <strong>Models</strong>, and confirm <code>facade-classifier</code> appears with the correct version number.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 7: DEPLOY TO ENDPOINT -->
+<!-- ============================================ -->
+<h2 id="step7">Step 7: Deploy to Endpoint</h2>
+
+<div class="step-card step-deploy">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#10b981;">7</div>
+  <div>
+    <h3>Deploy to Managed Online Endpoint</h3>
+    <div class="step-subtitle">Create the endpoint and deploy the model as the "blue" deployment</div>
+  </div>
+</div>
+
+<p>This creates a managed online endpoint and deploys the registered model with a scoring script. The initial deployment is called "blue" and receives 100% of traffic.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> deploy_endpoint.py
+
+<span class="output"># This takes 8-15 minutes. The script:</span>
+<span class="output"># 1. Creates endpoint: facade-classifier-endpoint</span>
+<span class="output"># 2. Creates deployment: blue (Standard_DS3_v2, 1 instance)</span>
+<span class="output"># 3. Routes 100% traffic to blue</span>
+</div>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Endpoint Architecture</div>
+<div style="max-width:700px;margin:0 auto;">
+
+  <div style="border:2.5px solid #10b981;border-radius:14px;padding:20px;position:relative;background:linear-gradient(180deg,#ecfdf5 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#10b981;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;">MANAGED ONLINE ENDPOINT</div>
+    <div style="text-align:center;padding-top:8px;">
+      <div style="font-weight:700;font-size:1rem;color:#065f46;">facade-classifier-endpoint</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;">Auth: API key &bull; HTTPS</div>
+    </div>
+    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+      <div style="background:white;border:2px solid #10b981;border-radius:12px;padding:16px 24px;text-align:center;min-width:200px;box-shadow:0 2px 8px rgba(16,185,129,0.15);">
+        <div style="font-size:12px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;">Blue Deployment</div>
+        <div style="font-size:0.85rem;margin-top:6px;">facade-classifier:1</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Standard_DS3_v2 &bull; 1 instance</div>
+        <div style="margin-top:8px;">
+          <span class="tag tag-green">100% traffic</span>
+        </div>
+      </div>
+      <div style="background:#f9fafb;border:2px dashed #d1d5db;border-radius:12px;padding:16px 24px;text-align:center;min-width:200px;opacity:0.5;">
+        <div style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;">Green (Canary)</div>
+        <div style="font-size:0.85rem;margin-top:6px;color:#9ca3af;">Not yet deployed</div>
+        <div style="margin-top:8px;">
+          <span class="tag tag-gray">0% traffic</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<h3>Test the Endpoint</h3>
+
+<p>Run the smoke test script to verify the endpoint responds correctly:</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> smoke_test.py <span class="flag">--endpoint-name</span> facade-classifier-endpoint <span class="flag">--num-requests</span> 5
+
+<span class="output"># Expected output:</span>
+<span class="output"># Request 1/5: 200 OK, latency 234ms, prediction: modern</span>
+<span class="output"># Request 2/5: 200 OK, latency 187ms, prediction: historic</span>
+<span class="output"># ...</span>
+<span class="output"># Results: 5/5 successful (100%), P95 latency: 245ms</span>
+<span class="output"># PASSED: success_rate=100% >= 99%, p95_latency=245ms <= 2000ms</span>
+</div>
+
+<table>
+<thead><tr><th>Smoke Test Threshold</th><th>Requirement</th></tr></thead>
+<tbody>
+<tr><td>Success rate</td><td>&ge; 99%</td></tr>
+<tr><td>P95 latency</td><td>&le; 2,000 ms</td></tr>
+<tr><td>Response format</td><td>JSON with <code>prediction</code> field</td></tr>
+</tbody>
+</table>
+
+<h3>Invoke Manually</h3>
+
+<p>You can also call the endpoint directly with a feature vector or base64 image:</p>
+
+<div class="code-block">
+<div class="code-label">Python</div>
+<span class="comment"># Using the AML SDK</span>
+<span class="cmd">from</span> azure.ai.ml <span class="cmd">import</span> MLClient
+<span class="cmd">from</span> azure.identity <span class="cmd">import</span> DefaultAzureCredential
+<span class="cmd">import</span> json
+
+ml_client = MLClient(DefaultAzureCredential(), subscription_id, resource_group, workspace)
+result = ml_client.online_endpoints.invoke(
+    endpoint_name=<span class="string">"facade-classifier-endpoint"</span>,
+    request_file=<span class="string">"sample-request.json"</span>  <span class="comment"># {"features": [0.5, 0.5, ...]}</span>
+)
+<span class="cmd">print</span>(json.loads(result))
+<span class="output"># {"prediction": "historic"}</span>
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 8: BLUE/GREEN CANARY -->
+<!-- ============================================ -->
+<h2 id="step8">Step 8: Blue/Green Canary Rollout</h2>
+
+<div class="step-card step-canary">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#8b5cf6;">8</div>
+  <div>
+    <h3>Canary Deployment with Traffic Shifting</h3>
+    <div class="step-subtitle">Safely roll out a new model version using blue/green deployment</div>
+  </div>
+</div>
+
+<p>When you retrain and register a new model version (e.g., <code>facade-classifier:2</code>), deploy it as a canary alongside the existing blue deployment. Gradually shift traffic to validate before full promotion.</p>
+
+<h3>8a. Deploy Canary (0% Traffic)</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> deploy_canary.py \
+  <span class="flag">--model-name</span> facade-classifier \
+  <span class="flag">--model-version</span> 2 \
+  <span class="flag">--endpoint-name</span> facade-classifier-endpoint \
+  <span class="flag">--deployment-name</span> green
+
+<span class="output"># Creates green deployment with 0% traffic</span>
+<span class="output"># Blue retains 100% traffic</span>
+</div>
+
+<h3>8b. Smoke Test the Canary</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> smoke_test.py \
+  <span class="flag">--endpoint-name</span> facade-classifier-endpoint \
+  <span class="flag">--deployment-name</span> green \
+  <span class="flag">--num-requests</span> 5
+</div>
+
+<h3>8c. Shift Traffic Progressively</h3>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Traffic Shifting Strategy</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Blue 100%</strong>
+    <div class="sub">Green 0%</div>
+    <div style="font-size:0.7rem;color:#555;margin-top:4px;">Initial state</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Blue 90%</strong>
+    <div class="sub">Green 10%</div>
+    <div style="font-size:0.7rem;color:#555;margin-top:4px;">First shift</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Blue 50%</strong>
+    <div class="sub">Green 50%</div>
+    <div style="font-size:0.7rem;color:#555;margin-top:4px;">Validation</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Blue 0%</strong>
+    <div class="sub">Green 100%</div>
+    <div style="font-size:0.7rem;color:#555;margin-top:4px;">Promoted</div>
+  </div>
+</div>
+</div>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Shift 10% to green</span>
+<span class="cmd">python</span> promote_deployment.py <span class="flag">--endpoint-name</span> facade-classifier-endpoint <span class="flag">--deployment-name</span> green <span class="flag">--traffic</span> 10
+
+<span class="comment"># Monitor health for 5 minutes, then shift to 50%</span>
+<span class="cmd">python</span> promote_deployment.py <span class="flag">--endpoint-name</span> facade-classifier-endpoint <span class="flag">--deployment-name</span> green <span class="flag">--traffic</span> 50
+
+<span class="comment"># If healthy, promote to 100%</span>
+<span class="cmd">python</span> promote_deployment.py <span class="flag">--endpoint-name</span> facade-classifier-endpoint <span class="flag">--deployment-name</span> green <span class="flag">--traffic</span> 100
+</div>
+
+<h3>8d. Rollback (If Needed)</h3>
+
+<p>If the canary shows issues at any point, revert all traffic to blue and optionally delete the failed deployment:</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> rollback_deployment.py \
+  <span class="flag">--endpoint-name</span> facade-classifier-endpoint \
+  <span class="flag">--target-deployment</span> blue \
+  <span class="flag">--delete-failed</span>
+
+<span class="output"># Restores 100% traffic to blue</span>
+<span class="output"># Deletes the green deployment</span>
+</div>
+
+<div class="callout callout-danger">
+  <div class="callout-title">Rollback is instant</div>
+  Traffic shifting is a metadata operation on the endpoint. No new infrastructure is created or destroyed. Rollback takes effect in seconds.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 9: DRIFT MONITORING -->
+<!-- ============================================ -->
+<h2 id="step9">Step 9: Drift Monitoring</h2>
+
+<div class="step-card step-monitor">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#ef4444;">9</div>
+  <div>
+    <h3>Set Up Drift Detection</h3>
+    <div class="step-subtitle">Create a baseline from training data and monitor for distribution shift</div>
+  </div>
+</div>
+
+<p>Over time, the distribution of inference data may drift from the training data. This step creates a statistical baseline from your training data and compares future inference data against it.</p>
+
+<h3>9a. Create Baseline Profile</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> monitoring/drift
+<span class="cmd">python</span> create_baseline.py \
+  <span class="flag">--training-data</span> ../../deploymentcode/data/scenario1/features.csv \
+  <span class="flag">--output</span> baseline_profile.json
+
+<span class="output"># Creates baseline_profile.json with per-feature statistics:</span>
+<span class="output"># mean, std, percentiles, histograms for each numeric feature</span>
+</div>
+
+<h3>9b. Run Drift Detection</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> detect_drift.py \
+  <span class="flag">--baseline</span> baseline_profile.json \
+  <span class="flag">--inference-data</span> recent_inference_data.csv \
+  <span class="flag">--psi-warning</span> 0.2 \
+  <span class="flag">--psi-critical</span> 0.4
+
+<span class="output"># Output: drift_report.json</span>
+<span class="output"># Exit code: 0=none, 1=warning, 2=critical</span>
+</div>
+
+<h3>Drift Metrics</h3>
+
+<table>
+<thead><tr><th>Metric</th><th>What It Measures</th><th>Thresholds</th></tr></thead>
+<tbody>
+<tr><td><strong>PSI</strong> (Population Stability Index)</td><td>Overall distribution shift between baseline and inference</td><td>&lt; 0.1 none, 0.1-0.2 warning, &gt; 0.2 critical</td></tr>
+<tr><td><strong>KS Statistic</strong></td><td>Maximum difference between cumulative distributions</td><td>Reported per feature</td></tr>
+<tr><td><strong>JS Divergence</strong></td><td>Symmetric measure of distribution difference</td><td>Reported per feature</td></tr>
+</tbody>
+</table>
+
+<h3>Automated Weekly Checks</h3>
+
+<p>The <code>drift-check.yml</code> GitHub Actions workflow runs every Sunday at midnight UTC. If the overall PSI exceeds 0.3, it automatically triggers the training pipeline via <code>repository_dispatch</code>, retraining the model on fresh data.</p>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Automated Drift Response Loop</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#ef4444;background:#fef2f2;">
+    <strong>Weekly Cron</strong>
+    <div class="sub">drift-check.yml</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#ef4444;background:#fef2f2;">
+    <strong>Compute PSI</strong>
+    <div class="sub">Per-feature metrics</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#f59e0b;background:#fffbeb;">
+    <strong>PSI > 0.3?</strong>
+    <div class="sub">Threshold gate</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:var(--scenario1);background:#eef2ff;">
+    <strong>Retrain</strong>
+    <div class="sub">train.yml dispatch</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Redeploy</strong>
+    <div class="sub">New model version</div>
+  </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- TROUBLESHOOTING -->
+<!-- ============================================ -->
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>Problem</th><th>Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr>
+  <td><code>EnvironmentNotFound</code> when submitting job</td>
+  <td>Step 2 was skipped</td>
+  <td>Run <code>python register_envs.py --version 1</code></td>
+</tr>
+<tr>
+  <td><code>DataNotFound: facade-images:1</code></td>
+  <td>Data asset not registered or data not uploaded</td>
+  <td>Run Steps 3 and 4</td>
+</tr>
+<tr>
+  <td>Job stuck in <code>Preparing</code> for 10+ minutes</td>
+  <td>First run builds the Docker environment image</td>
+  <td>Wait. First build takes 5-10 minutes. Subsequent runs reuse the cached image.</td>
+</tr>
+<tr>
+  <td>Job fails with <code>No module named 'sklearn'</code></td>
+  <td>Wrong environment version or environment not built</td>
+  <td>Check that <code>claudebricks-sklearn:1</code> exists in AML Studio &gt; Environments</td>
+</tr>
+<tr>
+  <td>Endpoint deployment fails with quota error</td>
+  <td>Insufficient vCPU quota for DS3_v2 in your region</td>
+  <td>Request a quota increase in Azure portal (Subscriptions &gt; Usage + quotas) or use a smaller VM size</td>
+</tr>
+<tr>
+  <td>Smoke test returns <code>401 Unauthorized</code></td>
+  <td>DefaultAzureCredential not picking up your identity</td>
+  <td>Run <code>az login</code> again, or check that your identity has the <code>AzureML Data Scientist</code> role on the workspace</td>
+</tr>
+<tr>
+  <td><code>UserError: name already in use</code> on compute</td>
+  <td>A previous failed provisioning left a ghost resource</td>
+  <td>Delete the stuck compute in AML Studio &gt; Compute, or use a different name</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- SCRIPT REFERENCE -->
+<h2 id="scripts">Script Reference</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>Step</th><th>Script</th><th>Location</th><th>Arguments</th></tr></thead>
+<tbody>
+<tr><td>2</td><td><code>register_envs.py</code></td><td><code>deploymentcode/scripts/</code></td><td><code>--version 1</code></td></tr>
+<tr><td>3</td><td><code>register_data_assets.py</code></td><td><code>deploymentcode/scripts/</code></td><td><code>--version 1</code></td></tr>
+<tr><td>4</td><td><code>prepare_data.py</code></td><td><code>deploymentcode/scripts/scenario1/</code></td><td>None</td></tr>
+<tr><td>5</td><td><code>train_job.py</code></td><td><code>deploymentcode/scripts/scenario1/</code></td><td>None</td></tr>
+<tr><td>6</td><td><code>register_model.py</code></td><td><code>deploymentcode/scripts/scenario1/</code></td><td><code>--job-name &lt;name&gt;</code></td></tr>
+<tr><td>7</td><td><code>deploy_endpoint.py</code></td><td><code>deploymentcode/scripts/scenario1/</code></td><td>None</td></tr>
+<tr><td>7</td><td><code>smoke_test.py</code></td><td><code>deploymentcode/scripts/scenario1/</code></td><td><code>--endpoint-name &lt;name&gt;</code></td></tr>
+<tr><td>8</td><td><code>deploy_canary.py</code></td><td><code>deploymentcode/scripts/scenario1/</code></td><td><code>--model-name --model-version --deployment-name</code></td></tr>
+<tr><td>8</td><td><code>promote_deployment.py</code></td><td><code>deploymentcode/scripts/scenario1/</code></td><td><code>--endpoint-name --deployment-name --traffic</code></td></tr>
+<tr><td>8</td><td><code>rollback_deployment.py</code></td><td><code>deploymentcode/scripts/scenario1/</code></td><td><code>--endpoint-name --target-deployment</code></td></tr>
+<tr><td>9</td><td><code>create_baseline.py</code></td><td><code>monitoring/drift/</code></td><td><code>--training-data --output</code></td></tr>
+<tr><td>9</td><td><code>detect_drift.py</code></td><td><code>monitoring/drift/</code></td><td><code>--baseline --inference-data</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<div style="text-align:center;margin:48px 0 32px;font-size:0.85rem;color:var(--text-muted);">
+  <strong>Claude.Bricks</strong> &bull; Scenario 1 Walkthrough &bull; Generated with Claude Code
+</div>
+
+</div><!-- end container -->
+</body>
+</html>

@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 3: Pattern Extraction - Step-by-Step Walkthrough</title>
+<style>
+:root {
+  --azure-blue: #0078d4;
+  --azure-dark: #003d6b;
+  --azure-light: #50e6ff;
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #6c757d;
+  --border: #dee2e6;
+  --accent-green: #37c2b1;
+  --accent-purple: #7b61ff;
+  --accent-orange: #fea11b;
+  --accent-red: #e74c3c;
+  --scenario3: #f59e0b;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; font-size: 16px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+h1 { font-size: 2.5rem; font-weight: 700; color: var(--azure-dark); }
+h2 { font-size: 1.8rem; font-weight: 600; color: var(--azure-blue); margin: 48px 0 24px; border-bottom: 3px solid var(--azure-blue); padding-bottom: 8px; }
+h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin: 24px 0 12px; }
+p { margin-bottom: 12px; }
+code { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+.header { background: linear-gradient(135deg, #78350f 0%, var(--scenario3) 60%, #fbbf24 100%); color: white; padding: 48px 0; text-align: center; }
+.header h1 { color: white; }
+.header p { color: rgba(255,255,255,0.85); font-size: 1.2rem; margin-top: 8px; }
+
+/* Cards */
+.card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 24px; margin-bottom: 24px; border: 1px solid var(--border); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95rem; }
+th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #fffbeb; font-weight: 600; color: #78350f; }
+tr:hover { background: #fafbfc; }
+
+/* Flow diagrams */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.flow-box { display: flex; flex-direction: column; align-items: center; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border); background: white; min-width: 120px; text-align: center; font-size: 0.95rem; position: relative; }
+.flow-box strong { font-size: 0.9rem; }
+.flow-box .sub { font-size: 0.8rem; color: var(--text-muted); }
+.flow-arrow { font-size: 1.5rem; color: var(--scenario3); font-weight: bold; flex-shrink: 0; }
+.flow-arrow-down { text-align: center; font-size: 1.5rem; color: var(--scenario3); margin: 4px 0; }
+
+/* Diagram containers */
+.diagram-container { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; overflow-x: auto; }
+.diagram-title { text-align: center; font-weight: 600; font-size: 1.1rem; color: var(--azure-dark); margin-bottom: 16px; }
+.diagram-caption { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; font-style: italic; }
+
+/* Step cards */
+.step-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+  border: 1px solid #e8eaed;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  margin-bottom: 32px;
+}
+.step-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+}
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 14px 14px 0 0;
+}
+.step-card.step-prereq::before { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+.step-card.step-data::before { background: linear-gradient(90deg, #0078d4, #50e6ff); }
+.step-card.step-extract::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.step-card.step-train::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.step-card.step-register::before { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+.step-card.step-analyze::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+.step-body { padding: 24px 28px 20px; }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.step-num {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.step-header h3 { margin: 0; font-size: 1.2rem; }
+.step-header .step-subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0; }
+
+/* Code blocks */
+.code-block {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 16px 0;
+  position: relative;
+}
+.code-block .comment { color: #6c7086; }
+.code-block .cmd { color: #89b4fa; }
+.code-block .flag { color: #a6e3a1; }
+.code-block .string { color: #f9e2af; }
+.code-block .output { color: #9399b2; font-style: italic; }
+
+.code-label {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.1);
+  color: #9399b2;
+}
+
+/* Tags */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tag-blue { background: #e8f4fd; color: #0058a3; }
+.tag-blue::before { background: #0078d4; }
+.tag-green { background: #e6f7ed; color: #0e6027; }
+.tag-green::before { background: #107c41; }
+.tag-purple { background: #f0e8f7; color: #5c2d91; }
+.tag-purple::before { background: #8764b8; }
+.tag-orange { background: #fff3e0; color: #b45309; }
+.tag-orange::before { background: #f59e0b; }
+.tag-red { background: #fef2f2; color: #991b1b; }
+.tag-red::before { background: #ef4444; }
+.tag-gray { background: #f3f4f6; color: #4b5563; }
+.tag-gray::before { background: #6b7280; }
+
+/* Callout boxes */
+.callout {
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  border-left: 4px solid;
+  font-size: 0.9rem;
+}
+.callout-info { background: #f0f6ff; border-color: #0078d4; }
+.callout-warn { background: #fffbeb; border-color: #f59e0b; }
+.callout-success { background: #ecfdf5; border-color: #10b981; }
+.callout-danger { background: #fef2f2; border-color: #ef4444; }
+.callout-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+
+/* TOC */
+.toc a { display: block; padding: 8px 0; color: var(--scenario3); text-decoration: none; border-bottom: 1px solid #eee; font-size: 15px; }
+.toc a:hover { color: #78350f; }
+
+/* Resource node cards (matching as-built) */
+.node-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 14px 16px 10px;
+  min-width: 130px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+  cursor: default;
+}
+.node-card:hover { transform: translateY(-3px); }
+.node-card img { width: 40px; height: 40px; margin-bottom: 6px; }
+.node-card .name { font-size: 13px; font-weight: 700; color: #323130; }
+.node-card .detail { font-size: 11px; color: #797775; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .flow-row { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  h1 { font-size: 1.8rem; }
+}
+
+/* Print */
+@media print {
+  .header { padding: 24px 0; }
+  .card, .step-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+  .diagram-container { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;opacity:0.8;margin-bottom:8px;">Claude.Bricks Walkthrough</div>
+  <h1>Scenario 3: Pattern Extraction</h1>
+  <p>Unsupervised clustering of LEGO construction patterns using KMeans and HDBSCAN</p>
+  <div style="font-size:14px;opacity:0.9;margin-top:8px;">KMeans &bull; HDBSCAN &bull; Azure ML SDK v2 &bull; Feature Extraction &bull; Batch Analysis</div>
+</div>
+
+<div class="container">
+
+<!-- OVERVIEW -->
+<h2 id="overview">Overview</h2>
+
+<div class="card">
+<p>This walkthrough takes you through every step of executing Scenario 3, from preparing reference .ldr files to discovering construction pattern clusters. Unlike Scenario 1, there is no endpoint deployment here. Scenario 3 is a batch/offline analysis pipeline.</p>
+
+<p>Scenario 3 analyzes reference <code>.ldr</code> files to discover recurring construction patterns. It extracts part-usage statistics (brick counts, plate counts, slope counts, window counts, door counts, dimensions, window-to-wall ratio) and clusters buildings with similar profiles. Two paths are available: a <strong>single-step job</strong> (pre-extracted features) or a <strong>two-step pipeline</strong> (extract + cluster).</p>
+</div>
+
+<!-- PIPELINE OVERVIEW -->
+<div class="diagram-container">
+<div class="diagram-title">Scenario 3: Two-Step Pipeline</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#6b7280;background:#f9fafb;">
+    <strong>Prerequisites</strong>
+    <div class="sub">Auth + env vars</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#0078d4;background:#f0f6ff;">
+    <strong>Register Assets</strong>
+    <div class="sub">Envs + data</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#f59e0b;background:#fffbeb;">
+    <strong>Extract Stats</strong>
+    <div class="sub">Parse .ldr features</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#d97706;background:#fef3c7;">
+    <strong>Cluster</strong>
+    <div class="sub">KMeans / HDBSCAN</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Register Model</strong>
+    <div class="sub">ldr-pattern-clusters:N</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Analyze</strong>
+    <div class="sub">Review clusters</div>
+  </div>
+</div>
+<div class="diagram-caption">The recommended two-step pipeline extracts features from raw .ldr files, then clusters. The single-step alternative skips extraction if you already have a stats CSV.</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<h2 id="toc">Table of Contents</h2>
+<div class="toc" style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;">
+<div>
+  <a href="#overview">Overview</a>
+  <a href="#step0">Step 0: Prerequisites</a>
+  <a href="#step1">Step 1: Set Environment Variables</a>
+  <a href="#step2">Step 2: Register Environments</a>
+  <a href="#step3">Step 3: Prepare Reference Data</a>
+</div>
+<div>
+  <a href="#step4">Step 4: Feature Extraction</a>
+  <a href="#step5">Step 5: Submit Pipeline / Job</a>
+  <a href="#step6">Step 6: Training Details</a>
+  <a href="#step7">Step 7: Register Model</a>
+  <a href="#step8">Step 8: Analyze Results</a>
+  <a href="#troubleshooting">Troubleshooting</a>
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 0: PREREQUISITES -->
+<!-- ============================================ -->
+<h2 id="step0">Step 0: Prerequisites</h2>
+
+<div class="step-card step-prereq">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#6b7280;">0</div>
+  <div>
+    <h3>Prerequisites and Authentication</h3>
+    <div class="step-subtitle">Verify infrastructure is deployed and configure local access</div>
+  </div>
+</div>
+
+<p>Before running any Scenario 3 scripts, confirm that the Bicep infrastructure deployment has completed. You need a running AML workspace with compute targets provisioned.</p>
+
+<h3>Required Azure Resources</h3>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg">
+    <div class="name">ML Workspace</div>
+    <div class="detail">mlw-claudebricks-dev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg">
+    <div class="name">Storage Account</div>
+    <div class="detail">stclaudebricksdev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #6ee7b7;">
+    <img src="azure-icons/compute/10034-icon-service-VM-Scale-Sets.svg">
+    <div class="name">CPU Cluster</div>
+    <div class="detail">cpu-cluster (DS3_v2)</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/containers/10105-icon-service-Container-Registries.svg">
+    <div class="name">ACR</div>
+    <div class="detail">acrclaudebricksdev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/devops/00012-icon-service-Application-Insights.svg">
+    <div class="name">App Insights</div>
+    <div class="detail">appi-claudebricks-dev</div>
+  </div>
+</div>
+</div>
+
+<h3>Install Python Dependencies</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">pip install</span> <span class="flag">azure-ai-ml azure-identity mlflow scikit-learn pandas numpy hdbscan umap-learn</span>
+</div>
+
+<h3>Authenticate to Azure</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Login to Azure (opens browser)</span>
+<span class="cmd">az login</span>
+
+<span class="comment"># Set your subscription</span>
+<span class="cmd">az account set</span> <span class="flag">--subscription</span> <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+
+<span class="comment"># Verify you can see the workspace</span>
+<span class="cmd">az resource show</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--name</span> mlw-claudebricks-dev <span class="flag">--resource-type</span> Microsoft.MachineLearningServices/workspaces <span class="flag">--query</span> name <span class="flag">-o</span> tsv
+<span class="output"># Expected: mlw-claudebricks-dev</span>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">DefaultAzureCredential</div>
+  All Python scripts use <code>DefaultAzureCredential</code> from the Azure Identity SDK. This automatically picks up your <code>az login</code> session locally, or managed identity / OIDC in CI/CD. No API keys or connection strings needed.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 1: ENVIRONMENT VARIABLES -->
+<!-- ============================================ -->
+<h2 id="step1">Step 1: Set Environment Variables</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0078d4;">1</div>
+  <div>
+    <h3>Configure Environment Variables</h3>
+    <div class="step-subtitle">Tell the SDK scripts which workspace to target</div>
+  </div>
+</div>
+
+<p>Every script in <code>deploymentcode/scripts/</code> imports <code>common/ml_client.py</code>, which reads three environment variables to construct the MLClient connection.</p>
+
+<div class="code-block">
+<div class="code-label">Bash</div>
+<span class="cmd">export</span> SUBSCRIPTION_ID=<span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+<span class="cmd">export</span> RESOURCE_GROUP=<span class="string">"rg-claudebricks-dev"</span>
+<span class="cmd">export</span> ML_WORKSPACE=<span class="string">"mlw-claudebricks-dev"</span>
+
+<span class="comment"># Optional: for Application Insights telemetry</span>
+<span class="cmd">export</span> APPLICATIONINSIGHTS_CONNECTION_STRING=<span class="string">"&lt;from Azure portal&gt;"</span>
+</div>
+
+<div class="code-block">
+<div class="code-label">PowerShell</div>
+<span class="cmd">$env:SUBSCRIPTION_ID</span> = <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+<span class="cmd">$env:RESOURCE_GROUP</span> = <span class="string">"rg-claudebricks-dev"</span>
+<span class="cmd">$env:ML_WORKSPACE</span> = <span class="string">"mlw-claudebricks-dev"</span>
+</div>
+
+<table>
+<thead><tr><th>Variable</th><th>Value</th><th>Used By</th></tr></thead>
+<tbody>
+<tr><td><code>SUBSCRIPTION_ID</code></td><td>Your Azure subscription ID</td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>RESOURCE_GROUP</code></td><td><code>rg-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>ML_WORKSPACE</code></td><td><code>mlw-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>APPLICATIONINSIGHTS_CONNECTION_STRING</code></td><td>App Insights connection string</td><td><code>telemetry.py</code> (optional)</td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 2: REGISTER ENVIRONMENTS -->
+<!-- ============================================ -->
+<h2 id="step2">Step 2: Register Environments</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0078d4;">2</div>
+  <div>
+    <h3>Register Conda Environments</h3>
+    <div class="step-subtitle">Create versioned environment definitions in the AML workspace</div>
+  </div>
+</div>
+
+<p>Training jobs run inside isolated environments on the compute cluster. This script registers the <code>claudebricks-clustering</code> environment with all dependencies (scikit-learn, HDBSCAN, UMAP, MLflow, pandas).</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts
+<span class="cmd">python</span> register_envs.py <span class="flag">--version</span> 1
+</div>
+
+<div class="callout callout-success">
+  <div class="callout-title">Expected Output</div>
+  The script registers the <code>claudebricks-clustering:1</code> environment containing scikit-learn, HDBSCAN, UMAP-learn, MLflow, and pandas. This environment is used for both the extraction and clustering steps.
+</div>
+
+<table>
+<thead><tr><th>Environment</th><th>Base Image</th><th>Key Packages</th></tr></thead>
+<tbody>
+<tr><td><code>claudebricks-clustering:1</code></td><td><code>openmpi4.1.0-ubuntu22.04</code></td><td>scikit-learn, HDBSCAN, UMAP-learn, MLflow, pandas, numpy</td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-info">
+  <div class="callout-title">First-time build</div>
+  The first time a job uses this environment, AML builds a Docker image from the conda spec and pushes it to your ACR (<code>acrclaudebricksdev</code>). This takes 5-10 minutes. Subsequent jobs reuse the cached image.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 3: PREPARE REFERENCE DATA -->
+<!-- ============================================ -->
+<h2 id="step3">Step 3: Prepare Reference Data</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0078d4;">3</div>
+  <div>
+    <h3>Prepare and Register Reference Data</h3>
+    <div class="step-subtitle">Upload .ldr files and register the data asset</div>
+  </div>
+</div>
+
+<p>Place your reference <code>.ldr</code> files into the data directory. Each file represents one building to be analyzed. The prepare_data script uploads them and registers a versioned data asset.</p>
+
+<h3>Required Directory Structure</h3>
+<div class="code-block">
+<div class="code-label">Data Layout</div>
+<span class="string">deploymentcode/data/scenario3/</span>
+  building-a.ldr
+  building-b.ldr
+  building-c.ldr
+  townhouse-01.ldr
+  corner-shop.ldr
+  ...
+</div>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts/scenario3
+<span class="cmd">python</span> prepare_data.py
+
+<span class="output"># Registers data asset: reference-models:1 (URI_FOLDER)</span>
+</div>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Minimum data</div>
+  You need at least 5-10 .ldr files for meaningful clustering. Each file must contain type-1 lines (part placement lines) for the feature extractor to parse. Files without part lines will be skipped.
+</div>
+
+<table>
+<thead><tr><th>Property</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Data asset name</td><td><code>reference-models:1</code></td></tr>
+<tr><td>Type</td><td><code>URI_FOLDER</code></td></tr>
+<tr><td>Contents</td><td>.ldr files (one per building)</td></tr>
+<tr><td>Location</td><td><code>deploymentcode/data/scenario3/</code></td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 4: FEATURE EXTRACTION -->
+<!-- ============================================ -->
+<h2 id="step4">Step 4: Feature Extraction</h2>
+
+<div class="step-card step-extract">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f59e0b;">4</div>
+  <div>
+    <h3>Extract Features from .ldr Files</h3>
+    <div class="step-subtitle">Parse part-usage statistics and dimensional data from each building</div>
+  </div>
+</div>
+
+<p>The extraction script reads each <code>.ldr</code> file, identifies type-1 lines (part placements), categorizes each part, and computes per-building statistics.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> extract_stats.py <span class="flag">--input-path</span> <span class="string">../../data/scenario3/</span> <span class="flag">--output-path</span> <span class="string">stats.csv</span>
+
+<span class="output"># Output: stats.csv with one row per building</span>
+</div>
+
+<!-- Feature extraction diagram -->
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Feature Extraction from .ldr Files</div>
+<div style="max-width:900px;margin:0 auto;">
+
+  <div style="display:flex;gap:20px;align-items:stretch;flex-wrap:wrap;justify-content:center;">
+    <!-- Input -->
+    <div style="border:2px solid #0078d4;border-radius:14px;padding:16px;background:linear-gradient(180deg,#f0f6ff 0%,#fff 100%);min-width:160px;text-align:center;">
+      <div style="font-size:12px;font-weight:700;color:#0078d4;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Input (.ldr)</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+        <code style="display:block;margin:2px 0;">1 28 0 140 0 ... 3004.dat</code>
+        <code style="display:block;margin:2px 0;">1 47 0 92 0 ... 60594.dat</code>
+        <code style="display:block;margin:2px 0;">1 72 0 68 0 ... 3037.dat</code>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;color:var(--scenario3);font-size:24px;font-weight:bold;">&#9654;</div>
+
+    <!-- Parser -->
+    <div style="border:2px solid var(--scenario3);border-radius:14px;padding:16px;background:linear-gradient(180deg,#fffbeb 0%,#fff 100%);min-width:200px;">
+      <div style="font-size:12px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">extract_stats.py</div>
+      <div style="font-size:0.8rem;line-height:1.8;">
+        <div><span class="tag tag-orange">Bricks</span> 3001, 3002, 3003, 3004...</div>
+        <div><span class="tag tag-blue">Plates</span> 3020, 3023, 3024...</div>
+        <div><span class="tag tag-green">Slopes</span> 3037, 3039, 3040b...</div>
+        <div><span class="tag tag-purple">Windows</span> 60594, 60592...</div>
+        <div><span class="tag tag-red">Doors</span> 60596, 57895...</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;color:var(--scenario3);font-size:24px;font-weight:bold;">&#9654;</div>
+
+    <!-- Output -->
+    <div style="border:2px solid #10b981;border-radius:14px;padding:16px;background:linear-gradient(180deg,#ecfdf5 0%,#fff 100%);min-width:200px;">
+      <div style="font-size:12px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;text-align:center;">Output (stats.csv)</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);line-height:1.8;">
+        total_parts<br>
+        brick_count, plate_count<br>
+        slope_count, window_count<br>
+        door_count<br>
+        height_studs, width_studs<br>
+        depth_studs<br>
+        window_to_wall_ratio
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="diagram-caption">Each .ldr file is parsed for type-1 lines. Parts are categorized by part number, and dimensions are converted from LDU (1 stud = 20 LDU horizontal, 1 brick = 24 LDU vertical).</div>
+</div>
+
+<h3>Extracted Features</h3>
+
+<table>
+<thead><tr><th>Feature</th><th>Description</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td><code>total_parts</code></td><td>Total number of type-1 lines in the file</td><td>Count of all parts</td></tr>
+<tr><td><code>brick_count</code></td><td>Number of brick parts</td><td>3001, 3002, 3003, 3004, 3005, 3008, 3009, 3010, etc.</td></tr>
+<tr><td><code>plate_count</code></td><td>Number of plate parts</td><td>3020, 3023, 3024, 3034, 3035, etc.</td></tr>
+<tr><td><code>slope_count</code></td><td>Number of slope parts</td><td>3037, 3039, 3040b, 85984, 92946, etc.</td></tr>
+<tr><td><code>window_count</code></td><td>Number of window parts</td><td>60594, 60592, 60603, 3853, etc.</td></tr>
+<tr><td><code>door_count</code></td><td>Number of door parts</td><td>60596, 57895, 57896, etc.</td></tr>
+<tr><td><code>height_studs</code></td><td>Building height in brick units</td><td>(Y_max - Y_min) / 24 LDU</td></tr>
+<tr><td><code>width_studs</code></td><td>Building width in stud units</td><td>(X_max - X_min) / 20 LDU</td></tr>
+<tr><td><code>depth_studs</code></td><td>Building depth in stud units</td><td>(Z_max - Z_min) / 20 LDU</td></tr>
+<tr><td><code>window_to_wall_ratio</code></td><td>Proportion of window parts relative to all facade parts</td><td>window_count / (brick_count + window_count + door_count)</td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-info">
+  <div class="callout-title">Dimension conversion</div>
+  LDraw coordinates use LDU (LDraw Units). Horizontal: 1 stud = 20 LDU. Vertical: 1 brick = 24 LDU. The Y-axis is inverted (positive Y = downward), so height is computed as (Y_max - Y_min) / 24.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 5: SUBMIT PIPELINE / JOB -->
+<!-- ============================================ -->
+<h2 id="step5">Step 5: Submit Pipeline or Job</h2>
+
+<div class="step-card step-train">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#d97706;">5</div>
+  <div>
+    <h3>Submit the AML Pipeline or Single Job</h3>
+    <div class="step-subtitle">Choose between two-step pipeline (recommended) or single-step job</div>
+  </div>
+</div>
+
+<h3>Option A: Two-Step Pipeline (Recommended)</h3>
+
+<p>The pipeline runs feature extraction and clustering as two sequential steps. This is the recommended approach when starting from raw <code>.ldr</code> files.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts/scenario3
+<span class="cmd">python</span> pipeline_job.py
+
+<span class="output"># Output: Pipeline job name printed to stdout, e.g.:</span>
+<span class="output"># Submitted pipeline: bright_coral_abc123xyz</span>
+<span class="output"># Studio URL: https://ml.azure.com/runs/bright_coral_abc123xyz?...</span>
+</div>
+
+<!-- Two-step pipeline diagram -->
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Two-Step Pipeline Architecture</div>
+<div style="max-width:800px;margin:0 auto;">
+
+  <div style="border:2px solid var(--scenario3);border-radius:14px;padding:16px;position:relative;background:linear-gradient(180deg,#fffbeb 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--scenario3);color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;">RUNS ON CPU-CLUSTER</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div class="node-card" style="border:1.5px solid #fcd34d;min-width:130px;">
+        <div class="name" style="font-size:12px;">Input Data</div>
+        <div class="detail">reference-models:1</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--scenario3);font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:2px solid var(--scenario3);min-width:150px;">
+        <div style="font-size:10px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:0.5px;">Step 1</div>
+        <div class="name" style="font-size:12px;">extract_stats.py</div>
+        <div class="detail">Parse .ldr features</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--scenario3);font-size:18px;">&#9654;</div>
+      <div style="text-align:center;min-width:80px;">
+        <div style="font-size:11px;color:var(--text-muted);font-weight:600;">stats.csv</div>
+        <div style="font-size:9px;color:var(--text-muted);">intermediate</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--scenario3);font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:2px solid #d97706;min-width:150px;">
+        <div style="font-size:10px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:0.5px;">Step 2</div>
+        <div class="name" style="font-size:12px;">train.py</div>
+        <div class="detail">KMeans n_clusters=5</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--scenario3);font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #6ee7b7;min-width:130px;">
+        <div class="name" style="font-size:12px;">Model + CSV</div>
+        <div class="detail">MLflow artifacts</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<table>
+<thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Experiment name</td><td><code>scenario3-pattern-extraction</code></td></tr>
+<tr><td>Compute target</td><td><code>cpu-cluster</code></td></tr>
+<tr><td>Environment</td><td><code>claudebricks-clustering:1</code></td></tr>
+<tr><td>Input data asset</td><td><code>reference-models:1</code></td></tr>
+<tr><td>Pipeline steps</td><td>2 (extract_stats.py, train.py)</td></tr>
+<tr><td>Clustering args</td><td><code>--n-clusters 5</code></td></tr>
+</tbody>
+</table>
+
+<h3>Option B: Single-Step Job (Alternative)</h3>
+
+<p>If you already have a pre-extracted stats CSV registered as <code>ldr-part-stats:1</code>, you can skip extraction and run clustering directly.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> train_job.py
+
+<span class="output"># Assumes ldr-part-stats:1 data asset already exists</span>
+<span class="output"># Runs train.py with KMeans n_clusters=5</span>
+</div>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Data asset required</div>
+  The single-step job expects <code>ldr-part-stats:1</code> to already exist as a registered data asset containing a CSV with the extracted features. If you do not have this, use Option A (pipeline) instead.
+</div>
+
+<h3>Monitor the Job</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Check job status via Azure CLI</span>
+<span class="cmd">az ml job show</span> <span class="flag">--name</span> <span class="string">&lt;job-name&gt;</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--workspace-name</span> mlw-claudebricks-dev <span class="flag">--query</span> status <span class="flag">-o</span> tsv
+
+<span class="comment"># Or open the Studio URL printed during submission to watch in real time</span>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">Save the job name</div>
+  Copy the job name from the output. You will need it in Step 7 to register the model from this job's artifacts.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 6: TRAINING DETAILS -->
+<!-- ============================================ -->
+<h2 id="step6">Step 6: Training Details</h2>
+
+<div class="step-card step-train">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#d97706;">6</div>
+  <div>
+    <h3>Clustering with train.py</h3>
+    <div class="step-subtitle">KMeans or HDBSCAN unsupervised clustering on extracted features</div>
+  </div>
+</div>
+
+<p>The training script reads the extracted stats CSV, standardizes features using <code>StandardScaler</code>, and runs either KMeans or HDBSCAN clustering.</p>
+
+<div class="code-block">
+<div class="code-label">Arguments</div>
+<span class="cmd">python</span> train.py <span class="flag">--data-path</span> <span class="string">&lt;csv&gt;</span> <span class="flag">--n-clusters</span> <span class="string">5</span> <span class="flag">--method</span> <span class="string">kmeans|hdbscan</span>
+</div>
+
+<h3>KMeans (Default)</h3>
+
+<table>
+<thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Algorithm</td><td>KMeans</td></tr>
+<tr><td><code>n_clusters</code></td><td>5</td></tr>
+<tr><td><code>n_init</code></td><td>10</td></tr>
+<tr><td><code>random_state</code></td><td>42</td></tr>
+<tr><td>Feature scaling</td><td><code>StandardScaler</code> (zero mean, unit variance)</td></tr>
+</tbody>
+</table>
+
+<h3>HDBSCAN (Alternative)</h3>
+
+<table>
+<thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Algorithm</td><td>HDBSCAN (density-based)</td></tr>
+<tr><td><code>min_cluster_size</code></td><td>3</td></tr>
+<tr><td>Noise handling</td><td>Points not in any cluster get label -1</td></tr>
+<tr><td>Advantage</td><td>Does not require specifying n_clusters in advance</td></tr>
+</tbody>
+</table>
+
+<h3>Metrics Logged to MLflow</h3>
+
+<table>
+<thead><tr><th>Metric</th><th>Description</th><th>Expected Range</th></tr></thead>
+<tbody>
+<tr><td><code>silhouette_score</code></td><td>Measures how similar each point is to its own cluster vs. nearest cluster</td><td>-1 to 1 (higher = better separated clusters)</td></tr>
+<tr><td><code>n_clusters_found</code></td><td>Number of clusters identified (HDBSCAN may find fewer than expected)</td><td>Varies</td></tr>
+</tbody>
+</table>
+
+<h3>Output Artifacts</h3>
+
+<p>The training job produces <code>cluster_assignments.csv</code> containing the original feature data plus a <code>cluster</code> column with the assigned cluster label for each building.</p>
+
+<div class="code-block">
+<div class="code-label">Output Format</div>
+<span class="string">filename,total_parts,brick_count,plate_count,slope_count,window_count,door_count,height_studs,width_studs,depth_studs,window_to_wall_ratio,cluster</span>
+building-a.ldr,450,220,140,30,20,4,12,32,16,0.08,0
+building-b.ldr,380,180,120,25,18,2,10,32,16,0.07,0
+corner-shop.ldr,620,300,180,45,40,6,14,32,32,0.11,2
+...
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 7: REGISTER MODEL -->
+<!-- ============================================ -->
+<h2 id="step7">Step 7: Register Model</h2>
+
+<div class="step-card step-register">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#10b981;">7</div>
+  <div>
+    <h3>Register the Clustering Model</h3>
+    <div class="step-subtitle">Create a versioned model entry in the AML workspace</div>
+  </div>
+</div>
+
+<p>Once the training job succeeds, register the model from its output artifacts. The model is stored in MLflow format, which includes the fitted scaler and clustering model.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> register_model.py <span class="flag">--job-name</span> <span class="string">&lt;job-name-from-step-5&gt;</span>
+
+<span class="output"># Output:</span>
+<span class="output"># Registered model: ldr-pattern-clusters version 1</span>
+</div>
+
+<table>
+<thead><tr><th>Property</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Model name</td><td><code>ldr-pattern-clusters</code></td></tr>
+<tr><td>Model type</td><td><code>MLFLOW_MODEL</code></td></tr>
+<tr><td>Source</td><td><code>azureml://jobs/&lt;job-name&gt;/outputs/artifacts/paths/model/</code></td></tr>
+<tr><td>Versioning</td><td>Auto-incremented (1, 2, 3...)</td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-info">
+  <div class="callout-title">Verify in Studio</div>
+  Open the AML workspace in Azure ML Studio, navigate to <strong>Models</strong>, and confirm <code>ldr-pattern-clusters</code> appears with the correct version number.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 8: ANALYZE RESULTS -->
+<!-- ============================================ -->
+<h2 id="step8">Step 8: Analyze Results</h2>
+
+<div class="step-card step-analyze">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#8b5cf6;">8</div>
+  <div>
+    <h3>Analyze Cluster Results</h3>
+    <div class="step-subtitle">Review cluster assignments and understand pattern archetypes</div>
+  </div>
+</div>
+
+<p>Scenario 3 is a batch/offline analysis pipeline. There is no endpoint deployment. Instead, review the <code>cluster_assignments.csv</code> output to understand the discovered building pattern archetypes.</p>
+
+<div class="callout callout-warn">
+  <div class="callout-title">No endpoint deployment</div>
+  Unlike Scenario 1, Scenario 3 does not deploy to a managed online endpoint. The output is a CSV file with cluster assignments and a registered MLflow model that can be used for future batch predictions.
+</div>
+
+<h3>What Each Cluster Represents</h3>
+
+<p>Each cluster groups buildings with similar construction profiles. Use the cluster centroids (mean feature values per cluster) to understand what defines each pattern archetype. For example:</p>
+
+<table>
+<thead><tr><th>Cluster</th><th>Possible Archetype</th><th>Defining Features</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>Standard Residential</td><td>Moderate brick count, low slope count, few windows</td></tr>
+<tr><td>1</td><td>Commercial Storefront</td><td>High window-to-wall ratio, many door parts, wide footprint</td></tr>
+<tr><td>2</td><td>Tall Narrow</td><td>High height_studs, low width/depth, many plates (floor separations)</td></tr>
+<tr><td>3</td><td>Detailed Historic</td><td>High total_parts, many slopes (roof detail), moderate windows</td></tr>
+<tr><td>4</td><td>Industrial</td><td>High brick count, very few windows/doors, large footprint</td></tr>
+</tbody>
+</table>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Cluster Analysis Workflow</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Download CSV</strong>
+    <div class="sub">From job outputs</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Group by Cluster</strong>
+    <div class="sub">Examine centroids</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Name Archetypes</strong>
+    <div class="sub">Label each pattern</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Validate</strong>
+    <div class="sub">Check silhouette score</div>
+  </div>
+</div>
+</div>
+
+<h3>Download Job Outputs</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Download the cluster assignments CSV from the job outputs</span>
+<span class="cmd">az ml job download</span> <span class="flag">--name</span> <span class="string">&lt;job-name&gt;</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--workspace-name</span> mlw-claudebricks-dev <span class="flag">--output-name</span> default
+
+<span class="comment"># View the assignments</span>
+<span class="cmd">cat</span> named-outputs/default/cluster_assignments.csv
+</div>
+
+<div class="code-block">
+<div class="code-label">Python</div>
+<span class="comment"># Quick analysis of cluster centroids</span>
+<span class="cmd">import</span> pandas <span class="cmd">as</span> pd
+
+df = pd.read_csv(<span class="string">"cluster_assignments.csv"</span>)
+<span class="cmd">print</span>(df.groupby(<span class="string">"cluster"</span>).mean().round(2))
+<span class="cmd">print</span>(f<span class="string">"Buildings per cluster:\n{df['cluster'].value_counts()}"</span>)
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- TROUBLESHOOTING -->
+<!-- ============================================ -->
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>Problem</th><th>Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr>
+  <td><code>EnvironmentNotFound</code> when submitting job</td>
+  <td>Step 2 was skipped</td>
+  <td>Run <code>python register_envs.py --version 1</code></td>
+</tr>
+<tr>
+  <td><code>DataNotFound: reference-models:1</code></td>
+  <td>Data asset not registered or data not uploaded</td>
+  <td>Run <code>python prepare_data.py</code> (Step 3)</td>
+</tr>
+<tr>
+  <td>No .ldr files parsed (0 rows in stats.csv)</td>
+  <td>Files do not contain type-1 lines (part placements)</td>
+  <td>Check that .ldr files have valid <code>1 &lt;color&gt; &lt;x&gt; &lt;y&gt; &lt;z&gt; ... &lt;part.dat&gt;</code> lines</td>
+</tr>
+<tr>
+  <td><code>silhouette_score</code> is NaN</td>
+  <td>Too few buildings or all assigned to the same cluster</td>
+  <td>Add more .ldr files to the data directory. Need at least 2 clusters with 2+ members each.</td>
+</tr>
+<tr>
+  <td>HDBSCAN labels all points as noise (-1)</td>
+  <td>Not enough data density, or <code>min_cluster_size</code> too high</td>
+  <td>Increase the number of buildings or decrease <code>min_cluster_size</code> (minimum 2)</td>
+</tr>
+<tr>
+  <td>Job stuck in <code>Preparing</code> for 10+ minutes</td>
+  <td>First run builds the Docker environment image</td>
+  <td>Wait. First build takes 5-10 minutes. Subsequent runs reuse the cached image.</td>
+</tr>
+<tr>
+  <td>Job fails with <code>No module named 'hdbscan'</code></td>
+  <td>Wrong environment version or environment not built</td>
+  <td>Check that <code>claudebricks-clustering:1</code> exists in AML Studio &gt; Environments</td>
+</tr>
+<tr>
+  <td><code>UserError: name already in use</code> on compute</td>
+  <td>A previous failed provisioning left a ghost resource</td>
+  <td>Delete the stuck compute in AML Studio &gt; Compute, or use a different name</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- SCRIPT REFERENCE -->
+<h2 id="scripts">Script Reference</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>Step</th><th>Script</th><th>Location</th><th>Arguments</th></tr></thead>
+<tbody>
+<tr><td>2</td><td><code>register_envs.py</code></td><td><code>deploymentcode/scripts/</code></td><td><code>--version 1</code></td></tr>
+<tr><td>3</td><td><code>prepare_data.py</code></td><td><code>deploymentcode/scripts/scenario3/</code></td><td>None</td></tr>
+<tr><td>4</td><td><code>extract_stats.py</code></td><td><code>deploymentcode/scripts/scenario3/</code></td><td><code>--input-path &lt;dir&gt; --output-path &lt;csv&gt;</code></td></tr>
+<tr><td>5a</td><td><code>pipeline_job.py</code></td><td><code>deploymentcode/scripts/scenario3/</code></td><td>None</td></tr>
+<tr><td>5b</td><td><code>train_job.py</code></td><td><code>deploymentcode/scripts/scenario3/</code></td><td>None</td></tr>
+<tr><td>6</td><td><code>train.py</code></td><td><code>deploymentcode/scripts/scenario3/</code></td><td><code>--data-path &lt;csv&gt; --n-clusters 5 --method kmeans|hdbscan</code></td></tr>
+<tr><td>7</td><td><code>register_model.py</code></td><td><code>deploymentcode/scripts/scenario3/</code></td><td><code>--job-name &lt;name&gt;</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<div style="text-align:center;margin:48px 0 32px;font-size:0.85rem;color:var(--text-muted);">
+  <strong>Claude.Bricks</strong> &bull; Scenario 3 Walkthrough &bull; Generated with Claude Code
+</div>
+
+</div><!-- end container -->
+</body>
+</html>

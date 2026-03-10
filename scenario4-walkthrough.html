@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 4: RAG Spec Generator - Step-by-Step Walkthrough</title>
+<style>
+:root {
+  --azure-blue: #0078d4;
+  --azure-dark: #003d6b;
+  --azure-light: #50e6ff;
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #6c757d;
+  --border: #dee2e6;
+  --accent-green: #37c2b1;
+  --accent-purple: #7b61ff;
+  --accent-orange: #fea11b;
+  --accent-red: #e74c3c;
+  --scenario4: #ef4444;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; font-size: 16px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+h1 { font-size: 2.5rem; font-weight: 700; color: var(--azure-dark); }
+h2 { font-size: 1.8rem; font-weight: 600; color: var(--azure-blue); margin: 48px 0 24px; border-bottom: 3px solid var(--azure-blue); padding-bottom: 8px; }
+h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin: 24px 0 12px; }
+p { margin-bottom: 12px; }
+code { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+.header { background: linear-gradient(135deg, #7f1d1d 0%, var(--scenario4) 60%, #f87171 100%); color: white; padding: 48px 0; text-align: center; }
+.header h1 { color: white; }
+.header p { color: rgba(255,255,255,0.85); font-size: 1.2rem; margin-top: 8px; }
+
+/* Cards */
+.card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 24px; margin-bottom: 24px; border: 1px solid var(--border); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95rem; }
+th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f0f6ff; font-weight: 600; color: var(--azure-dark); }
+tr:hover { background: #fafbfc; }
+
+/* Flow diagrams */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.flow-box { display: flex; flex-direction: column; align-items: center; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border); background: white; min-width: 120px; text-align: center; font-size: 0.95rem; position: relative; }
+.flow-box strong { font-size: 0.9rem; }
+.flow-box .sub { font-size: 0.8rem; color: var(--text-muted); }
+.flow-arrow { font-size: 1.5rem; color: var(--azure-blue); font-weight: bold; flex-shrink: 0; }
+.flow-arrow-down { text-align: center; font-size: 1.5rem; color: var(--azure-blue); margin: 4px 0; }
+
+/* Diagram containers */
+.diagram-container { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; overflow-x: auto; }
+.diagram-title { text-align: center; font-weight: 600; font-size: 1.1rem; color: var(--azure-dark); margin-bottom: 16px; }
+.diagram-caption { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; font-style: italic; }
+
+/* Step cards */
+.step-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+  border: 1px solid #e8eaed;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  margin-bottom: 32px;
+}
+.step-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+}
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 14px 14px 0 0;
+}
+.step-card.step-prereq::before { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+.step-card.step-env::before { background: linear-gradient(90deg, #0078d4, #50e6ff); }
+.step-card.step-data::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.step-card.step-index::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.step-card.step-foundry::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+.step-card.step-generate::before { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+.step-card.step-eval::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.step-card.step-experiment::before { background: linear-gradient(90deg, #ec4899, #f472b6); }
+.step-card.step-monitor::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+.step-body { padding: 24px 28px 20px; }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.step-num {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.step-header h3 { margin: 0; font-size: 1.2rem; }
+.step-header .step-subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0; }
+
+/* Code blocks */
+.code-block {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 16px 0;
+  position: relative;
+}
+.code-block .comment { color: #6c7086; }
+.code-block .cmd { color: #89b4fa; }
+.code-block .flag { color: #a6e3a1; }
+.code-block .string { color: #f9e2af; }
+.code-block .output { color: #9399b2; font-style: italic; }
+
+.code-label {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.1);
+  color: #9399b2;
+}
+
+/* Tags */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tag-blue { background: #e8f4fd; color: #0058a3; }
+.tag-blue::before { background: #0078d4; }
+.tag-green { background: #e6f7ed; color: #0e6027; }
+.tag-green::before { background: #107c41; }
+.tag-purple { background: #f0e8f7; color: #5c2d91; }
+.tag-purple::before { background: #8764b8; }
+.tag-orange { background: #fff3e0; color: #b45309; }
+.tag-orange::before { background: #f59e0b; }
+.tag-red { background: #fef2f2; color: #991b1b; }
+.tag-red::before { background: #ef4444; }
+.tag-gray { background: #f3f4f6; color: #4b5563; }
+.tag-gray::before { background: #6b7280; }
+
+/* Callout boxes */
+.callout {
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  border-left: 4px solid;
+  font-size: 0.9rem;
+}
+.callout-info { background: #f0f6ff; border-color: #0078d4; }
+.callout-warn { background: #fffbeb; border-color: #f59e0b; }
+.callout-success { background: #ecfdf5; border-color: #10b981; }
+.callout-danger { background: #fef2f2; border-color: #ef4444; }
+.callout-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+
+/* TOC */
+.toc a { display: block; padding: 8px 0; color: var(--scenario4); text-decoration: none; border-bottom: 1px solid #eee; font-size: 15px; }
+.toc a:hover { color: #7f1d1d; }
+
+/* Resource node cards (matching as-built) */
+.node-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 14px 16px 10px;
+  min-width: 130px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+  cursor: default;
+}
+.node-card:hover { transform: translateY(-3px); }
+.node-card img { width: 40px; height: 40px; margin-bottom: 6px; }
+.node-card .name { font-size: 13px; font-weight: 700; color: #323130; }
+.node-card .detail { font-size: 11px; color: #797775; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .flow-row { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  h1 { font-size: 1.8rem; }
+}
+
+/* Print */
+@media print {
+  .header { padding: 24px 0; }
+  .card, .step-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+  .diagram-container { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;opacity:0.8;margin-bottom:8px;">Claude.Bricks Walkthrough</div>
+  <h1>Scenario 4: RAG Spec Generator</h1>
+  <p>Retrieval-Augmented Generation for LEGO building specifications using Azure OpenAI and AI Search</p>
+  <div style="font-size:14px;opacity:0.9;margin-top:8px;">GPT-4o &bull; Azure AI Search &bull; AI Foundry &bull; Prompt Versioning &bull; AI Evaluation</div>
+</div>
+
+<div class="container">
+
+<!-- OVERVIEW -->
+<h2 id="overview">Overview</h2>
+
+<div class="card">
+<p>This walkthrough takes you through every step of executing Scenario 4, from configuring Azure OpenAI and AI Search to generating structured LEGO building specifications via a RAG pipeline, with evaluation, prompt experimentation, and production monitoring.</p>
+
+<p>Scenario 4 is a <strong>GenAI pipeline</strong> that generates structured LEGO building specifications from natural language descriptions. It uses Azure OpenAI (GPT-4o) with Retrieval-Augmented Generation (RAG) to ground outputs in architectural reference materials stored in Azure AI Search. The system is deployed via AI Foundry and includes prompt versioning, evaluation, fine-tuning, and monitoring capabilities.</p>
+</div>
+
+<!-- PIPELINE OVERVIEW -->
+<div class="diagram-container">
+<div class="diagram-title">Scenario 4: Execution Pipeline</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#6b7280;background:#f9fafb;">
+    <strong>Prerequisites</strong>
+    <div class="sub">Auth + env vars</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#f59e0b;background:#fffbeb;">
+    <strong>Prepare Data</strong>
+    <div class="sub">Training JSONL</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Index Documents</strong>
+    <div class="sub">AI Search vectors</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#ef4444;background:#fef2f2;">
+    <strong>Configure Foundry</strong>
+    <div class="sub">Project + model</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Deploy Model</strong>
+    <div class="sub">GPT-4o endpoint</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#6366f1;background:#eef2ff;">
+    <strong>Evaluate</strong>
+    <div class="sub">6 metrics</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#f59e0b;background:#fffbeb;">
+    <strong>Monitor</strong>
+    <div class="sub">Traces + drift</div>
+  </div>
+</div>
+<div class="diagram-caption">Each step depends on the previous one completing successfully. The entire pipeline can be run manually (this guide) or automated via GitHub Actions.</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<h2 id="toc">Table of Contents</h2>
+<div class="toc" style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;">
+<div>
+  <a href="#overview">Overview</a>
+  <a href="#step0">Step 0: Prerequisites</a>
+  <a href="#step1">Step 1: Set Environment Variables</a>
+  <a href="#step2">Step 2: Prepare Training Data</a>
+  <a href="#step3">Step 3: Upload Training Data (Optional)</a>
+  <a href="#step4">Step 4: Index Documents in AI Search</a>
+</div>
+<div>
+  <a href="#step5">Step 5: Configure AI Foundry</a>
+  <a href="#step6">Step 6: Generate Specs (RAG Pipeline)</a>
+  <a href="#step7">Step 7: Run Evaluation</a>
+  <a href="#step8">Step 8: Prompt Experiments</a>
+  <a href="#step9">Step 9: Monitoring</a>
+  <a href="#troubleshooting">Troubleshooting</a>
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 0: PREREQUISITES -->
+<!-- ============================================ -->
+<h2 id="step0">Step 0: Prerequisites</h2>
+
+<div class="step-card step-prereq">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#6b7280;">0</div>
+  <div>
+    <h3>Prerequisites and Authentication</h3>
+    <div class="step-subtitle">Verify infrastructure is deployed and configure local access</div>
+  </div>
+</div>
+
+<p>Before running any Scenario 4 scripts, confirm that the Bicep infrastructure deployment has completed. Scenario 4 requires the standard AML resources plus Azure OpenAI, AI Search, and AI Foundry.</p>
+
+<h3>Required Azure Resources</h3>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg">
+    <div class="name">ML Workspace</div>
+    <div class="detail">mlw-claudebricks-dev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg">
+    <div class="name">Storage Account</div>
+    <div class="detail">stclaudebricksdev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #fca5a5;">
+    <img src="azure-icons/ai foundry/OpenAI.svg">
+    <div class="name">Azure OpenAI</div>
+    <div class="detail">oai-claudebricks-dev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c4b5fd;">
+    <img src="azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg">
+    <div class="name">AI Search</div>
+    <div class="detail">srch-claudebricks-dev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #fca5a5;">
+    <img src="azure-icons/ai foundry/AIFoundry.svg">
+    <div class="name">AI Foundry Hub</div>
+    <div class="detail">hub-claudebricks-dev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #fca5a5;">
+    <img src="azure-icons/ai foundry/AIFoundryProject.svg">
+    <div class="name">AI Foundry Project</div>
+    <div class="detail">proj-claudebricks-dev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/containers/10105-icon-service-Container-Registries.svg">
+    <div class="name">ACR</div>
+    <div class="detail">acrclaudebricksdev</div>
+  </div>
+  <div class="node-card" style="border:1.5px solid #c7ddf5;">
+    <img src="azure-icons/devops/00012-icon-service-Application-Insights.svg">
+    <div class="name">App Insights</div>
+    <div class="detail">appi-claudebricks-dev</div>
+  </div>
+</div>
+</div>
+
+<h3>Model Deployments on Azure OpenAI</h3>
+
+<table>
+<thead><tr><th>Deployment</th><th>Model</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>gpt-4o</code></td><td>GPT-4o</td><td>Spec generation (chat completions)</td></tr>
+<tr><td><code>text-embedding-3-small</code></td><td>text-embedding-3-small</td><td>Document and query embeddings for vector search</td></tr>
+</tbody>
+</table>
+
+<h3>Install Python Dependencies</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">pip install</span> <span class="flag">azure-ai-ml azure-identity openai langchain azure-search-documents azure-ai-evaluation promptflow</span>
+</div>
+
+<h3>Authenticate to Azure</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Login to Azure (opens browser)</span>
+<span class="cmd">az login</span>
+
+<span class="comment"># Set your subscription</span>
+<span class="cmd">az account set</span> <span class="flag">--subscription</span> <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+
+<span class="comment"># Verify you can see the workspace</span>
+<span class="cmd">az resource show</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--name</span> mlw-claudebricks-dev <span class="flag">--resource-type</span> Microsoft.MachineLearningServices/workspaces <span class="flag">--query</span> name <span class="flag">-o</span> tsv
+<span class="output"># Expected: mlw-claudebricks-dev</span>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">DefaultAzureCredential</div>
+  All Python scripts use <code>DefaultAzureCredential</code> from the Azure Identity SDK. This automatically picks up your <code>az login</code> session locally, or managed identity / OIDC in CI/CD. No API keys or connection strings needed.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 1: ENVIRONMENT VARIABLES -->
+<!-- ============================================ -->
+<h2 id="step1">Step 1: Set Environment Variables</h2>
+
+<div class="step-card step-env">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0078d4;">1</div>
+  <div>
+    <h3>Configure Environment Variables</h3>
+    <div class="step-subtitle">Tell the SDK scripts which workspace and OpenAI resources to target</div>
+  </div>
+</div>
+
+<p>Every script in <code>deploymentcode/scripts/</code> imports <code>common/ml_client.py</code>, which reads three environment variables to construct the MLClient connection. Scenario 4 scripts also need Azure OpenAI and AI Search endpoints.</p>
+
+<div class="code-block">
+<div class="code-label">Bash</div>
+<span class="comment"># Standard (all scenarios)</span>
+<span class="cmd">export</span> SUBSCRIPTION_ID=<span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+<span class="cmd">export</span> RESOURCE_GROUP=<span class="string">"rg-claudebricks-dev"</span>
+<span class="cmd">export</span> ML_WORKSPACE=<span class="string">"mlw-claudebricks-dev"</span>
+
+<span class="comment"># Scenario 4 specific</span>
+<span class="cmd">export</span> AZURE_OPENAI_ENDPOINT=<span class="string">"https://oai-claudebricks-dev.openai.azure.com/"</span>
+<span class="cmd">export</span> AZURE_OPENAI_API_VERSION=<span class="string">"2024-08-06"</span>
+<span class="cmd">export</span> AZURE_SEARCH_ENDPOINT=<span class="string">"https://srch-claudebricks-dev.search.windows.net"</span>
+<span class="cmd">export</span> AZURE_SEARCH_INDEX=<span class="string">"lego-specs"</span>
+
+<span class="comment"># Optional: for Application Insights telemetry</span>
+<span class="cmd">export</span> APPLICATIONINSIGHTS_CONNECTION_STRING=<span class="string">"&lt;from Azure portal&gt;"</span>
+</div>
+
+<div class="code-block">
+<div class="code-label">PowerShell</div>
+<span class="cmd">$env:SUBSCRIPTION_ID</span> = <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+<span class="cmd">$env:RESOURCE_GROUP</span> = <span class="string">"rg-claudebricks-dev"</span>
+<span class="cmd">$env:ML_WORKSPACE</span> = <span class="string">"mlw-claudebricks-dev"</span>
+<span class="cmd">$env:AZURE_OPENAI_ENDPOINT</span> = <span class="string">"https://oai-claudebricks-dev.openai.azure.com/"</span>
+<span class="cmd">$env:AZURE_OPENAI_API_VERSION</span> = <span class="string">"2024-08-06"</span>
+<span class="cmd">$env:AZURE_SEARCH_ENDPOINT</span> = <span class="string">"https://srch-claudebricks-dev.search.windows.net"</span>
+<span class="cmd">$env:AZURE_SEARCH_INDEX</span> = <span class="string">"lego-specs"</span>
+</div>
+
+<table>
+<thead><tr><th>Variable</th><th>Value</th><th>Used By</th></tr></thead>
+<tbody>
+<tr><td><code>SUBSCRIPTION_ID</code></td><td>Your Azure subscription ID</td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>RESOURCE_GROUP</code></td><td><code>rg-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>ML_WORKSPACE</code></td><td><code>mlw-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>AZURE_OPENAI_ENDPOINT</code></td><td>OpenAI resource endpoint</td><td>Scenario 4 generation + indexing scripts</td></tr>
+<tr><td><code>AZURE_OPENAI_API_VERSION</code></td><td><code>2024-08-06</code></td><td>OpenAI SDK version targeting</td></tr>
+<tr><td><code>AZURE_SEARCH_ENDPOINT</code></td><td>AI Search resource endpoint</td><td>Index + retrieval scripts</td></tr>
+<tr><td><code>AZURE_SEARCH_INDEX</code></td><td><code>lego-specs</code></td><td>Vector search index name</td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 2: PREPARE TRAINING DATA -->
+<!-- ============================================ -->
+<h2 id="step2">Step 2: Prepare Training Data</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f59e0b;">2</div>
+  <div>
+    <h3>Prepare Training Data</h3>
+    <div class="step-subtitle">Convert spec examples to OpenAI fine-tuning JSONL format</div>
+  </div>
+</div>
+
+<p>This script converts building spec examples into the JSONL format required by OpenAI fine-tuning. If the input file does not exist, it auto-generates three sample examples (historic townhouse, modern office, industrial warehouse).</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts/scenario4
+<span class="cmd">python</span> prepare_training_data.py \
+  <span class="flag">--input</span> <span class="string">data/scenario4/spec_examples.json</span> \
+  <span class="flag">--output</span> <span class="string">data/scenario4/training_data.jsonl</span>
+
+<span class="output"># Output:</span>
+<span class="output"># Generated 3 sample examples (no input file found)</span>
+<span class="output"># Wrote 3 training rows to data/scenario4/training_data.jsonl</span>
+</div>
+
+<h3>JSONL Output Format</h3>
+
+<div class="code-block">
+<div class="code-label">JSONL</div>
+<span class="string">{"messages": [</span>
+<span class="string">  {"role": "system", "content": "You are a LEGO building spec generator..."},</span>
+<span class="string">  {"role": "user", "content": "A 3-story historic townhouse with..."},</span>
+<span class="string">  {"role": "assistant", "content": "{\"height\": 3, \"style\": \"historic\", ...}"}</span>
+<span class="string">]}</span>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">Auto-generated samples</div>
+  If <code>spec_examples.json</code> does not exist, the script creates three example specs covering different architectural styles: historic townhouse, modern office, and industrial warehouse. These are sufficient for testing the pipeline end to end.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 3: UPLOAD TRAINING DATA -->
+<!-- ============================================ -->
+<h2 id="step3">Step 3: Upload Training Data (Optional)</h2>
+
+<div class="step-card step-data">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f59e0b;">3</div>
+  <div>
+    <h3>Upload Training Data for Fine-Tuning</h3>
+    <div class="step-subtitle">Upload JSONL to Azure OpenAI for optional model fine-tuning</div>
+  </div>
+</div>
+
+<p>This step is optional. If you want to fine-tune GPT-4o on your building spec examples, upload the JSONL file to Azure OpenAI. The script returns a file ID that can be used to create a fine-tuning job.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> upload_training_data.py \
+  <span class="flag">--file</span> <span class="string">data/scenario4/training_data.jsonl</span>
+
+<span class="output"># Output:</span>
+<span class="output"># Uploaded file: file-abc123def456</span>
+<span class="output"># Use this file ID to create a fine-tuning job</span>
+</div>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Fine-tuning is optional</div>
+  The RAG pipeline works well with the base GPT-4o model and a well-crafted system prompt. Fine-tuning improves output consistency but requires at least 10 training examples and incurs additional Azure OpenAI costs.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 4: INDEX DOCUMENTS -->
+<!-- ============================================ -->
+<h2 id="step4">Step 4: Index Documents in AI Search</h2>
+
+<div class="step-card step-index">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#8b5cf6;">4</div>
+  <div>
+    <h3>Index Documents in AI Search</h3>
+    <div class="step-subtitle">Chunk, embed, and index architectural reference materials</div>
+  </div>
+</div>
+
+<p>This is the core RAG setup step. The script reads standards documents from the <code>standards/</code> directory, chunks them into passages, generates vector embeddings via <code>text-embedding-3-small</code>, and uploads them to an Azure AI Search index with both vector and keyword fields.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> index_documents.py
+
+<span class="output"># Output:</span>
+<span class="output"># Reading standards docs from standards/...</span>
+<span class="output"># Found 5 documents: modular-building-spec.md, parts-catalog.md, ...</span>
+<span class="output"># Chunked into 47 passages</span>
+<span class="output"># Generated 47 embeddings via text-embedding-3-small</span>
+<span class="output"># Created/updated index: lego-specs</span>
+<span class="output"># Uploaded 47 documents to index</span>
+</div>
+
+<!-- RAG Indexing Flow Diagram -->
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Document Indexing Pipeline</div>
+<div style="max-width:850px;margin:0 auto;">
+
+  <div style="border:2px solid #8b5cf6;border-radius:14px;padding:16px;position:relative;background:linear-gradient(180deg,#f5f3ff 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#8b5cf6;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;">INDEXING PIPELINE</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div class="node-card" style="border:1.5px solid #c4b5fd;min-width:110px;">
+        <div class="name" style="font-size:12px;">Read Docs</div>
+        <div class="detail">standards/*.md</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#8b5cf6;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c4b5fd;min-width:110px;">
+        <div class="name" style="font-size:12px;">Chunk</div>
+        <div class="detail">Passage splitting</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#8b5cf6;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c4b5fd;min-width:110px;">
+        <div class="name" style="font-size:12px;">Embed</div>
+        <div class="detail">text-embedding-3-small</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#8b5cf6;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c4b5fd;min-width:110px;">
+        <div class="name" style="font-size:12px;">Upload</div>
+        <div class="detail">AI Search index</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<h3>Index Configuration</h3>
+
+<table>
+<thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Index name</td><td><code>lego-specs</code></td></tr>
+<tr><td>Search mode</td><td>Hybrid (vector + keyword + semantic)</td></tr>
+<tr><td>Embedding model</td><td><code>text-embedding-3-small</code></td></tr>
+<tr><td>Vector dimensions</td><td>1536</td></tr>
+<tr><td>Source documents</td><td><code>modular-building-spec.md</code>, <code>parts-catalog.md</code>, <code>color-palette.md</code>, <code>architectural-patterns.md</code>, <code>ldraw-format.md</code></td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-success">
+  <div class="callout-title">Verify in Azure Portal</div>
+  Open the AI Search resource in the Azure portal, navigate to <strong>Indexes</strong>, and confirm <code>lego-specs</code> appears with the expected document count. You can run test queries in the Search Explorer.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 5: CONFIGURE AI FOUNDRY -->
+<!-- ============================================ -->
+<h2 id="step5">Step 5: Configure AI Foundry</h2>
+
+<div class="step-card step-foundry">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#ef4444;">5</div>
+  <div>
+    <h3>Configure AI Foundry</h3>
+    <div class="step-subtitle">Create the Foundry project, deploy the model, and connect the search index</div>
+  </div>
+</div>
+
+<p>AI Foundry provides a managed environment for deploying and managing LLM-powered applications. These scripts are typically run once during initial setup.</p>
+
+<h3>5a. Create Foundry Project</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts/scenario4/foundry
+<span class="cmd">python</span> create_project.py
+
+<span class="output"># Output:</span>
+<span class="output"># Created Foundry project: proj-claudebricks-dev</span>
+<span class="output"># Hub: hub-claudebricks-dev</span>
+</div>
+
+<h3>5b. Deploy Model in Foundry</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> deploy_model.py
+
+<span class="output"># Output:</span>
+<span class="output"># Deployed model: gpt-4o</span>
+<span class="output"># Endpoint: https://proj-claudebricks-dev.openai.azure.com/</span>
+</div>
+
+<h3>5c. Connect AI Search Index</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> configure_index.py
+
+<span class="output"># Output:</span>
+<span class="output"># Connected index: lego-specs to project proj-claudebricks-dev</span>
+</div>
+
+<!-- Foundry Architecture Diagram -->
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">AI Foundry Architecture</div>
+<div style="max-width:750px;margin:0 auto;">
+
+  <div style="border:2.5px solid #ef4444;border-radius:14px;padding:20px;position:relative;background:linear-gradient(180deg,#fef2f2 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#ef4444;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;">AI FOUNDRY HUB</div>
+    <div style="text-align:center;padding-top:8px;">
+      <div style="font-weight:700;font-size:1rem;color:#991b1b;">hub-claudebricks-dev</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;">Shared resources: OpenAI, AI Search, Storage</div>
+    </div>
+
+    <div style="border:2px solid #f87171;border-radius:12px;padding:16px;background:white;">
+      <div style="font-size:12px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Project: proj-claudebricks-dev</div>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <div class="node-card" style="border:1.5px solid #fca5a5;min-width:120px;">
+          <img src="azure-icons/ai foundry/OpenAI.svg" style="width:32px;height:32px;">
+          <div class="name" style="font-size:12px;">GPT-4o</div>
+          <div class="detail">Chat completions</div>
+        </div>
+        <div class="node-card" style="border:1.5px solid #fca5a5;min-width:120px;">
+          <img src="azure-icons/ai foundry/OpenAI.svg" style="width:32px;height:32px;">
+          <div class="name" style="font-size:12px;">Embeddings</div>
+          <div class="detail">text-embedding-3-small</div>
+        </div>
+        <div class="node-card" style="border:1.5px solid #c4b5fd;min-width:120px;">
+          <img src="azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" style="width:32px;height:32px;">
+          <div class="name" style="font-size:12px;">AI Search</div>
+          <div class="detail">lego-specs index</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="callout callout-info">
+  <div class="callout-title">One-time setup</div>
+  The Foundry project, model deployment, and index connection are typically configured once. After initial setup, the generate and evaluate scripts use these resources directly.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 6: GENERATE SPECS -->
+<!-- ============================================ -->
+<h2 id="step6">Step 6: Generate Specs (RAG Pipeline)</h2>
+
+<div class="step-card step-generate">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#10b981;">6</div>
+  <div>
+    <h3>Generate Building Specifications</h3>
+    <div class="step-subtitle">Run the RAG pipeline to produce structured LEGO specs from natural language</div>
+  </div>
+</div>
+
+<p>This is the core inference script. Given a natural language building description, it retrieves relevant architectural standards from AI Search and uses GPT-4o to generate a structured JSON building specification.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts/scenario4
+<span class="cmd">python</span> generate_spec.py \
+  <span class="flag">--description</span> <span class="string">"A 3-story historic townhouse with ornate cornices, arched windows, and a mansard roof in dark tan and sand green"</span>
+
+<span class="output"># Output: Structured JSON spec</span>
+<span class="output"># {</span>
+<span class="output">#   "height": 3,</span>
+<span class="output">#   "style": "historic",</span>
+<span class="output">#   "facade": "masonry with dentil cornice",</span>
+<span class="output">#   "roof": "mansard with slopes",</span>
+<span class="output">#   "windows": "arched 1x4x3",</span>
+<span class="output">#   "doors": "1x4x6 with glass",</span>
+<span class="output">#   "colors": {"primary": 28, "secondary": 378, "accent": 72, "trim": 15},</span>
+<span class="output">#   "features": ["dentil_cornice", "arched_windows", "mansard_roof", "masonry_walls"]</span>
+<span class="output"># }</span>
+</div>
+
+<!-- RAG Pipeline Flow Diagram -->
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">RAG Pipeline: Query to Spec Generation</div>
+<div style="max-width:900px;margin:0 auto;">
+
+  <div style="border:2px solid #10b981;border-radius:14px;padding:16px;position:relative;background:linear-gradient(180deg,#ecfdf5 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#10b981;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;">RAG PIPELINE</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div class="node-card" style="border:1.5px solid #6ee7b7;min-width:100px;">
+        <div class="name" style="font-size:12px;">User Query</div>
+        <div class="detail">Natural language</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#10b981;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #fca5a5;min-width:100px;">
+        <img src="azure-icons/ai foundry/OpenAI.svg" style="width:24px;height:24px;">
+        <div class="name" style="font-size:12px;">Embed Query</div>
+        <div class="detail">text-embedding-3-small</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#10b981;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c4b5fd;min-width:100px;">
+        <img src="azure-icons/ai + machine learning/10044-icon-service-Cognitive-Search.svg" style="width:24px;height:24px;">
+        <div class="name" style="font-size:12px;">Search Index</div>
+        <div class="detail">Hybrid retrieval</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#10b981;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #6ee7b7;min-width:100px;">
+        <div class="name" style="font-size:12px;">Augment Prompt</div>
+        <div class="detail">System + context + query</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#10b981;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #fca5a5;min-width:100px;">
+        <img src="azure-icons/ai foundry/OpenAI.svg" style="width:24px;height:24px;">
+        <div class="name" style="font-size:12px;">Generate</div>
+        <div class="detail">GPT-4o</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#10b981;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #6ee7b7;min-width:100px;">
+        <div class="name" style="font-size:12px;">Parse JSON</div>
+        <div class="detail">Structured spec</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="diagram-caption">The pipeline embeds the user query, retrieves relevant standards from AI Search, augments the prompt with context, and calls GPT-4o for generation.</div>
+</div>
+
+<h3>Pipeline Details</h3>
+
+<table>
+<thead><tr><th>Stage</th><th>Component</th><th>Details</th></tr></thead>
+<tbody>
+<tr><td>Embed</td><td>Azure OpenAI</td><td><code>text-embedding-3-small</code> (1536 dimensions)</td></tr>
+<tr><td>Search</td><td>Azure AI Search</td><td>Hybrid: vector + keyword + semantic reranking</td></tr>
+<tr><td>Prompt</td><td>System prompt</td><td><code>prompts/system/v1.txt</code> + retrieved context + user query</td></tr>
+<tr><td>Generate</td><td>Azure OpenAI</td><td>GPT-4o chat completions</td></tr>
+<tr><td>Parse</td><td>JSON parser</td><td>Extracts structured spec from completion</td></tr>
+</tbody>
+</table>
+
+<h3>Output Schema</h3>
+
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>height</code></td><td>integer</td><td>Number of stories</td></tr>
+<tr><td><code>style</code></td><td>string</td><td>Architectural style (historic, modern, industrial, commercial, residential)</td></tr>
+<tr><td><code>facade</code></td><td>string</td><td>Wall construction description</td></tr>
+<tr><td><code>roof</code></td><td>string</td><td>Roof type and construction</td></tr>
+<tr><td><code>windows</code></td><td>string</td><td>Window style and part reference</td></tr>
+<tr><td><code>doors</code></td><td>string</td><td>Door style and part reference</td></tr>
+<tr><td><code>colors</code></td><td>object</td><td>LDraw color codes: primary, secondary, accent, trim</td></tr>
+<tr><td><code>features</code></td><td>array</td><td>Architectural features list (cornice, arches, SNOT, etc.)</td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 7: RUN EVALUATION -->
+<!-- ============================================ -->
+<h2 id="step7">Step 7: Run Evaluation</h2>
+
+<div class="step-card step-eval">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#6366f1;">7</div>
+  <div>
+    <h3>Run Evaluation</h3>
+    <div class="step-subtitle">Measure generation quality across 6 metrics using the Azure AI Evaluation SDK</div>
+  </div>
+</div>
+
+<p>The evaluation script runs the RAG pipeline against a 15-row test dataset and scores each output on six quality metrics. Thresholds are configurable and enforced in CI/CD.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> eval
+<span class="cmd">python</span> run_evaluation.py \
+  <span class="flag">--dataset</span> <span class="string">eval/datasets/lego-spec-generator.jsonl</span> \
+  <span class="flag">--thresholds</span> <span class="string">eval/configs/thresholds.json</span>
+
+<span class="output"># Output:</span>
+<span class="output"># Running evaluation on 15 rows...</span>
+<span class="output"># Groundedness:  4.2 / 5.0  (threshold: 3.5) PASS</span>
+<span class="output"># Relevance:     4.5 / 5.0  (threshold: 3.5) PASS</span>
+<span class="output"># Coherence:     4.7 / 5.0  (threshold: 4.0) PASS</span>
+<span class="output"># Fluency:       4.8 / 5.0  (threshold: 4.0) PASS</span>
+<span class="output"># Buildability:  4.1 / 5.0  (threshold: 3.0) PASS</span>
+<span class="output"># Safety:        5.0 / 5.0  (threshold: 4.5) PASS</span>
+<span class="output"># Overall: 6/6 metrics passed</span>
+</div>
+
+<!-- Evaluation Flow Diagram -->
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Evaluation Flow</div>
+<div style="max-width:850px;margin:0 auto;">
+
+  <div style="border:2px solid #6366f1;border-radius:14px;padding:16px;position:relative;background:linear-gradient(180deg,#eef2ff 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#6366f1;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;">EVALUATION PIPELINE</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding-top:14px;">
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">Test Dataset</div>
+        <div class="detail">15 rows JSONL</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#6366f1;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">RAG Pipeline</div>
+        <div class="detail">Generate specs</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#6366f1;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">AI Evaluators</div>
+        <div class="detail">6 metrics scored</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#6366f1;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">Threshold Gate</div>
+        <div class="detail">Pass/fail check</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#6366f1;font-size:18px;">&#9654;</div>
+      <div class="node-card" style="border:1.5px solid #c7d2fe;min-width:110px;">
+        <div class="name" style="font-size:12px;">Report</div>
+        <div class="detail">eval/results/</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<h3>Evaluation Metrics</h3>
+
+<table>
+<thead><tr><th>Metric</th><th>What It Measures</th><th>Evaluator</th></tr></thead>
+<tbody>
+<tr><td><strong>Groundedness</strong></td><td>Whether the output is grounded in the retrieved context (no hallucination)</td><td>Azure AI Evaluation SDK</td></tr>
+<tr><td><strong>Relevance</strong></td><td>Whether the output addresses the user's building description</td><td>Azure AI Evaluation SDK</td></tr>
+<tr><td><strong>Coherence</strong></td><td>Logical flow and consistency of the generated spec</td><td>Azure AI Evaluation SDK</td></tr>
+<tr><td><strong>Fluency</strong></td><td>Language quality and readability</td><td>Azure AI Evaluation SDK</td></tr>
+<tr><td><strong>Buildability</strong></td><td>Whether the spec references valid LDraw parts, colors, and dimensions</td><td>Custom: <code>eval/evaluators/buildability.py</code></td></tr>
+<tr><td><strong>Safety</strong></td><td>Content safety (no harmful or inappropriate content)</td><td>Azure AI Evaluation SDK</td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-danger">
+  <div class="callout-title">CI/CD Quality Gate</div>
+  The <code>eval-rag.yml</code> GitHub Actions workflow runs evaluation automatically. If any metric falls below its configured threshold in <code>eval/configs/thresholds.json</code>, the pipeline blocks deployment.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 8: PROMPT EXPERIMENTS -->
+<!-- ============================================ -->
+<h2 id="step8">Step 8: Prompt Experiments</h2>
+
+<div class="step-card step-experiment">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#ec4899;">8</div>
+  <div>
+    <h3>Prompt and RAG Experiments</h3>
+    <div class="step-subtitle">Compare prompt versions and tune RAG retrieval parameters</div>
+  </div>
+</div>
+
+<p>These scripts help you iterate on prompt engineering and RAG configuration by running controlled experiments across the test dataset.</p>
+
+<h3>8a. Compare Prompt Versions</h3>
+
+<p>Run the same test dataset against different system prompt versions and compare evaluation scores side by side.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> run_prompt_experiment.py
+
+<span class="output"># Output:</span>
+<span class="output"># Comparing prompts: v1.txt, v2.txt</span>
+<span class="output"># </span>
+<span class="output">#              v1.txt    v2.txt</span>
+<span class="output"># Groundedness  4.2       4.5</span>
+<span class="output"># Relevance     4.5       4.6</span>
+<span class="output"># Coherence     4.7       4.8</span>
+<span class="output"># Buildability  4.1       4.4</span>
+<span class="output"># </span>
+<span class="output"># Winner: v2.txt (+0.3 avg improvement)</span>
+</div>
+
+<h3>8b. Tune RAG Parameters</h3>
+
+<p>Experiment with different chunking strategies, search modes, and retrieval counts to optimize retrieval quality.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> run_rag_tuning.py
+
+<span class="output"># Output:</span>
+<span class="output"># Testing RAG configurations:</span>
+<span class="output">#   chunk_size=512, overlap=50, top_k=3, mode=hybrid  -> Groundedness: 4.2</span>
+<span class="output">#   chunk_size=512, overlap=50, top_k=5, mode=hybrid  -> Groundedness: 4.5</span>
+<span class="output">#   chunk_size=256, overlap=25, top_k=5, mode=vector  -> Groundedness: 4.1</span>
+<span class="output">#   chunk_size=512, overlap=100, top_k=5, mode=hybrid -> Groundedness: 4.6</span>
+<span class="output"># </span>
+<span class="output"># Best config: chunk_size=512, overlap=100, top_k=5, mode=hybrid</span>
+</div>
+
+<h3>Tunable Parameters</h3>
+
+<table>
+<thead><tr><th>Parameter</th><th>Description</th><th>Typical Range</th></tr></thead>
+<tbody>
+<tr><td><code>chunk_size</code></td><td>Number of tokens per document chunk</td><td>256-1024</td></tr>
+<tr><td><code>chunk_overlap</code></td><td>Overlap between consecutive chunks</td><td>25-100</td></tr>
+<tr><td><code>search_mode</code></td><td>Retrieval strategy: vector, keyword, or hybrid</td><td>hybrid recommended</td></tr>
+<tr><td><code>top_k</code></td><td>Number of retrieved passages to include in context</td><td>3-10</td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-info">
+  <div class="callout-title">Prompt versioning</div>
+  System prompts are stored in <code>prompts/system/v1.txt</code>, <code>v2.txt</code>, etc. Changes between versions are tracked in <code>prompts/CHANGELOG.md</code>. RAG templates use Jinja2 format in <code>prompts/rag/</code>.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- STEP 9: MONITORING -->
+<!-- ============================================ -->
+<h2 id="step9">Step 9: Monitoring</h2>
+
+<div class="step-card step-monitor">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f59e0b;">9</div>
+  <div>
+    <h3>Production Monitoring</h3>
+    <div class="step-subtitle">Set up monitoring for traces, evaluation, and drift detection</div>
+  </div>
+</div>
+
+<p>Once the RAG pipeline is running in production, set up monitoring to track generation quality, detect prompt/completion issues, and identify data drift.</p>
+
+<h3>9a. Configure Foundry Monitoring</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> deploymentcode/scripts/scenario4/foundry
+<span class="cmd">python</span> configure_monitoring.py
+
+<span class="output"># Output:</span>
+<span class="output"># Configured monitoring for proj-claudebricks-dev</span>
+<span class="output"># Metrics: token usage, latency, error rate</span>
+</div>
+
+<h3>9b. Run Live Evaluation</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> run_evaluation.py
+
+<span class="output"># Runs evaluation against the live endpoint</span>
+<span class="output"># Compares production outputs to ground truth</span>
+</div>
+
+<h3>9c. Trace Analysis</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">python</span> trace_analysis.py
+
+<span class="output"># Analyzes prompt/completion traces</span>
+<span class="output"># Reports: avg tokens, latency distribution, error patterns</span>
+</div>
+
+<h3>9d. Drift Detection</h3>
+
+<p>Drift monitoring works the same as other scenarios, using the scripts in <code>monitoring/drift/</code>.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="cmd">cd</span> monitoring/drift
+<span class="cmd">python</span> create_baseline.py \
+  <span class="flag">--training-data</span> <span class="string">../../data/scenario4/training_data.jsonl</span> \
+  <span class="flag">--output</span> baseline_profile.json
+
+<span class="cmd">python</span> detect_drift.py \
+  <span class="flag">--baseline</span> baseline_profile.json \
+  <span class="flag">--inference-data</span> recent_inference_data.csv \
+  <span class="flag">--psi-warning</span> 0.2 \
+  <span class="flag">--psi-critical</span> 0.4
+</div>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Monitoring Architecture</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#ef4444;background:#fef2f2;">
+    <strong>Live Traffic</strong>
+    <div class="sub">User queries</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#f59e0b;background:#fffbeb;">
+    <strong>Trace Logging</strong>
+    <div class="sub">Prompts + completions</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#6366f1;background:#eef2ff;">
+    <strong>Periodic Eval</strong>
+    <div class="sub">Quality metrics</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Drift Detection</strong>
+    <div class="sub">PSI + KS stats</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#ef4444;background:#fef2f2;">
+    <strong>Alerts</strong>
+    <div class="sub">Threshold breaches</div>
+  </div>
+</div>
+</div>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Automated checks</div>
+  The <code>drift-check.yml</code> GitHub Actions workflow runs weekly. For Scenario 4, it also checks for degradation in groundedness and relevance scores, triggering re-indexing if retrieval quality drops below thresholds.
+</div>
+
+</div>
+</div>
+
+<!-- ============================================ -->
+<!-- TROUBLESHOOTING -->
+<!-- ============================================ -->
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>Problem</th><th>Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr>
+  <td>Azure OpenAI <code>429</code> rate limit error</td>
+  <td>TPM quota exceeded</td>
+  <td>Reduce concurrent requests, increase TPM quota in Azure portal, or add retry logic with exponential backoff</td>
+</tr>
+<tr>
+  <td>AI Search index returns no results</td>
+  <td>Index is empty or not created</td>
+  <td>Run <code>python index_documents.py</code> (Step 4)</td>
+</tr>
+<tr>
+  <td>Groundedness score consistently low</td>
+  <td>Poor retrieval quality or insufficient context</td>
+  <td>Increase <code>top_k</code>, adjust chunk size, or verify index contains relevant documents</td>
+</tr>
+<tr>
+  <td>Invalid JSON in spec output</td>
+  <td>System prompt not enforcing JSON format</td>
+  <td>Check system prompt version in <code>prompts/system/</code>. Update to latest version with strict JSON instructions.</td>
+</tr>
+<tr>
+  <td>Foundry project not found</td>
+  <td>Project not created or wrong credentials</td>
+  <td>Run <code>python foundry/create_project.py</code> (Step 5a)</td>
+</tr>
+<tr>
+  <td><code>AuthenticationError</code> on OpenAI calls</td>
+  <td>DefaultAzureCredential not picking up identity</td>
+  <td>Run <code>az login</code> again. Verify your identity has <code>Cognitive Services OpenAI User</code> role on the OpenAI resource.</td>
+</tr>
+<tr>
+  <td>Embedding dimension mismatch</td>
+  <td>Index created with different embedding model</td>
+  <td>Delete and recreate the index with <code>index_documents.py</code>. Ensure <code>text-embedding-3-small</code> (1536 dims) is used consistently.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- SCRIPT REFERENCE -->
+<h2 id="scripts">Script Reference</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>Step</th><th>Script</th><th>Location</th><th>Arguments</th></tr></thead>
+<tbody>
+<tr><td>2</td><td><code>prepare_training_data.py</code></td><td><code>deploymentcode/scripts/scenario4/</code></td><td><code>--input &lt;path&gt; --output &lt;path&gt;</code></td></tr>
+<tr><td>3</td><td><code>upload_training_data.py</code></td><td><code>deploymentcode/scripts/scenario4/</code></td><td><code>--file &lt;path&gt;</code></td></tr>
+<tr><td>4</td><td><code>index_documents.py</code></td><td><code>deploymentcode/scripts/scenario4/</code></td><td>None</td></tr>
+<tr><td>5a</td><td><code>create_project.py</code></td><td><code>deploymentcode/scripts/scenario4/foundry/</code></td><td>None</td></tr>
+<tr><td>5b</td><td><code>deploy_model.py</code></td><td><code>deploymentcode/scripts/scenario4/foundry/</code></td><td>None</td></tr>
+<tr><td>5c</td><td><code>configure_index.py</code></td><td><code>deploymentcode/scripts/scenario4/foundry/</code></td><td>None</td></tr>
+<tr><td>6</td><td><code>generate_spec.py</code></td><td><code>deploymentcode/scripts/scenario4/</code></td><td><code>--description &lt;text&gt;</code></td></tr>
+<tr><td>7</td><td><code>run_evaluation.py</code></td><td><code>eval/</code></td><td><code>--dataset &lt;path&gt; --thresholds &lt;path&gt;</code></td></tr>
+<tr><td>8a</td><td><code>run_prompt_experiment.py</code></td><td><code>eval/</code></td><td>None</td></tr>
+<tr><td>8b</td><td><code>run_rag_tuning.py</code></td><td><code>eval/</code></td><td>None</td></tr>
+<tr><td>9a</td><td><code>configure_monitoring.py</code></td><td><code>deploymentcode/scripts/scenario4/foundry/</code></td><td>None</td></tr>
+<tr><td>9b</td><td><code>run_evaluation.py</code></td><td><code>deploymentcode/scripts/scenario4/foundry/</code></td><td>None</td></tr>
+<tr><td>9c</td><td><code>trace_analysis.py</code></td><td><code>deploymentcode/scripts/scenario4/foundry/</code></td><td>None</td></tr>
+<tr><td>9d</td><td><code>create_baseline.py</code></td><td><code>monitoring/drift/</code></td><td><code>--training-data --output</code></td></tr>
+<tr><td>9d</td><td><code>detect_drift.py</code></td><td><code>monitoring/drift/</code></td><td><code>--baseline --inference-data</code></td></tr>
+</tbody>
+</table>
+
+<h3>Prompt and Template Files</h3>
+
+<table>
+<thead><tr><th>File</th><th>Location</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>v1.txt</code>, <code>v2.txt</code>, ...</td><td><code>prompts/system/</code></td><td>Versioned system prompts for spec generation</td></tr>
+<tr><td><code>v1.jinja2</code>, ...</td><td><code>prompts/rag/</code></td><td>RAG prompt templates with context placeholders</td></tr>
+<tr><td><code>CHANGELOG.md</code></td><td><code>prompts/</code></td><td>Tracks changes between prompt versions</td></tr>
+<tr><td><code>lego-spec-generator.jsonl</code></td><td><code>eval/datasets/</code></td><td>15-row test dataset with ground truth</td></tr>
+<tr><td><code>thresholds.json</code></td><td><code>eval/configs/</code></td><td>Minimum scores for 6 evaluation metrics</td></tr>
+<tr><td><code>buildability.py</code></td><td><code>eval/evaluators/</code></td><td>Custom evaluator for LDraw part/color validity</td></tr>
+</tbody>
+</table>
+</div>
+
+<div style="text-align:center;margin:48px 0 32px;font-size:0.85rem;color:var(--text-muted);">
+  <strong>Claude.Bricks</strong> &bull; Scenario 4 Walkthrough &bull; Generated with Claude Code
+</div>
+
+</div><!-- end container -->
+</body>
+</html>
