@@ -332,7 +332,7 @@ tr:hover { background: #fafbfc; }
   <div class="node-card" style="border:1.5px solid #c7ddf5;">
     <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg">
     <div class="name">ML Workspace</div>
-    <div class="detail">mlw-claudebricks-dev</div>
+    <div class="detail">mlw-claudebricks-dev-v2</div>
   </div>
   <div class="node-card" style="border:1.5px solid #c7ddf5;">
     <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg">
@@ -375,8 +375,8 @@ tr:hover { background: #fafbfc; }
 <span class="cmd">az account set</span> <span class="flag">--subscription</span> <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
 
 <span class="comment"># Verify you can see the workspace</span>
-<span class="cmd">az resource show</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--name</span> mlw-claudebricks-dev <span class="flag">--resource-type</span> Microsoft.MachineLearningServices/workspaces <span class="flag">--query</span> name <span class="flag">-o</span> tsv
-<span class="output"># Expected: mlw-claudebricks-dev</span>
+<span class="cmd">az resource show</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--name</span> mlw-claudebricks-dev-v2 <span class="flag">--resource-type</span> Microsoft.MachineLearningServices/workspaces <span class="flag">--query</span> name <span class="flag">-o</span> tsv
+<span class="output"># Expected: mlw-claudebricks-dev-v2</span>
 </div>
 
 <div class="callout callout-info">
@@ -408,7 +408,7 @@ tr:hover { background: #fafbfc; }
 <div class="code-label">Bash</div>
 <span class="cmd">export</span> SUBSCRIPTION_ID=<span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
 <span class="cmd">export</span> RESOURCE_GROUP=<span class="string">"rg-claudebricks-dev"</span>
-<span class="cmd">export</span> ML_WORKSPACE=<span class="string">"mlw-claudebricks-dev"</span>
+<span class="cmd">export</span> ML_WORKSPACE=<span class="string">"mlw-claudebricks-dev-v2"</span>
 
 <span class="comment"># Optional: for Application Insights telemetry</span>
 <span class="cmd">export</span> APPLICATIONINSIGHTS_CONNECTION_STRING=<span class="string">"&lt;from Azure portal&gt;"</span>
@@ -418,7 +418,7 @@ tr:hover { background: #fafbfc; }
 <div class="code-label">PowerShell</div>
 <span class="cmd">$env:SUBSCRIPTION_ID</span> = <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
 <span class="cmd">$env:RESOURCE_GROUP</span> = <span class="string">"rg-claudebricks-dev"</span>
-<span class="cmd">$env:ML_WORKSPACE</span> = <span class="string">"mlw-claudebricks-dev"</span>
+<span class="cmd">$env:ML_WORKSPACE</span> = <span class="string">"mlw-claudebricks-dev-v2"</span>
 </div>
 
 <table>
@@ -426,7 +426,7 @@ tr:hover { background: #fafbfc; }
 <tbody>
 <tr><td><code>SUBSCRIPTION_ID</code></td><td>Your Azure subscription ID</td><td>All scripts via <code>ml_client.py</code></td></tr>
 <tr><td><code>RESOURCE_GROUP</code></td><td><code>rg-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
-<tr><td><code>ML_WORKSPACE</code></td><td><code>mlw-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>ML_WORKSPACE</code></td><td><code>mlw-claudebricks-dev-v2</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
 <tr><td><code>APPLICATIONINSIGHTS_CONNECTION_STRING</code></td><td>App Insights connection string</td><td><code>telemetry.py</code> (optional)</td></tr>
 </tbody>
 </table>
@@ -648,7 +648,7 @@ tr:hover { background: #fafbfc; }
 <div class="code-block">
 <div class="code-label">Terminal</div>
 <span class="comment"># Check job status via Azure CLI</span>
-<span class="cmd">az ml job show</span> <span class="flag">--name</span> <span class="string">&lt;job-name&gt;</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--workspace-name</span> mlw-claudebricks-dev <span class="flag">--query</span> status <span class="flag">-o</span> tsv
+<span class="cmd">az ml job show</span> <span class="flag">--name</span> <span class="string">&lt;job-name&gt;</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--workspace-name</span> mlw-claudebricks-dev-v2 <span class="flag">--query</span> status <span class="flag">-o</span> tsv
 
 <span class="comment"># Or open the Studio URL printed during submission to watch in real time</span>
 </div>

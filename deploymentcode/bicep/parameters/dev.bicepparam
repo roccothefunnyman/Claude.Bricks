@@ -10,17 +10,17 @@ param tags = {
 }
 
 // Feature flags
-param deployOpenAI = true
+param deployFoundry = true
 param deployCustomVision = false
 param deployAISearch = true
-param deployFoundry = true
+param deployFoundryProject = true
 param deployRegistry = false
 param deployPrivateNetworking = false
 
-// Compute (smaller for dev)
+// Compute (smaller for dev, GPU disabled -- no NCasT4_v3 quota in this sub)
 param computeInstanceSize = 'Standard_DS2_v2'
 param cpuClusterMaxNodes = 2
-param gpuClusterMaxNodes = 1
+param gpuClusterMaxNodes = 0
 param cpuClusterVmSize = 'Standard_DS3_v2'
 param gpuClusterVmSize = 'Standard_NC4as_T4_v3'
 

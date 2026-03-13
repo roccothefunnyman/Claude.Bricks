@@ -10,10 +10,10 @@ param tags = {
 }
 
 // Feature flags
-param deployOpenAI = true
+param deployFoundry = true
 param deployCustomVision = false
 param deployAISearch = true
-param deployFoundry = true
+param deployFoundryProject = true
 param deployRegistry = true           // Shared registry for promotion
 param deployPrivateNetworking = true   // Network isolation in test
 

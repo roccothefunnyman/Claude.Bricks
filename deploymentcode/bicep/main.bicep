@@ -1,6 +1,8 @@
 // ============================================================================
 // Claude.Bricks -- Main Orchestrator
 // Deploys all infrastructure modules in dependency order
+// Updated: Uses Microsoft Foundry (CognitiveServices/accounts kind=AIServices)
+//          instead of legacy Azure AI Hub/Project + standalone Azure OpenAI
 // ============================================================================
 
 targetScope = 'resourceGroup'
@@ -24,8 +26,8 @@ param tags object = {
 }
 
 // Feature flags
-@description('Deploy Azure OpenAI resource')
-param deployOpenAI bool = true
+@description('Deploy Microsoft Foundry resource (includes OpenAI models)')
+param deployFoundry bool = true
 
 @description('Deploy Custom Vision resources')
 param deployCustomVision bool = false
@@ -33,8 +35,8 @@ param deployCustomVision bool = false
 @description('Deploy AI Search resource')
 param deployAISearch bool = true
 
-@description('Deploy Foundry hub and project')
-param deployFoundry bool = true
+@description('Deploy Foundry project')
+param deployFoundryProject bool = true
 
 @description('Deploy shared AML registry')
 param deployRegistry bool = false
@@ -80,15 +82,14 @@ param amlSku string = 'Basic'
 
 var baseName = '${projectName}${environment}'
 var storageAccountName = 'st${replace(baseName, '-', '')}'
-var keyVaultName = 'kv-${projectName}-${environment}'
+var keyVaultName = 'kv-${projectName}-${environment}-v2'
 var acrName = 'acr${replace(baseName, '-', '')}'
 var logAnalyticsName = 'law-${projectName}-${environment}'
 var appInsightsName = 'appi-${projectName}-${environment}'
-var workspaceName = 'mlw-${projectName}-${environment}'
-var openAIName = 'oai-${projectName}-${environment}'
-var searchName = 'srch-${projectName}-${environment}'
-var foundryHubName = 'hub-${projectName}-${environment}'
+var workspaceName = 'mlw-${projectName}-${environment}-v2'
+var foundryName = 'foundry-${projectName}-${environment}'
 var foundryProjectName = 'proj-${projectName}-${environment}'
+var searchName = 'srch-${projectName}-${environment}'
 var registryName = 'reg-${projectName}'
 var vnetName = 'vnet-${projectName}-${environment}'
 
@@ -172,7 +173,7 @@ module amlCompute 'modules/aml-compute.bicep' = {
     location: location
     tags: tags
     deployInstance: environment == 'dev'
-    instanceName: 'dev-instance'
+    instanceName: 'dev-instance-v2'
     instanceSize: computeInstanceSize
     cpuClusterName: 'cpu-cluster'
     cpuClusterVmSize: cpuClusterVmSize
@@ -184,14 +185,27 @@ module amlCompute 'modules/aml-compute.bicep' = {
   }
 }
 
-// 8. Cognitive Services -- Azure OpenAI + Custom Vision (conditional)
-module cognitiveServices 'modules/cognitive-services.bicep' = if (deployOpenAI || deployCustomVision) {
-  name: 'deploy-cognitive-services'
+// 8. AI Search (conditional, no dependencies -- deployed before Foundry so we can connect)
+module search 'modules/search.bicep' = if (deployAISearch) {
+  name: 'deploy-search'
   params: {
-    openAIName: openAIName
+    name: searchName
     location: location
     tags: tags
-    deployOpenAI: deployOpenAI
+    sku: searchSku
+  }
+}
+
+// 9. Microsoft Foundry + model deployments + connections
+//    Replaces: standalone Azure OpenAI (kind=OpenAI) + Azure AI Hub (MachineLearningServices kind=Hub)
+//    New: single CognitiveServices/accounts resource with kind=AIServices and allowProjectManagement=true
+module foundry 'modules/cognitive-services.bicep' = if (deployFoundry || deployCustomVision) {
+  name: 'deploy-foundry'
+  params: {
+    foundryName: foundryName
+    location: location
+    tags: tags
+    deployFoundry: deployFoundry
     deployCustomVision: deployCustomVision
     customVisionTrainingName: customVisionTrainingName
     customVisionPredictionName: customVisionPredictionName
@@ -221,48 +235,24 @@ module cognitiveServices 'modules/cognitive-services.bicep' = if (deployOpenAI |
         }
       }
     ]
-  }
-}
-
-// 9. AI Search (conditional)
-module search 'modules/search.bicep' = if (deployAISearch) {
-  name: 'deploy-search'
-  params: {
-    name: searchName
-    location: location
-    tags: tags
-    sku: searchSku
-  }
-}
-
-// 10. Foundry Hub (conditional, depends on storage, keyvault, acr, app-insights)
-module foundryHub 'modules/foundry-hub.bicep' = if (deployFoundry) {
-  name: 'deploy-foundry-hub'
-  params: {
-    name: foundryHubName
-    location: location
-    tags: tags
-    storageAccountId: storage.outputs.id
-    keyVaultId: keyVault.outputs.id
-    containerRegistryId: acr.outputs.id
-    applicationInsightsId: appInsights.outputs.id
-    openAIResourceId: (deployOpenAI || deployCustomVision) ? cognitiveServices.outputs.openAIId : ''
     searchResourceId: deployAISearch ? search.outputs.id : ''
+    searchEndpoint: deployAISearch ? search.outputs.endpoint : ''
   }
 }
 
-// 11. Foundry Project (conditional, depends on Foundry Hub)
-module foundryProject 'modules/foundry-project.bicep' = if (deployFoundry) {
+// 10. Foundry Project (child resource of Foundry account)
+//     Replaces: MachineLearningServices/workspaces kind=Project
+//     New: CognitiveServices/accounts/projects (child of the Foundry account)
+module foundryProject 'modules/foundry-project.bicep' = if (deployFoundry && deployFoundryProject) {
   name: 'deploy-foundry-project'
   params: {
     name: foundryProjectName
     location: location
-    tags: tags
-    hubId: foundryHub.outputs.id
+    foundryAccountName: foundry.outputs.foundryName
   }
 }
 
-// 12. AML Registry (conditional)
+// 11. AML Registry (conditional)
 module registry 'modules/aml-registry.bicep' = if (deployRegistry) {
   name: 'deploy-aml-registry'
   params: {
@@ -272,7 +262,7 @@ module registry 'modules/aml-registry.bicep' = if (deployRegistry) {
   }
 }
 
-// 13. VNet (conditional, for private networking)
+// 12. VNet (conditional, for private networking)
 module vnet 'modules/vnet.bicep' = if (deployPrivateNetworking) {
   name: 'deploy-vnet'
   params: {
@@ -282,8 +272,7 @@ module vnet 'modules/vnet.bicep' = if (deployPrivateNetworking) {
   }
 }
 
-// 14. RBAC role assignments (depends on all resources with managed identities)
-// Build the role assignments array from all deployed managed identities
+// 13. RBAC role assignments (depends on all resources with managed identities)
 var storageBlobDataContributorId = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 var keyVaultSecretsUserId = '4633458b-17de-408a-b874-0445c86b69e6'
 var acrPullId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
@@ -320,30 +309,30 @@ var storageRoleAssignments = [
   }
 ]
 
-// Foundry hub role assignments (conditional)
+// Foundry managed identity needs access to storage, key vault, and ACR
 var foundryRoleAssignments = deployFoundry ? [
   {
-    principalId: foundryHub.outputs.principalId
+    principalId: foundry.outputs.foundryPrincipalId
     roleDefinitionId: storageBlobDataContributorId
     scope: storage.outputs.id
-    description: 'Foundry Hub -> Storage Blob Data Contributor'
+    description: 'Foundry -> Storage Blob Data Contributor'
   }
   {
-    principalId: foundryHub.outputs.principalId
+    principalId: foundry.outputs.foundryPrincipalId
     roleDefinitionId: keyVaultSecretsUserId
     scope: keyVault.outputs.id
-    description: 'Foundry Hub -> Key Vault Secrets User'
+    description: 'Foundry -> Key Vault Secrets User'
   }
   {
-    principalId: foundryHub.outputs.principalId
+    principalId: foundry.outputs.foundryPrincipalId
     roleDefinitionId: acrPullId
     scope: acr.outputs.id
-    description: 'Foundry Hub -> ACR Pull'
+    description: 'Foundry -> ACR Pull'
   }
 ] : []
 
 // Foundry project role assignments (conditional)
-var projectRoleAssignments = deployFoundry ? [
+var projectRoleAssignments = (deployFoundry && deployFoundryProject) ? [
   {
     principalId: foundryProject.outputs.principalId
     roleDefinitionId: storageBlobDataContributorId
@@ -380,8 +369,8 @@ output acrLoginServer string = acr.outputs.loginServer
 output appInsightsName string = appInsights.outputs.name
 output appInsightsConnectionString string = appInsights.outputs.connectionString
 output logAnalyticsWorkspaceId string = logAnalytics.outputs.id
-output openAIEndpoint string = (deployOpenAI || deployCustomVision) ? cognitiveServices.outputs.openAIEndpoint : ''
+output foundryEndpoint string = deployFoundry ? foundry.outputs.foundryEndpoint : ''
+output foundryName string = deployFoundry ? foundry.outputs.foundryName : ''
+output foundryProjectName string = (deployFoundry && deployFoundryProject) ? foundryProject.outputs.name : ''
 output searchEndpoint string = deployAISearch ? search.outputs.endpoint : ''
-output foundryHubName string = deployFoundry ? foundryHub.outputs.name : ''
-output foundryProjectName string = deployFoundry ? foundryProject.outputs.name : ''
 output registryName string = deployRegistry ? registry.outputs.name : ''

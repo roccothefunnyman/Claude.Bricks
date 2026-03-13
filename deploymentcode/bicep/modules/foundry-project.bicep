@@ -1,34 +1,29 @@
+// ============================================================================
+// Microsoft Foundry Project (child resource of Foundry account)
+// Uses CognitiveServices/accounts/projects (replaces MachineLearningServices)
+// ============================================================================
+
 @description('Foundry project name')
 param name string
 
 @description('Azure region')
 param location string
 
-@description('Resource tags')
-param tags object
+@description('Parent Foundry account name')
+param foundryAccountName string
 
-@description('Parent Foundry hub resource ID')
-param hubId string
+resource foundryAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {
+  name: foundryAccountName
+}
 
-resource project 'Microsoft.MachineLearningServices/workspaces@2024-04-01' = {
+resource project 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
   name: name
+  parent: foundryAccount
   location: location
-  tags: tags
-  kind: 'Project'
   identity: {
     type: 'SystemAssigned'
   }
-  sku: {
-    name: 'Basic'
-    tier: 'Basic'
-  }
-  properties: {
-    friendlyName: name
-    description: 'Claude.Bricks Scenario 4 - GenAI Spec Generator'
-    hubResourceId: hubId
-    publicNetworkAccess: 'Enabled'
-    v1LegacyMode: false
-  }
+  properties: {}
 }
 
 output name string = project.name

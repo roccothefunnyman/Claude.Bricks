@@ -1,5 +1,10 @@
-@description('Azure OpenAI account name')
-param openAIName string
+// ============================================================================
+// Microsoft Foundry Resource (replaces standalone Azure OpenAI + AI Hub)
+// Uses CognitiveServices/accounts with kind=AIServices
+// ============================================================================
+
+@description('Foundry resource name')
+param foundryName string
 
 @description('Azure region')
 param location string
@@ -7,10 +12,10 @@ param location string
 @description('Resource tags')
 param tags object
 
-@description('Deploy Azure OpenAI')
-param deployOpenAI bool = true
+@description('Deploy Foundry resource')
+param deployFoundry bool = true
 
-@description('Deploy Custom Vision')
+@description('Deploy Custom Vision resources')
 param deployCustomVision bool = false
 
 @description('Custom Vision training account name')
@@ -47,11 +52,18 @@ param openAIModelDeployments array = [
   }
 ]
 
-resource openAI 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = if (deployOpenAI) {
-  name: openAIName
+@description('AI Search resource ID (optional, for connection)')
+param searchResourceId string = ''
+
+@description('AI Search endpoint (optional, for connection)')
+param searchEndpoint string = ''
+
+// Microsoft Foundry resource (kind: AIServices with project management)
+resource foundry 'Microsoft.CognitiveServices/accounts@2025-06-01' = if (deployFoundry) {
+  name: foundryName
   location: location
   tags: tags
-  kind: 'OpenAI'
+  kind: 'AIServices'
   sku: {
     name: 'S0'
   }
@@ -59,18 +71,21 @@ resource openAI 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = if (
     type: 'SystemAssigned'
   }
   properties: {
-    customSubDomainName: openAIName
+    allowProjectManagement: true
+    customSubDomainName: foundryName
     publicNetworkAccess: 'Enabled'
+    disableLocalAuth: false
     networkAcls: {
       defaultAction: 'Allow'
     }
   }
 }
 
+// Model deployments (child resources of Foundry)
 @batchSize(1)
-resource openAIDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024-04-01-preview' = [
-  for deployment in openAIModelDeployments: if (deployOpenAI) {
-    parent: openAI
+resource foundryDeployments 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = [
+  for deployment in openAIModelDeployments: if (deployFoundry) {
+    parent: foundry
     name: deployment.name
     sku: deployment.sku
     properties: {
@@ -79,6 +94,21 @@ resource openAIDeployments 'Microsoft.CognitiveServices/accounts/deployments@202
   }
 ]
 
+// Connection to AI Search (if deployed)
+resource searchConnection 'Microsoft.CognitiveServices/accounts/connections@2025-06-01' = if (deployFoundry && !empty(searchResourceId)) {
+  parent: foundry
+  name: 'azure-ai-search'
+  properties: {
+    category: 'CognitiveSearch'
+    target: searchEndpoint
+    authType: 'AAD'
+    metadata: {
+      ResourceId: searchResourceId
+    }
+  }
+}
+
+// Custom Vision (kept separate, these are still standalone Cognitive Services)
 resource customVisionTraining 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = if (deployCustomVision) {
   name: customVisionTrainingName
   location: location
@@ -105,6 +135,7 @@ resource customVisionPrediction 'Microsoft.CognitiveServices/accounts@2024-04-01
   }
 }
 
-output openAIEndpoint string = deployOpenAI ? openAI.properties.endpoint : ''
-output openAIId string = deployOpenAI ? openAI.id : ''
-output openAIPrincipalId string = deployOpenAI ? openAI.identity.principalId : ''
+output foundryEndpoint string = deployFoundry ? foundry.properties.endpoint : ''
+output foundryId string = deployFoundry ? foundry.id : ''
+output foundryPrincipalId string = deployFoundry ? foundry.identity.principalId : ''
+output foundryName string = deployFoundry ? foundry.name : ''

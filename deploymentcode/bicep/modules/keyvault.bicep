@@ -22,6 +22,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   tags: tags
   properties: {
     tenantId: tenantId
+    createMode: 'default'
     sku: {
       family: 'A'
       name: 'standard'
