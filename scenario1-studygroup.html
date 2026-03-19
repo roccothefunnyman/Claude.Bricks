@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 1: Study Group Session</title>
+<style>
+:root {
+  --azure-blue: #0078d4;
+  --azure-dark: #003d6b;
+  --azure-light: #50e6ff;
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #6c757d;
+  --border: #dee2e6;
+  --accent-green: #37c2b1;
+  --accent-purple: #7b61ff;
+  --accent-orange: #fea11b;
+  --accent-red: #e74c3c;
+  --scenario1: #6366f1;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; font-size: 16px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+h1 { font-size: 2.5rem; font-weight: 700; color: var(--azure-dark); }
+h2 { font-size: 1.8rem; font-weight: 600; color: var(--azure-blue); margin: 48px 0 24px; border-bottom: 3px solid var(--azure-blue); padding-bottom: 8px; }
+h3 { font-size: 1.3rem; font-weight: 600; color: var(--text); margin: 24px 0 12px; }
+p { margin-bottom: 12px; }
+code { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+.header { background: linear-gradient(135deg, #312e81 0%, var(--scenario1) 60%, #818cf8 100%); color: white; padding: 48px 0; text-align: center; }
+.header h1 { color: white; }
+.header p { color: rgba(255,255,255,0.85); font-size: 1.2rem; margin-top: 8px; }
+
+/* Cards */
+.card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 24px; margin-bottom: 24px; border: 1px solid var(--border); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95rem; }
+th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f0f6ff; font-weight: 600; color: var(--azure-dark); }
+tr:hover { background: #fafbfc; }
+
+/* Flow diagrams */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.flow-box { display: flex; flex-direction: column; align-items: center; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border); background: white; min-width: 120px; text-align: center; font-size: 0.95rem; position: relative; }
+.flow-box strong { font-size: 0.9rem; }
+.flow-box .sub { font-size: 0.8rem; color: var(--text-muted); }
+.flow-arrow { font-size: 1.5rem; color: var(--azure-blue); font-weight: bold; flex-shrink: 0; }
+.flow-arrow-down { text-align: center; font-size: 1.5rem; color: var(--azure-blue); margin: 4px 0; }
+
+/* Diagram containers */
+.diagram-container { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; overflow-x: auto; }
+.diagram-title { text-align: center; font-weight: 600; font-size: 1.1rem; color: var(--azure-dark); margin-bottom: 16px; }
+.diagram-caption { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; font-style: italic; }
+
+/* Step cards */
+.step-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+  border: 1px solid #e8eaed;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  margin-bottom: 32px;
+}
+.step-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+}
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 14px 14px 0 0;
+}
+.step-card.step-prereq::before { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+.step-card.step-data::before { background: linear-gradient(90deg, #0078d4, #50e6ff); }
+.step-card.step-train::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.step-card.step-register::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.step-card.step-deploy::before { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+.step-card.step-canary::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.step-card.step-monitor::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+.step-card.step-lesson::before { background: linear-gradient(90deg, #f97316, #fb923c); }
+.step-card.step-todo::before { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+
+.step-body { padding: 24px 28px 20px; }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.step-num {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.step-header h3 { margin: 0; font-size: 1.2rem; }
+.step-header .step-subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0; }
+
+/* Code blocks */
+.code-block {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 16px 0;
+  position: relative;
+}
+.code-block .comment { color: #6c7086; }
+.code-block .cmd { color: #89b4fa; }
+.code-block .flag { color: #a6e3a1; }
+.code-block .string { color: #f9e2af; }
+.code-block .output { color: #9399b2; font-style: italic; }
+
+.code-label {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.1);
+  color: #9399b2;
+}
+
+/* Tags */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tag-blue { background: #e8f4fd; color: #0058a3; }
+.tag-blue::before { background: #0078d4; }
+.tag-green { background: #e6f7ed; color: #0e6027; }
+.tag-green::before { background: #107c41; }
+.tag-purple { background: #f0e8f7; color: #5c2d91; }
+.tag-purple::before { background: #8764b8; }
+.tag-orange { background: #fff3e0; color: #b45309; }
+.tag-orange::before { background: #f59e0b; }
+.tag-red { background: #fef2f2; color: #991b1b; }
+.tag-red::before { background: #ef4444; }
+.tag-gray { background: #f3f4f6; color: #4b5563; }
+.tag-gray::before { background: #6b7280; }
+
+/* Callout boxes */
+.callout {
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  border-left: 4px solid;
+  font-size: 0.9rem;
+}
+.callout-info { background: #f0f6ff; border-color: #0078d4; }
+.callout-warn { background: #fffbeb; border-color: #f59e0b; }
+.callout-success { background: #ecfdf5; border-color: #10b981; }
+.callout-danger { background: #fef2f2; border-color: #ef4444; }
+.callout-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+
+/* TOC */
+.toc a { display: block; padding: 8px 0; color: var(--scenario1); text-decoration: none; border-bottom: 1px solid #eee; font-size: 15px; }
+.toc a:hover { color: #312e81; }
+
+/* Resource node cards (matching as-built) */
+.node-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 14px 16px 10px;
+  min-width: 130px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+  cursor: default;
+}
+.node-card:hover { transform: translateY(-3px); }
+.node-card img { width: 40px; height: 40px; margin-bottom: 6px; }
+.node-card .name { font-size: 13px; font-weight: 700; color: #323130; }
+.node-card .detail { font-size: 11px; color: #797775; }
+
+/* Done status indicators */
+.status-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  color: #065f46;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #6ee7b7;
+  white-space: nowrap;
+}
+.status-done::before {
+  content: '\2713';
+  font-size: 14px;
+  font-weight: 900;
+}
+.status-todo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #93c5fd;
+  white-space: nowrap;
+}
+.status-todo::before {
+  content: '\25BA';
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* Done row in tables */
+tr.row-done td { background: #f0fdf4; }
+tr.row-done td:first-child { font-weight: 600; }
+
+/* Lesson card styling */
+.lesson-item {
+  border: 1px solid #fed7aa;
+  border-left: 4px solid #f97316;
+  background: #fff7ed;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+.lesson-item .lesson-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #9a3412;
+  margin-bottom: 6px;
+}
+.lesson-item .lesson-fix {
+  font-size: 0.88rem;
+  color: #7c3aed;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.lesson-item p { margin-bottom: 0; font-size: 0.9rem; }
+
+/* Exam domain badges */
+.exam-domain {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5f3ff;
+  border: 1.5px solid #a78bfa;
+  color: #5b21b6;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin: 4px 4px 4px 0;
+}
+.exam-domain strong { color: #4c1d95; }
+
+/* Interactive step numbering */
+.interactive-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .flow-row { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  h1 { font-size: 1.8rem; }
+}
+
+/* Print */
+@media print {
+  .header { padding: 24px 0; }
+  .card, .step-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+  .diagram-container { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;opacity:0.8;margin-bottom:8px;">Claude.Bricks - Study Group</div>
+  <h1>Scenario 1: Study Group Session</h1>
+  <p>Pre-staged by Claude Code, ready to walk through together</p>
+  <div style="font-size:14px;opacity:0.9;margin-top:8px;">Random Forest &bull; Azure ML SDK v2 &bull; Blue/Green Deployment &bull; Drift Monitoring</div>
+</div>
+
+<div class="container">
+
+<!-- WHAT'S ALREADY DONE -->
+<h2 id="done">What's Already Done</h2>
+
+<div class="card">
+<p>The full Scenario 1 pipeline has been executed end-to-end before this session. Everything up through a live smoke test is complete. The table below summarizes what was run and what each step produced.</p>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+<table style="margin:0;">
+<thead>
+<tr>
+  <th style="width:40px;">#</th>
+  <th>Step</th>
+  <th>Status</th>
+  <th>What Was Produced</th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-done">
+  <td>0</td>
+  <td>Install Python dependencies</td>
+  <td><span class="status-done">Done</span></td>
+  <td><code>azure-ai-ml</code>, <code>mlflow</code>, <code>scikit-learn</code>, <code>Pillow</code>, and related packages installed</td>
+</tr>
+<tr class="row-done">
+  <td>1</td>
+  <td>Set environment variables</td>
+  <td><span class="status-done">Done</span></td>
+  <td><code>SUBSCRIPTION_ID</code>, <code>RESOURCE_GROUP</code>, <code>ML_WORKSPACE</code> configured</td>
+</tr>
+<tr class="row-done">
+  <td>2</td>
+  <td>Register environments</td>
+  <td><span class="status-done">Done</span></td>
+  <td><code>claudebricks-sklearn:1</code> and <code>claudebricks-genai:1</code> registered in workspace</td>
+</tr>
+<tr class="row-done">
+  <td>3</td>
+  <td>Collect and prepare training data</td>
+  <td><span class="status-done">Done</span></td>
+  <td>48 real facade photos across 5 classes. Converted avif/webp to jpg, renamed to short filenames</td>
+</tr>
+<tr class="row-done">
+  <td>4</td>
+  <td>Upload data and register data asset</td>
+  <td><span class="status-done">Done</span></td>
+  <td>14.7 MB uploaded to blob storage; <code>facade-images:1</code> data asset registered</td>
+</tr>
+<tr class="row-done">
+  <td>5</td>
+  <td>Submit training job</td>
+  <td><span class="status-done">Done</span></td>
+  <td>Job <code>honest_needle_m5t93gg8r6</code> completed; 20% test accuracy (expected with ~10 images/class)</td>
+</tr>
+<tr class="row-done">
+  <td>6</td>
+  <td>Register model</td>
+  <td><span class="status-done">Done</span></td>
+  <td><code>facade-classifier:1</code> registered in MLflow format</td>
+</tr>
+<tr class="row-done">
+  <td>7a</td>
+  <td>Create managed online endpoint</td>
+  <td><span class="status-done">Done</span></td>
+  <td>Endpoint <code>facade-classifier-endpoint</code> created</td>
+</tr>
+<tr class="row-done">
+  <td>7b</td>
+  <td>Deploy "blue" deployment</td>
+  <td><span class="status-done">Done</span></td>
+  <td>Standard_F2s_v2, 1 instance, 100% traffic assigned to blue</td>
+</tr>
+<tr class="row-done">
+  <td>7c</td>
+  <td>Run smoke test</td>
+  <td><span class="status-done">Done</span></td>
+  <td>5/5 requests successful, ~0.6s average latency</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-success">
+  <div class="callout-title">Everything is live</div>
+  The endpoint is deployed and accepting traffic right now. We can invoke it live during the session. The training job run is also permanently linked in ML Studio so we can inspect every logged metric and artifact from the training run.
+</div>
+
+<!-- PIPELINE OVERVIEW -->
+<div class="diagram-container">
+<div class="diagram-title">Scenario 1: Pipeline Status</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#6b7280;background:#f0fdf4;">
+    <strong>Prerequisites</strong>
+    <div class="sub" style="color:#065f46;font-weight:600;">Done</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#0078d4;background:#f0fdf4;">
+    <strong>Register Assets</strong>
+    <div class="sub" style="color:#065f46;font-weight:600;">Done</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#6366f1;background:#f0fdf4;">
+    <strong>Train</strong>
+    <div class="sub" style="color:#065f46;font-weight:600;">Done</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#f59e0b;background:#f0fdf4;">
+    <strong>Register Model</strong>
+    <div class="sub" style="color:#065f46;font-weight:600;">Done</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#10b981;background:#f0fdf4;">
+    <strong>Deploy</strong>
+    <div class="sub" style="color:#065f46;font-weight:600;">Done</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#eef2ff;">
+    <strong>Canary</strong>
+    <div class="sub">Discuss today</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#ef4444;background:#eef2ff;">
+    <strong>Monitor</strong>
+    <div class="sub">Discuss today</div>
+  </div>
+</div>
+<div class="diagram-caption">Green boxes are already complete. Blue/purple boxes are the discussion topics for this session.</div>
+</div>
+
+<!-- WHAT WE'LL DO TOGETHER -->
+<h2 id="together">What We'll Do Together</h2>
+
+<div class="card">
+<p>These are the interactive steps for the session. We'll walk through what already ran, look at the real results in ML Studio, run a live smoke test, and discuss the concepts that appear on the AI-300 exam.</p>
+</div>
+
+<!-- Interactive Step A -->
+<div class="step-card step-todo">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0ea5e9;">A</div>
+  <div>
+    <h3>Look at the Training Job in ML Studio</h3>
+    <div class="step-subtitle">Inspect what was logged, the metrics, and the output artifacts</div>
+  </div>
+</div>
+
+<p>Open the training job directly in ML Studio. This is the run that produced <code>facade-classifier:1</code>.</p>
+
+<div class="callout callout-info">
+  <div class="callout-title">Direct link to training run</div>
+  <a href="https://ml.azure.com/runs/honest_needle_m5t93gg8r6?wsid=/subscriptions/8e93a57a-20bc-4ef6-8717-07fd7d0447a8/resourcegroups/rg-claudebricks-dev/workspaces/mlw-claudebricks-dev-v2" target="_blank" style="color:#0078d4;font-weight:600;word-break:break-all;">
+    https://ml.azure.com/runs/honest_needle_m5t93gg8r6?wsid=/subscriptions/8e93a57a-20bc-4ef6-8717-07fd7d0447a8/resourcegroups/rg-claudebricks-dev/workspaces/mlw-claudebricks-dev-v2
+  </a>
+</div>
+
+<h3>Things to point out</h3>
+<ul style="margin:12px 0 12px 20px;line-height:2;">
+  <li>The <strong>Metrics</strong> tab shows <code>test_accuracy</code> logged by MLflow during training (20%)</li>
+  <li>The <strong>Outputs + logs</strong> tab shows the raw stdout from <code>train.py</code> and the saved model artifacts</li>
+  <li>The <strong>Parameters</strong> tab shows <code>n_estimators=200</code> and other hyperparameters logged via <code>mlflow.log_param()</code></li>
+  <li>The curated environment <code>sklearn-1.5</code> is shown under <strong>Snapshot</strong></li>
+  <li>The input data asset <code>facade-images:1</code> is listed under <strong>Inputs</strong></li>
+</ul>
+
+<div class="callout callout-warn">
+  <div class="callout-title">20% accuracy is expected here</div>
+  With 5 classes and roughly 10 images per class, a 20% test accuracy means the model is essentially random. That is the expected result for this dataset size. On the AI-300 exam, the pipeline architecture and SDK usage matter more than the accuracy number on a demo dataset.
+</div>
+
+</div>
+</div>
+
+<!-- Interactive Step B -->
+<div class="step-card step-todo">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0ea5e9;">B</div>
+  <div>
+    <h3>Look at the Registered Model in ML Studio</h3>
+    <div class="step-subtitle">Navigate to Models and inspect facade-classifier:1</div>
+  </div>
+</div>
+
+<p>In ML Studio, go to <strong>Assets &rarr; Models</strong> and find <code>facade-classifier</code>. Click version 1.</p>
+
+<h3>Things to point out</h3>
+<ul style="margin:12px 0 12px 20px;line-height:2;">
+  <li>The model type is <strong>MLflow</strong>. That means it carries its own schema and serving logic, so AML can deploy it without a custom scoring script.</li>
+  <li>The <strong>Source job</strong> field links back to <code>honest_needle_m5t93gg8r6</code>, which is the full lineage chain from data to endpoint.</li>
+  <li>The <strong>Properties</strong> tab shows the model signature (input feature shape, output label).</li>
+  <li>The <strong>Artifacts</strong> tab shows the actual files: <code>MLmodel</code>, <code>model.pkl</code>, <code>conda.yaml</code>, and <code>python_env.yaml</code>.</li>
+</ul>
+
+<div class="callout callout-info">
+  <div class="callout-title">MLflow model format</div>
+  An MLflow-format model is a directory with a standardized structure. <code>MLmodel</code> is the manifest file that tells AML what flavors are available (in this case, <code>sklearn</code> and <code>python_function</code>). When AML deploys it, it uses the <code>python_function</code> flavor to automatically generate a scoring endpoint.
+</div>
+
+<table>
+<thead><tr><th>Property</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Model name</td><td><code>facade-classifier</code></td></tr>
+<tr><td>Version</td><td>1</td></tr>
+<tr><td>Type</td><td>MLflow (sklearn flavor)</td></tr>
+<tr><td>Source job</td><td><code>honest_needle_m5t93gg8r6</code></td></tr>
+<tr><td>Framework</td><td>scikit-learn Random Forest, 200 estimators</td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- Interactive Step C -->
+<div class="step-card step-todo">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0ea5e9;">C</div>
+  <div>
+    <h3>Look at the Endpoint in ML Studio</h3>
+    <div class="step-subtitle">Navigate to Endpoints and inspect facade-classifier-endpoint</div>
+  </div>
+</div>
+
+<p>In ML Studio, go to <strong>Assets &rarr; Endpoints &rarr; Real-time endpoints</strong> and select <code>facade-classifier-endpoint</code>.</p>
+
+<h3>Things to point out</h3>
+<ul style="margin:12px 0 12px 20px;line-height:2;">
+  <li>The <strong>Details</strong> tab shows the REST endpoint URL and the auth method (key-based by default)</li>
+  <li>The <strong>Deployments</strong> tab lists the "blue" deployment with 100% traffic weight</li>
+  <li>The VM family is Standard_F2s_v2 (not DS3_v2). This matters because of a quota constraint during setup, covered in the Lessons Learned section.</li>
+  <li>The <strong>Monitoring</strong> tab shows request count and latency graphs (may need time to populate data)</li>
+  <li>The <strong>Consume</strong> tab shows the scoring endpoint URL and keys, plus sample code snippets in Python, C#, and REST</li>
+</ul>
+
+<div class="callout callout-info">
+  <div class="callout-title">Auth: key vs token</div>
+  This endpoint uses key-based auth. AML also supports token-based auth (AAD tokens via <code>DefaultAzureCredential</code>). For production endpoints serving external clients, key auth is common. For inter-service calls within Azure, token auth avoids the need to store and rotate keys.
+</div>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Endpoint State Right Now</div>
+<div style="max-width:700px;margin:0 auto;">
+  <div style="border:2.5px solid #10b981;border-radius:14px;padding:20px;position:relative;background:linear-gradient(180deg,#ecfdf5 0%,#fff 100%);">
+    <div style="position:absolute;top:-12px;left:20px;background:#10b981;color:white;font-size:12px;font-weight:700;padding:3px 14px;border-radius:6px;">MANAGED ONLINE ENDPOINT</div>
+    <div style="text-align:center;padding-top:8px;">
+      <div style="font-weight:700;font-size:1rem;color:#065f46;">facade-classifier-endpoint</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;">Auth: API key &bull; HTTPS &bull; East US 2</div>
+    </div>
+    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+      <div style="background:white;border:2px solid #10b981;border-radius:12px;padding:16px 24px;text-align:center;min-width:200px;box-shadow:0 2px 8px rgba(16,185,129,0.15);">
+        <div style="font-size:12px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;">Blue Deployment</div>
+        <div style="font-size:0.85rem;margin-top:6px;">facade-classifier:1</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Standard_F2s_v2 &bull; 1 instance</div>
+        <div style="margin-top:8px;">
+          <span class="tag tag-green">100% traffic</span>
+        </div>
+      </div>
+      <div style="background:#f9fafb;border:2px dashed #d1d5db;border-radius:12px;padding:16px 24px;text-align:center;min-width:200px;opacity:0.5;">
+        <div style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;">Green (Canary)</div>
+        <div style="font-size:0.85rem;margin-top:6px;color:#9ca3af;">Not yet deployed</div>
+        <div style="margin-top:8px;">
+          <span class="tag tag-gray">0% traffic</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- Interactive Step D -->
+<div class="step-card step-todo">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#0ea5e9;">D</div>
+  <div>
+    <h3>Run the Smoke Test Live</h3>
+    <div class="step-subtitle">Invoke the endpoint from terminal and see a real prediction come back</div>
+  </div>
+</div>
+
+<p>Run the smoke test script against the live endpoint. This sends 5 real requests and reports success rate and latency.</p>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Set env vars first if not already set</span>
+<span class="cmd">export</span> SUBSCRIPTION_ID=<span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
+<span class="cmd">export</span> RESOURCE_GROUP=<span class="string">"rg-claudebricks-dev"</span>
+<span class="cmd">export</span> ML_WORKSPACE=<span class="string">"mlw-claudebricks-dev-v2"</span>
+
+<span class="cmd">cd</span> deploymentcode/scripts/scenario1
+<span class="cmd">python</span> smoke_test.py <span class="flag">--endpoint-name</span> facade-classifier-endpoint <span class="flag">--num-requests</span> 5
+</div>
+
+<div class="callout callout-success">
+  <div class="callout-title">Expected output</div>
+  When we ran this during setup, all 5 requests returned 200 OK with predictions, averaging about 0.6 seconds per request. Your results may vary by a few hundred milliseconds depending on network path, but the endpoint should respond reliably.
+</div>
+
+<div class="code-block">
+<div class="code-label">Expected Output</div>
+<span class="output">Request 1/5: 200 OK, latency ~600ms, prediction: modern</span>
+<span class="output">Request 2/5: 200 OK, latency ~600ms, prediction: historic</span>
+<span class="output">Request 3/5: 200 OK, latency ~600ms, prediction: industrial</span>
+<span class="output">Request 4/5: 200 OK, latency ~600ms, prediction: commercial</span>
+<span class="output">Request 5/5: 200 OK, latency ~600ms, prediction: residential</span>
+<span class="output">Results: 5/5 successful (100%), avg latency: ~600ms</span>
+<span class="output">PASSED: success_rate=100% &gt;= 99%, latency within threshold</span>
+</div>
+
+<table>
+<thead><tr><th>Smoke Test Threshold</th><th>Requirement</th><th>Actual (during setup)</th></tr></thead>
+<tbody>
+<tr><td>Success rate</td><td>&ge; 99%</td><td>100% (5/5)</td></tr>
+<tr><td>P95 latency</td><td>&le; 2,000 ms</td><td>~600ms avg</td></tr>
+<tr><td>Response format</td><td>JSON with <code>prediction</code> field</td><td>Passed</td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- Interactive Step E -->
+<div class="step-card step-canary">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#8b5cf6;">E</div>
+  <div>
+    <h3>Discuss: Blue/Green Canary Rollout</h3>
+    <div class="step-subtitle">Step 8 from the full walkthrough, adapted for discussion</div>
+  </div>
+</div>
+
+<p>When you retrain and register a new model version, deploy it as a canary alongside the existing blue deployment. Traffic shifting is a metadata operation on the endpoint. It takes effect in seconds and can be reverted instantly.</p>
+
+<h3>The Rollout Pattern</h3>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Traffic Shifting Strategy</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Blue 100%</strong>
+    <div class="sub">Green 0%</div>
+    <div style="font-size:0.7rem;color:#555;margin-top:4px;">Initial state</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Blue 90%</strong>
+    <div class="sub">Green 10%</div>
+    <div style="font-size:0.7rem;color:#555;margin-top:4px;">First shift</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#8b5cf6;background:#f5f3ff;">
+    <strong>Blue 50%</strong>
+    <div class="sub">Green 50%</div>
+    <div style="font-size:0.7rem;color:#555;margin-top:4px;">Validation</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Blue 0%</strong>
+    <div class="sub">Green 100%</div>
+    <div style="font-size:0.7rem;color:#555;margin-top:4px;">Promoted</div>
+  </div>
+</div>
+</div>
+
+<h3>The Commands</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Deploy new version as "green" with 0% traffic</span>
+<span class="cmd">python</span> deploy_canary.py \
+  <span class="flag">--model-name</span> facade-classifier \
+  <span class="flag">--model-version</span> 2 \
+  <span class="flag">--endpoint-name</span> facade-classifier-endpoint \
+  <span class="flag">--deployment-name</span> green
+
+<span class="comment"># Smoke test only the green deployment before shifting any traffic</span>
+<span class="cmd">python</span> smoke_test.py \
+  <span class="flag">--endpoint-name</span> facade-classifier-endpoint \
+  <span class="flag">--deployment-name</span> green \
+  <span class="flag">--num-requests</span> 5
+
+<span class="comment"># Shift 10% to green, observe, then 50%, then 100%</span>
+<span class="cmd">python</span> promote_deployment.py <span class="flag">--endpoint-name</span> facade-classifier-endpoint <span class="flag">--deployment-name</span> green <span class="flag">--traffic</span> 10
+<span class="cmd">python</span> promote_deployment.py <span class="flag">--endpoint-name</span> facade-classifier-endpoint <span class="flag">--deployment-name</span> green <span class="flag">--traffic</span> 50
+<span class="cmd">python</span> promote_deployment.py <span class="flag">--endpoint-name</span> facade-classifier-endpoint <span class="flag">--deployment-name</span> green <span class="flag">--traffic</span> 100
+
+<span class="comment"># If green shows problems at any point, rollback instantly</span>
+<span class="cmd">python</span> rollback_deployment.py \
+  <span class="flag">--endpoint-name</span> facade-classifier-endpoint \
+  <span class="flag">--target-deployment</span> blue \
+  <span class="flag">--delete-failed</span>
+</div>
+
+<div class="callout callout-danger">
+  <div class="callout-title">Rollback is a metadata operation</div>
+  Traffic shifting does not provision or destroy any infrastructure. The deployment stays running at whatever traffic weight you assign. Rollback takes effect in seconds.
+</div>
+
+<h3>Discussion Points</h3>
+<ul style="margin:12px 0 12px 20px;line-height:2;">
+  <li>What is the difference between a blue/green deployment and a rolling deployment?</li>
+  <li>Why might you want to smoke test the green deployment <em>before</em> sending any live traffic to it?</li>
+  <li>What metrics would you watch at each traffic stage to decide whether to promote or rollback?</li>
+  <li>In the GitHub Actions pipeline, <code>promote_deployment.py</code> is called only if smoke tests pass. Where in the workflow does this happen?</li>
+</ul>
+
+</div>
+</div>
+
+<!-- Interactive Step F -->
+<div class="step-card step-monitor">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#ef4444;">F</div>
+  <div>
+    <h3>Discuss: Drift Monitoring Concepts</h3>
+    <div class="step-subtitle">Step 9 from the full walkthrough, adapted for discussion</div>
+  </div>
+</div>
+
+<p>After a model is in production, the distribution of incoming requests may drift from the distribution of the training data. The <code>monitoring/drift/</code> scripts establish a statistical baseline and compare future inference data against it on a weekly schedule.</p>
+
+<h3>How It Works</h3>
+
+<div class="code-block">
+<div class="code-label">Terminal</div>
+<span class="comment"># Step 1: Create a baseline profile from training data</span>
+<span class="cmd">python</span> create_baseline.py \
+  <span class="flag">--training-data</span> ../../deploymentcode/data/scenario1/features.csv \
+  <span class="flag">--output</span> baseline_profile.json
+<span class="output"># Outputs per-feature statistics: mean, std, percentiles, histograms</span>
+
+<span class="comment"># Step 2: Compare future inference data against the baseline</span>
+<span class="cmd">python</span> detect_drift.py \
+  <span class="flag">--baseline</span> baseline_profile.json \
+  <span class="flag">--inference-data</span> recent_inference_data.csv \
+  <span class="flag">--psi-warning</span> 0.2 \
+  <span class="flag">--psi-critical</span> 0.4
+<span class="output"># Exit code: 0=none, 1=warning, 2=critical</span>
+</div>
+
+<h3>Drift Metrics</h3>
+
+<table>
+<thead><tr><th>Metric</th><th>What It Measures</th><th>Thresholds</th></tr></thead>
+<tbody>
+<tr><td><strong>PSI</strong> (Population Stability Index)</td><td>Overall distribution shift between baseline and inference</td><td>&lt; 0.1 none, 0.1-0.2 warning, &gt; 0.2 critical</td></tr>
+<tr><td><strong>KS Statistic</strong></td><td>Maximum difference between cumulative distributions</td><td>Reported per feature</td></tr>
+<tr><td><strong>JS Divergence</strong></td><td>Symmetric measure of distribution difference</td><td>Reported per feature</td></tr>
+</tbody>
+</table>
+
+<h3>Automated Response Loop</h3>
+
+<div class="diagram-container" style="margin:16px 0;">
+<div class="diagram-title">Automated Drift Response Loop</div>
+<div class="flow-row">
+  <div class="flow-box" style="border-color:#ef4444;background:#fef2f2;">
+    <strong>Weekly Cron</strong>
+    <div class="sub">drift-check.yml</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#ef4444;background:#fef2f2;">
+    <strong>Compute PSI</strong>
+    <div class="sub">Per-feature metrics</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#f59e0b;background:#fffbeb;">
+    <strong>PSI &gt; 0.3?</strong>
+    <div class="sub">Threshold gate</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:var(--scenario1);background:#eef2ff;">
+    <strong>Retrain</strong>
+    <div class="sub">train.yml dispatch</div>
+  </div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-box" style="border-color:#10b981;background:#ecfdf5;">
+    <strong>Redeploy</strong>
+    <div class="sub">New model version</div>
+  </div>
+</div>
+</div>
+
+<h3>Discussion Points</h3>
+<ul style="margin:12px 0 12px 20px;line-height:2;">
+  <li>What is the difference between data drift and concept drift? Which does PSI detect?</li>
+  <li>Why would you want drift detection to trigger automatic retraining rather than just an alert?</li>
+  <li>In this setup, inference data needs to be collected and stored somewhere before <code>detect_drift.py</code> can run against it. Where would that data come from?</li>
+  <li>The weekly cron in <code>drift-check.yml</code> uses <code>repository_dispatch</code> to trigger retraining. What is the advantage of this over calling the training workflow directly?</li>
+</ul>
+
+</div>
+</div>
+
+<!-- LESSONS LEARNED -->
+<h2 id="lessons">Lessons Learned During Setup</h2>
+
+<div class="card">
+<p>These are the issues that came up when running the pipeline end-to-end for the first time. Each one is a realistic problem you will encounter in practice, and several map directly to AI-300 exam topics.</p>
+</div>
+
+<div class="step-card step-lesson">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f97316;">1</div>
+  <div>
+    <h3>Custom Conda Environment Broke the AML Executor Silently</h3>
+    <div class="step-subtitle">Environment base image compatibility with Azure ML job runtime</div>
+  </div>
+</div>
+
+<div class="lesson-item">
+  <div class="lesson-title">The Problem</div>
+  <p>The custom <code>claudebricks-sklearn</code> environment uses <code>openmpi4.1.0-ubuntu22.04</code> as its base image. Jobs submitted with this environment would appear to start, then fail at the executor initialization stage without a clear error message in the job logs. The failure was silent: the job status moved to <em>Failed</em> but the log output gave no Python traceback, just a generic executor startup error.</p>
+  <div class="lesson-fix">Fix: Switch to the Azure ML curated environment <code>sklearn-1.5</code> for this training run. Curated environments are pre-validated against AML infrastructure and have no base image compatibility issues.</div>
+</div>
+
+<h3>What this means for the exam</h3>
+<p>AML curated environments (prefixed <code>AzureML-</code> or available by short name like <code>sklearn-1.5</code>) are maintained by Microsoft and tested against the AML execution infrastructure. Custom environments built from community base images can have incompatibilities that only surface at runtime. When a job fails at executor startup with no Python-level traceback, the environment is the first thing to check.</p>
+
+<table>
+<thead><tr><th>Environment Type</th><th>Build Time</th><th>Compatibility Risk</th><th>When to Use</th></tr></thead>
+<tbody>
+<tr><td>Curated (<code>sklearn-1.5</code>)</td><td>Zero (pre-built)</td><td>None</td><td>Standard workloads matching a curated offering</td></tr>
+<tr><td>Custom (conda spec)</td><td>5-15 min first run</td><td>Possible base image issues</td><td>When you need packages not in any curated environment</td></tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+<div class="step-card step-lesson">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f97316;">2</div>
+  <div>
+    <h3>MLflow 3.x Broke AML Experiment Tracking</h3>
+    <div class="step-subtitle">API version mismatch between the MLflow client and the AML tracking server</div>
+  </div>
+</div>
+
+<div class="lesson-item">
+  <div class="lesson-title">The Problem</div>
+  <p>MLflow 3.10.1 added a new internal API call to <code>/api/2.0/mlflow/logged-models</code> when <code>mlflow.log_model()</code> is called. The AML tracking server (which hosts the MLflow-compatible API) does not implement this endpoint yet. The call returned 404, which caused the training script to fail during model logging even though the training itself had completed successfully.</p>
+  <div class="lesson-fix">Fix: Pin <code>mlflow&gt;=2.10.0,&lt;=2.16.2</code> in the environment or requirements. The 2.x series uses only API endpoints that the AML tracking server supports.</div>
+</div>
+
+<h3>What this means for the exam</h3>
+<p>AML's MLflow-compatible tracking server is <em>compatible</em> but not identical to a standalone MLflow tracking server. The AML server supports the core experiment, run, metric, parameter, and artifact APIs. Newer MLflow client versions may call additional endpoints that the AML server has not implemented. Pin your MLflow version in all AML job environments.</p>
+
+</div>
+</div>
+
+<div class="step-card step-lesson">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f97316;">3</div>
+  <div>
+    <h3>vCPU Quota Was Fully Consumed by the Compute Cluster</h3>
+    <div class="step-subtitle">VM family quotas are shared across all AML compute in a region</div>
+  </div>
+</div>
+
+<div class="lesson-item">
+  <div class="lesson-title">The Problem</div>
+  <p>The DSv2 VM family quota in East US 2 was 6 cores. The training compute cluster (<code>cpu-cluster</code>, Standard_DS3_v2, max 2 nodes) already occupied all 6 cores at maximum scale. When the endpoint deployment tried to create a managed online endpoint instance using Standard_DS3_v2, it failed with a quota exceeded error.</p>
+  <div class="lesson-fix">Fix: Deploy the endpoint using Standard_F2s_v2 (Fsv2 family), which has a separate quota pool. The endpoint uses 2 vCPUs from the Fsv2 quota and does not conflict with the DSv2 training cluster.</div>
+</div>
+
+<h3>What this means for the exam</h3>
+<p>Azure vCPU quotas are per VM family, per region, per subscription. A single quota limit can block multiple different resource types (compute clusters, managed endpoints, AKS nodes) that all use the same VM family. Choosing different VM families for training and inference workloads avoids this conflict. Quota increases can be requested in the Azure portal under Subscriptions &rarr; Usage + quotas.</p>
+
+<table>
+<thead><tr><th>Resource</th><th>VM Size</th><th>VM Family</th><th>vCPUs Used</th></tr></thead>
+<tbody>
+<tr><td>cpu-cluster (max scale)</td><td>Standard_DS3_v2</td><td>DSv2</td><td>8 (4 per node x 2 nodes)</td></tr>
+<tr><td>facade-classifier-endpoint</td><td>Standard_F2s_v2</td><td>Fsv2</td><td>2</td></tr>
+</tbody>
+</table>
+
+<div class="callout callout-info">
+  <div class="callout-title">Quotas are checked at deployment time</div>
+  Azure does not pre-reserve quota when you define a compute cluster or endpoint. The quota check happens when nodes are actually provisioned. A cluster with max_nodes=2 only consumes quota when jobs are actively running and nodes have scaled up.
+</div>
+
+</div>
+</div>
+
+<div class="step-card step-lesson">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f97316;">4</div>
+  <div>
+    <h3>Relative Path in prepare_data.py Broke When Run from Different Directories</h3>
+    <div class="step-subtitle">Python scripts in AML jobs run from a different working directory than expected</div>
+  </div>
+</div>
+
+<div class="lesson-item">
+  <div class="lesson-title">The Problem</div>
+  <p>The <code>prepare_data.py</code> script used a relative path like <code>../data/facade-images</code> to locate the source images. When called from a different directory than expected, Python resolved the relative path against the current working directory (which was different), and the script failed with a FileNotFoundError.</p>
+  <div class="lesson-fix">Fix: Use <code>Path(__file__).parent</code> to build paths relative to the script file's location, not the calling directory. This works regardless of where the script is invoked from.</div>
+</div>
+
+<div class="code-block">
+<div class="code-label">Python</div>
+<span class="comment"># Fragile: depends on where you run the script from</span>
+data_dir = <span class="string">"../data/facade-images"</span>
+
+<span class="comment"># Robust: always relative to this script's location</span>
+<span class="cmd">from</span> pathlib <span class="cmd">import</span> Path
+data_dir = Path(__file__).parent / <span class="string">"../data/facade-images"</span>
+</div>
+
+</div>
+</div>
+
+<div class="step-card step-lesson">
+<div class="step-body">
+<div class="step-header">
+  <div class="step-num" style="background:#f97316;">5</div>
+  <div>
+    <h3>smoke_test.py Had Two Bugs: Missing Request File and Double-Serialized JSON</h3>
+    <div class="step-subtitle">SDK invocation API details and endpoint response format</div>
+  </div>
+</div>
+
+<div class="lesson-item">
+  <div class="lesson-title">Bug 1: request_file=None</div>
+  <p>The AML SDK's <code>online_endpoints.invoke()</code> method requires a <code>request_file</code> parameter pointing to a file on disk. Passing <code>request_file=None</code> caused an SDK-level error before the request was even sent.</p>
+  <div class="lesson-fix">Fix: Write the request payload to a temp file and pass that file's path to <code>invoke()</code>.</div>
+</div>
+
+<div class="lesson-item" style="margin-top:16px;">
+  <div class="lesson-title">Bug 2: Double-Serialized JSON Response</div>
+  <p>The scoring script returned a JSON string. The SDK wrapped that in another JSON string during transport. The smoke test tried to parse the outer string as JSON and got a prediction of <code>"{\"prediction\": \"historic\"}"</code> instead of <code>{"prediction": "historic"}</code>. The raw result was a string containing a JSON-encoded string, not a dict.</p>
+  <div class="lesson-fix">Fix: Call <code>json.loads()</code> twice when the result is a string, or handle both cases: if the result is already a dict, use it directly; if it is a string, parse it.</div>
+</div>
+
+<div class="code-block">
+<div class="code-label">Python</div>
+<span class="comment"># Double-parse the response to handle double-serialized JSON</span>
+raw = ml_client.online_endpoints.invoke(
+    endpoint_name=endpoint_name,
+    request_file=tmp_path
+)
+result = json.loads(raw)
+<span class="cmd">if</span> isinstance(result, str):
+    result = json.loads(result)
+prediction = result[<span class="string">"prediction"</span>]
+</div>
+
+</div>
+</div>
+
+<!-- EXAM RELEVANCE -->
+<h2 id="exam">Exam Relevance</h2>
+
+<div class="card">
+<p>The AI-300 exam covers five domains. Below is a map from what we covered in this session to the domain it belongs to. The lessons learned items in particular are worth reviewing before the exam, since they represent the kinds of real-world failure modes the exam asks about.</p>
+</div>
+
+<div class="card">
+<table>
+<thead><tr><th>What We Covered</th><th>AI-300 Domain</th><th>Specific Topic</th></tr></thead>
+<tbody>
+<tr>
+  <td>Curated vs. custom environments, environment base image issues</td>
+  <td><span class="exam-domain"><strong>Domain 2:</strong> Design and Implement Data and Compute Resources</span></td>
+  <td>AML environment types, compute target configuration</td>
+</tr>
+<tr>
+  <td>MLflow model logging, model registration, MLflow format artifacts</td>
+  <td><span class="exam-domain"><strong>Domain 3:</strong> Design and Implement ML Solutions</span></td>
+  <td>MLflow experiment tracking, model registration, artifact management</td>
+</tr>
+<tr>
+  <td>Managed online endpoints, deployment creation, traffic routing</td>
+  <td><span class="exam-domain"><strong>Domain 4:</strong> Deploy and Operationalize Solutions</span></td>
+  <td>Managed online endpoints, deployment slots, traffic weights</td>
+</tr>
+<tr>
+  <td>Blue/green canary rollout, smoke tests, rollback</td>
+  <td><span class="exam-domain"><strong>Domain 4:</strong> Deploy and Operationalize Solutions</span></td>
+  <td>Safe deployment patterns, canary deployments, rollback strategies</td>
+</tr>
+<tr>
+  <td>Drift detection (PSI, KS, JS), automated retraining trigger</td>
+  <td><span class="exam-domain"><strong>Domain 5:</strong> Monitor and Maintain Solutions</span></td>
+  <td>Data drift detection, model monitoring, automated retraining</td>
+</tr>
+<tr>
+  <td>vCPU quota limits, VM family quota pools</td>
+  <td><span class="exam-domain"><strong>Domain 2:</strong> Design and Implement Data and Compute Resources</span></td>
+  <td>Azure subscription quotas, compute resource planning</td>
+</tr>
+<tr>
+  <td>DefaultAzureCredential, key vs. token auth on endpoints</td>
+  <td><span class="exam-domain"><strong>Domain 1:</strong> Design a Machine Learning Solution</span></td>
+  <td>Authentication, identity, and access for ML workloads</td>
+</tr>
+<tr>
+  <td>Data asset registration, lineage from data to model to endpoint</td>
+  <td><span class="exam-domain"><strong>Domain 2:</strong> Design and Implement Data and Compute Resources</span></td>
+  <td>AML data assets, versioning, lineage tracking</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-info" style="margin-bottom:32px;">
+  <div class="callout-title">Key numbers to remember</div>
+  <strong>Training job:</strong> <code>honest_needle_m5t93gg8r6</code> &bull;
+  <strong>Model:</strong> <code>facade-classifier:1</code> &bull;
+  <strong>Endpoint:</strong> <code>facade-classifier-endpoint</code> &bull;
+  <strong>Workspace:</strong> <code>mlw-claudebricks-dev-v2</code> &bull;
+  <strong>Region:</strong> East US 2 &bull;
+  <strong>Smoke test:</strong> 5/5, ~0.6s latency
+</div>
+
+<div style="text-align:center;margin:48px 0 32px;font-size:0.85rem;color:var(--text-muted);">
+  <strong>Claude.Bricks</strong> &bull; Scenario 1 Study Group Session &bull; Pre-staged with Claude Code
+</div>
+
+</div><!-- end container -->
+</body>
+</html>
