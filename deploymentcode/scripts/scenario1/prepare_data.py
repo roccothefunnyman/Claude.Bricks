@@ -16,7 +16,7 @@ def main():
         name="facade-images",
         version="1",
         description="Labeled facade images for style classification",
-        path="../../data/scenario1/",
+        path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "data", "scenario1"),
         type=AssetTypes.URI_FOLDER,
     )
     ml_client.data.create_or_update(data_asset)

@@ -13,6 +13,7 @@ import json
 import os
 import statistics
 import sys
+import tempfile
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -57,6 +58,14 @@ def main():
     ml_client = get_ml_client()
     payload = build_sample_payload()
 
+    # Write payload to temp file (SDK invoke requires a file path)
+    tmp = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".json", delete=False
+    )
+    tmp.write(payload)
+    tmp.close()
+    request_file = tmp.name
+
     successes = 0
     failures = 0
     latencies = []
@@ -71,22 +80,18 @@ def main():
         try:
             invoke_kwargs = {
                 "endpoint_name": args.endpoint_name,
-                "request_file": None,
+                "request_file": request_file,
             }
             if args.deployment_name:
                 invoke_kwargs["deployment_name"] = args.deployment_name
-
-            response = ml_client.online_endpoints.invoke(
-                endpoint_name=args.endpoint_name,
-                request_file=None,
-                input_data=payload,
-                **({"deployment_name": args.deployment_name} if args.deployment_name else {}),
-            )
+            response = ml_client.online_endpoints.invoke(**invoke_kwargs)
             elapsed = time.time() - start
             latencies.append(elapsed)
 
-            # Validate response schema
+            # Validate response schema (response may be double-serialized)
             result = json.loads(response)
+            if isinstance(result, str):
+                result = json.loads(result)
             missing = EXPECTED_RESPONSE_FIELDS - set(result.keys())
             if missing:
                 schema_errors.append(f"Request {i + 1}: missing fields {missing}")
@@ -133,6 +138,8 @@ def main():
     if p95_latency > P95_LATENCY_THRESHOLD:
         passed = False
         reasons.append(f"P95 latency {p95_latency:.3f}s exceeds {P95_LATENCY_THRESHOLD}s")
+
+    os.unlink(request_file)
 
     if passed:
         print("\nResult: PASS")
