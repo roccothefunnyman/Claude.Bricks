@@ -334,7 +334,7 @@ tr:hover { background: #fafbfc; }
   <div class="node-card" style="border:1.5px solid #c7ddf5;">
     <img src="azure-icons/ai + machine learning/10166-icon-service-Machine-Learning.svg">
     <div class="name">ML Workspace</div>
-    <div class="detail">mlw-claudebricks-dev</div>
+    <div class="detail">mlw-claudebricks-dev-v2</div>
   </div>
   <div class="node-card" style="border:1.5px solid #c7ddf5;">
     <img src="azure-icons/storage/10086-icon-service-Storage-Accounts.svg">
@@ -402,8 +402,8 @@ tr:hover { background: #fafbfc; }
 <span class="cmd">az account set</span> <span class="flag">--subscription</span> <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
 
 <span class="comment"># Verify you can see the workspace</span>
-<span class="cmd">az resource show</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--name</span> mlw-claudebricks-dev <span class="flag">--resource-type</span> Microsoft.MachineLearningServices/workspaces <span class="flag">--query</span> name <span class="flag">-o</span> tsv
-<span class="output"># Expected: mlw-claudebricks-dev</span>
+<span class="cmd">az resource show</span> <span class="flag">--resource-group</span> rg-claudebricks-dev <span class="flag">--name</span> mlw-claudebricks-dev-v2 <span class="flag">--resource-type</span> Microsoft.MachineLearningServices/workspaces <span class="flag">--query</span> name <span class="flag">-o</span> tsv
+<span class="output"># Expected: mlw-claudebricks-dev-v2</span>
 </div>
 
 <div class="callout callout-info">
@@ -436,7 +436,7 @@ tr:hover { background: #fafbfc; }
 <span class="comment"># Standard (all scenarios)</span>
 <span class="cmd">export</span> SUBSCRIPTION_ID=<span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
 <span class="cmd">export</span> RESOURCE_GROUP=<span class="string">"rg-claudebricks-dev"</span>
-<span class="cmd">export</span> ML_WORKSPACE=<span class="string">"mlw-claudebricks-dev"</span>
+<span class="cmd">export</span> ML_WORKSPACE=<span class="string">"mlw-claudebricks-dev-v2"</span>
 
 <span class="comment"># Scenario 4 specific</span>
 <span class="cmd">export</span> AZURE_OPENAI_ENDPOINT=<span class="string">"https://oai-claudebricks-dev.openai.azure.com/"</span>
@@ -452,7 +452,7 @@ tr:hover { background: #fafbfc; }
 <div class="code-label">PowerShell</div>
 <span class="cmd">$env:SUBSCRIPTION_ID</span> = <span class="string">"8e93a57a-20bc-4ef6-8717-07fd7d0447a8"</span>
 <span class="cmd">$env:RESOURCE_GROUP</span> = <span class="string">"rg-claudebricks-dev"</span>
-<span class="cmd">$env:ML_WORKSPACE</span> = <span class="string">"mlw-claudebricks-dev"</span>
+<span class="cmd">$env:ML_WORKSPACE</span> = <span class="string">"mlw-claudebricks-dev-v2"</span>
 <span class="cmd">$env:AZURE_OPENAI_ENDPOINT</span> = <span class="string">"https://oai-claudebricks-dev.openai.azure.com/"</span>
 <span class="cmd">$env:AZURE_OPENAI_API_VERSION</span> = <span class="string">"2024-08-06"</span>
 <span class="cmd">$env:AZURE_SEARCH_ENDPOINT</span> = <span class="string">"https://srch-claudebricks-dev.search.windows.net"</span>
@@ -464,7 +464,7 @@ tr:hover { background: #fafbfc; }
 <tbody>
 <tr><td><code>SUBSCRIPTION_ID</code></td><td>Your Azure subscription ID</td><td>All scripts via <code>ml_client.py</code></td></tr>
 <tr><td><code>RESOURCE_GROUP</code></td><td><code>rg-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
-<tr><td><code>ML_WORKSPACE</code></td><td><code>mlw-claudebricks-dev</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
+<tr><td><code>ML_WORKSPACE</code></td><td><code>mlw-claudebricks-dev-v2</code></td><td>All scripts via <code>ml_client.py</code></td></tr>
 <tr><td><code>AZURE_OPENAI_ENDPOINT</code></td><td>OpenAI resource endpoint</td><td>Scenario 4 generation + indexing scripts</td></tr>
 <tr><td><code>AZURE_OPENAI_API_VERSION</code></td><td><code>2024-08-06</code></td><td>OpenAI SDK version targeting</td></tr>
 <tr><td><code>AZURE_SEARCH_ENDPOINT</code></td><td>AI Search resource endpoint</td><td>Index + retrieval scripts</td></tr>
